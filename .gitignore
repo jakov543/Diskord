@@ -2,3 +2,6 @@ desktop/app/
 desktop/node_modules/
 desktop/dist/
 desktop/CHANGELOG.md
+server/node_modules/
+server/data/
+out/

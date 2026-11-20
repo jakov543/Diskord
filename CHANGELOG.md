@@ -1,5 +1,17 @@
 # Diskord changelog
 
+## 4.0.0
+### ✨ New
+- 🗄️ **Diskord's own server and database**: no more Firebase and no Google. Run **diskord-server** on your VPS or hosting panel, and everything (accounts, servers, messages, DMs, friends, pictures, GIFs) is saved on your own machine
+- 🔐 Own accounts: sign up with display name, @username, email and password, then log in with email **or** username
+- 🌐 First start asks for your server address (for example `123.45.67.89:3000`); change it any time from your profile menu
+- 🔑 Change password from your profile menu. The owner can reset forgotten passwords with `resetpw` in the server console
+- 👑 Owner console commands: users, resetpw, ban/unban, sign-ups on/off
+- 💾 The server backs itself up every 6 hours
+### 🛠️ Fixes
+- After creating a server, Diskord now jumps straight into it
+- "Friend request sent" message no longer disappears
+
 ## 3.0.1
 ### 🛠️ Fixes
 - "You don't have permission" when using Friends, DMs or usernames: if your Firebase rules are older than the app, Diskord now shows a yellow bar with **Copy new rules** and **Open Firebase rules** buttons, so the fix takes 30 seconds

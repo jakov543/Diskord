@@ -8,10 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b0912">
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js"></script>
+<script src="diskord-config.js"></script>
 <script src="adapter.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -504,12 +501,10 @@ window.__diskordBlob = (id, d) => {
 };
 const blob = id => {
   if (!id) return '';
-  if (String(id).startsWith('data:')) return id;
-  if (BLOBS.get(id)) return BLOBS.get(id);
-  if (!BLOBS.has(id) && S.db) { BLOBS.set(id, null); S.db.doc('blobs/' + id).get().then(sn => { const d = sn.exists && sn.data().d; if (d) window.__diskordBlob(id, d); }).catch(() => BLOBS.delete(id)); }
-  return PIX + '#' + id;
-};
-const callLink = (room, title, video) => `${CALL_URL}#r=${encodeURIComponent(room)}${video ? '&v=1' : ''}${S.selfMute ? '&m=1' : ''}${S.selfDeaf ? '&d=1' : ''}&n=${encodeURIComponent(nameOf(S.myId))}&t=${encodeURIComponent(title || '')}`;
+  if (String(id).startsWith('data:') || /^https?:/.test(id)) return id;
+  if (!/^[A-Za-z0-9]{24}$/.test(id)) return PIX;
+  return (window.diskordServer ? window.diskordServer() : '') + '/blob/' + id;
+};const callLink = (room, title, video) => `${CALL_URL}#r=${encodeURIComponent(room)}${video ? '&v=1' : ''}${S.selfMute ? '&m=1' : ''}${S.selfDeaf ? '&d=1' : ''}&n=${encodeURIComponent(nameOf(S.myId))}&t=${encodeURIComponent(title || '')}`;
 const roomId = s => ('fx-' + s).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 70);
 const COLORS = ['#ff3d6e', '#8b5cf6', '#22c1ee', '#2bd98a', '#ffb020', '#ff7a45', '#4f7cff', '#e94cd8'];
 const fmtTime = t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1191,8 +1186,10 @@ async function send() {
 }
 function writeError(e) {
   const code = e && e.code;
-  if (code === 'quota_exceeded' || code === 'resource-exhausted') toast('Diskord hit today\'s free limit. Try again later.', true);
-  else if (code === 'permission-denied') { toast(S.isSuper ? 'Firebase blocked that — update your database rules (see the yellow bar).' : 'You don\'t have permission to do that.', true); if (S.isSuper) rulesProblem('that action'); }
+  if (code === 'resource-exhausted') toast('Slow down a little! 🐢', true);
+  else if (code === 'not-found') toast('That message or channel doesn\'t exist anymore.', true);
+  else if (code === 'invalid-argument') toast((e && e.message) || 'That didn\'t work.', true);
+  else if (code === 'permission-denied') { toast('You don\'t have permission to do that.', true); }
   else if (code === 'unavailable') toast('You\'re offline — it will send when you\'re back online.', true);
   else if (code === 'resource_exhausted') toast('Slow down a little!', true);
   else toast('Could not send — check your connection.', true);
@@ -1279,7 +1276,7 @@ function place(el, anchor) {
 const GIF_NAMES = { gg: 'gg', lol: 'lol', w: 'W', l: 'L', hype: 'hype', brb: 'brb', gn: 'good night', ez: 'ez', pog: 'pog', ty: 'thank you' };
 // ---- Tenor (real GIFs). Uses the Firebase project's API key once the Tenor API is enabled on that Google Cloud project.
 const TENOR_OK = u => typeof u === 'string' && /^https:\/\/media\d*\.tenor\.com\//.test(u);
-const tenorKey = () => (window.DISKORD_FIREBASE && (window.DISKORD_FIREBASE.tenorKey || window.DISKORD_FIREBASE.apiKey)) || '';
+const tenorKey = () => window.DISKORD_TENOR || '';
 const tenorCache = new Map();
 async function tenor(path, params) {
   const key = tenorKey(); if (!key) throw new Error('nokey');
@@ -1501,7 +1498,7 @@ function createServerModal() {
           for (const [n, t, type] of [['general', 'Talk about anything', 'text'], ['gaming', 'What are we playing?', 'text'], ['clips', 'Share your best moments', 'text'], ['memes', '', 'text'], ['Lounge', '', 'voice'], ['Gaming', '', 'voice']]) {
             await S.db.collection('channels').add({ sid: ref.id, name: n, topic: t, type, pos: pos++, at: Date.now() });
           }
-          S.sid = ref.id; S.cid = null; ls.set('sid', ref.id); close(); toast(`${name} is ready! 🎉`);
+          S.sid = ref.id; S.cid = null; ls.set('sid', ref.id); close(); pickChannel(); renderAll(); toast(`${name} is ready! 🎉`);
         } catch (e) { btn.disabled = false; writeError(e); }
       };
     });
@@ -1682,18 +1679,7 @@ let rulesWarned = false;
 const RULES_URL = 'https://raw.githubusercontent.com/jakov543/Diskord/main/firestore.rules';
 function rulesProblem(where) {
   if (rulesWarned) return; rulesWarned = true;
-  const pid = (window.DISKORD_FIREBASE && window.DISKORD_FIREBASE.projectId) || '';
-  const bar = document.createElement('div'); bar.className = 'rulesbar';
-  bar.innerHTML = S.isSuper
-    ? `<b>⚠️ Firebase is blocking ${esc(where)}.</b> Your database rules are older than this version of Diskord. <button id="rbCopy">1. Copy new rules</button> <a id="rbOpen" href="https://console.firebase.google.com/project/${encodeURIComponent(pid)}/firestore/rules" target="_blank" rel="noopener">2. Open Firebase rules</a> → select all, paste, <b>Publish</b>, then restart Diskord. <button id="rbX">✕</button>`
-    : `<b>⚠️ Some features are blocked</b> (${esc(where)}). Ask the Diskord owner to update the Firebase rules. <button id="rbX">✕</button>`;
-  document.body.appendChild(bar);
-  bar.querySelector('#rbX').onclick = () => bar.remove();
-  const cp = bar.querySelector('#rbCopy');
-  if (cp) cp.onclick = async () => {
-    try { const r = await fetch(RULES_URL + '?t=' + Date.now()); const t = await r.text(); await navigator.clipboard.writeText(t); cp.textContent = '✓ Copied'; }
-    catch (_) { toast('Could not copy — open github.com/jakov543/Diskord/blob/main/firestore.rules', true); }
-  };
+  toast('The server blocked ' + where + '.', true);
 }
 const permErr = where => e => { if (e && e.code === 'permission-denied') rulesProblem(where); };
 function subscribeHome() {
@@ -1800,7 +1786,7 @@ function renderFriendsPage() {
     body = `<div class="fh">Message Requests — ${reqs.length}</div><p class="fnote">Messages from people who aren't your friends land here. Accept to move them to your DMs.</p>` + reqs.map(d => { const u = d.members.find(m => m !== S.myId); return row(u, `<button class="btn go sm2" data-accdm="${esc(d.id)}">Accept</button><button class="btn sm" data-ign="${esc(d.id)}">Ignore</button>`, 'Sent you a message'); }).join('') +
       (reqs.length ? '' : '<div class="fempty"><div style="font-size:52px">✉️</div><p>No message requests.</p></div>');
   } else {
-    body = `<div class="addf"><h3>Add Friend</h3><p>You can add friends with their Diskord username.</p><form id="addForm" class="addbox"><input id="addName" placeholder="You can add friends with their Diskord username." maxlength="25" autocomplete="off"><button class="btn primary sm2" id="addGo">Send Friend Request</button></form><div id="addMsg"></div>
+    body = `<div class="addf"><h3>Add Friend</h3><p>You can add friends with their Diskord username.</p><form id="addForm" class="addbox"><input id="addName" placeholder="You can add friends with their Diskord username." maxlength="25" autocomplete="off"><button class="btn primary sm2" id="addGo">Send Friend Request</button></form><div id="addMsg">${S.addMsg || ''}</div>
       ${unameOf(S.myId) ? `<p class="fnote" style="margin-top:16px">Your username is <b>@${esc(unameOf(S.myId))}</b> — share it so friends can add you.</p>` : `<p class="fnote" style="margin-top:16px">You don't have a username yet. <a href="#" id="pickU">Pick one</a> so friends can add you.</p>`}</div>`;
   }
   f.innerHTML = `<div class="ftabs"><b class="ft">${ICON.friends} Friends</b>${tabs.map(([k, l]) => `<button data-ft="${k}" class="${tab === k ? 'on' : ''} ${k === 'add' ? 'add' : ''}">${l}</button>`).join('')}</div><div class="fbody">${body}</div>`;
@@ -1821,10 +1807,23 @@ function renderFriendsPage() {
     const v = f.querySelector('#addName').value.trim().toLowerCase().replace(/^@/, ''), msg = f.querySelector('#addMsg');
     if (!v) return;
     const uid = await S.user.findUsername(v).catch(() => null);
-    if (!uid) { msg.innerHTML = `<p class="bad">Hm, didn't work. Double check that the username @${esc(v)} is correct.</p>`; return; }
+    if (!uid) { S.addMsg = msg.innerHTML = `<p class="bad">Hm, didn't work. Double check that the username @${esc(v)} is correct.</p>`; return; }
     needNames([uid]); await addFriendByUid(uid);
-    msg.innerHTML = `<p class="good">Success! Your friend request to @${esc(v)} was sent.</p>`; f.querySelector('#addName').value = '';
+    S.addMsg = `<p class="good">Success! Your friend request to @${esc(v)} was sent.</p>`; const m2 = f.querySelector('#addMsg'); if (m2) m2.innerHTML = S.addMsg; const n2 = f.querySelector('#addName'); if (n2) n2.value = '';
   };
+}
+function passwordModal() {
+  modal(`<div class="mh"><h2>Change password</h2></div><div class="mb">
+    <div class="field"><label>Current password</label><input id="pwOld" type="password" autocomplete="current-password"></div>
+    <div class="field"><label>New password</label><input id="pwNew" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
+    <div id="pwMsg" style="color:var(--dnd);font-size:13px"></div></div>
+    <div class="mf"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" data-ok>Change password</button></div>`, (o, close) => {
+    o.querySelector('[data-x]').onclick = close;
+    o.querySelector('[data-ok]').onclick = async () => {
+      try { await S.user.changePassword(o.querySelector('#pwOld').value, o.querySelector('#pwNew').value); close(); toast('Password changed 🔑 — other devices were logged out'); }
+      catch (e) { o.querySelector('#pwMsg').textContent = (e && e.message) || 'Could not change it.'; }
+    };
+  });
 }
 function usernameModal(force) {
   modal(`<div class="mh"><h2>${force ? 'Pick your username' : 'Change username'}</h2><p>Friends add you with your username. Lowercase letters, numbers, dot and underscore.</p></div>
@@ -1878,6 +1877,8 @@ function profileCard(e, uid) {
         <button data-pm="edit">✏️<span>Edit Profile</span></button>
         <button data-pm="status"><span class="st-dot ${statusOf(uid) || 'off'}"></span><span>${stLabel[S.status] || 'Online'}</span><i>›</i></button>
         <button data-pm="user">🪪<span>Username: ${unameOf(uid) ? '@' + esc(unameOf(uid)) : 'pick one'}</span><i>›</i></button>
+        <button data-pm="pw">🔑<span>Change password</span><i>›</i></button>
+        <button data-pm="srv">🌐<span>Server: ${esc((window.diskordServer ? window.diskordServer() : '').replace(/^https?:\/\//, ''))}</span><i>›</i></button>
       </div><div class="pc-menu"><button data-pm="logout" class="danger">🚪<span>Log out</span></button></div>`
       : `<div class="pc-actions">
         <button class="btn primary" data-pm="dm">💬 Message</button>
@@ -1899,6 +1900,8 @@ function profileCard(e, uid) {
     closeFloating();
     if (k === 'edit') profileEditor();
     if (k === 'user') usernameModal();
+    if (k === 'pw') passwordModal();
+    if (k === 'srv') confirmModal('Change server', 'Log out and connect to a different Diskord server?', 'Change server', () => window.diskordChangeServer && window.diskordChangeServer());
     if (k === 'logout') confirmModal('Log out', 'Log out of Diskord on this device?', 'Log out', () => window.diskordLogout && window.diskordLogout());
     if (k === 'dm') openDm(uid);
     if (k === 'add') addFriendByUid(uid);

@@ -1,8 +1,8 @@
-name: Build Diskord installer
+name: Build Diskord installer + server
 on:
   push:
     branches: [main]
-    paths-ignore: ['README.md', 'firestore.rules', 'CHANGELOG.md']
+    paths-ignore: ['README.md', 'CHANGELOG.md']
   workflow_dispatch:
 permissions:
   contents: write
@@ -13,57 +13,50 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
-      - name: Check Firebase is configured
-        id: cfg
-        shell: bash
-        run: |
-          if grep -q "DISKORD_FIREBASE = null" firebase-config.js; then echo "::notice::firebase-config.js is still empty - skipping the installer"; echo "ok=false" >> $GITHUB_OUTPUT; else echo "ok=true" >> $GITHUB_OUTPUT; fi
       - name: Bundle the Diskord app into the desktop app
-        if: steps.cfg.outputs.ok == 'true'
         shell: bash
         run: |
           mkdir -p desktop/app/icons desktop/app/vendor
-          cp index.html call.html adapter.js firebase-config.js logo.svg manifest.webmanifest desktop/app/
-          cp CHANGELOG.md desktop/CHANGELOG.md
+          cp index.html call.html adapter.js diskord-config.js logo.svg manifest.webmanifest desktop/app/
           cp icons/*.png desktop/app/icons/
+          cp CHANGELOG.md desktop/CHANGELOG.md
           cd desktop/app/vendor
-          npm pack firebase@10.14.1 peerjs@1.5.4 --silent
-          tar -xzf firebase-10.14.1.tgz && cp package/firebase-app-compat.js package/firebase-auth-compat.js package/firebase-firestore-compat.js . && rm -rf package
+          npm pack peerjs@1.5.4 --silent
           tar -xzf peerjs-1.5.4.tgz && cp package/dist/peerjs.min.js . && rm -rf package *.tgz
           cd ..
-          sed -i 's#https://www.gstatic.com/firebasejs/10.14.1/#vendor/#g' index.html
           sed -i 's#https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js#vendor/peerjs.min.js#' call.html
-          ls -la . vendor
+      - name: Build the server package
+        shell: bash
+        run: |
+          mkdir -p out/diskord-server/public/icons
+          cp server/server.js server/rules.js server/package.json server/config.json server/README.md server/start.bat server/start.sh out/diskord-server/
+          cp index.html call.html adapter.js diskord-config.js logo.svg manifest.webmanifest sw.js out/diskord-server/public/
+          cp icons/*.png out/diskord-server/public/icons/
+          cd out/diskord-server && npm install --omit=dev --no-audit --no-fund && cd ..
+          7z a -tzip diskord-server.zip diskord-server > /dev/null
       - name: Install
-        if: steps.cfg.outputs.ok == 'true'
         working-directory: desktop
         run: npm install --no-audit --no-fund
       - name: Build installer
-        if: steps.cfg.outputs.ok == 'true'
         working-directory: desktop
         run: npm run dist
       - name: Read version
-        if: steps.cfg.outputs.ok == 'true'
         id: v
         shell: bash
         run: echo "version=$(node -p "require('./desktop/package.json').version")" >> $GITHUB_OUTPUT
       - name: Release notes from CHANGELOG.md
-        if: steps.cfg.outputs.ok == 'true'
         shell: bash
         run: |
           V="${{ steps.v.outputs.version }}"
           awk -v v="$V" '/^## /{p=($2==v)} p && !/^## /' CHANGELOG.md > notes.md
           {
             echo "## What's new in Diskord $V"; echo; cat notes.md; echo
-            echo "---"; echo "### ⬇️ Install (Windows 10 / 11)"
-            echo "1. Download **Diskord-Setup-$V.exe** below and run it."
-            echo "2. If Windows SmartScreen says *Windows protected your PC*, click **More info → Run anyway** (the app isn't code-signed)."
-            echo "3. Open Diskord, then **Sign up** or **Log in**."
-            echo; echo "Already have Diskord? It updates itself — or use **Check for updates** in the tray menu."
+            echo "---"; echo "### ⬇️ Downloads"
+            echo "- **Diskord-Setup-$V.exe**: the Diskord app for Windows 10 / 11. If SmartScreen appears, click **More info → Run anyway**."
+            echo "- **diskord-server.zip**: your own Diskord server. Upload it to your VPS or hosting panel and start it (see README inside)."
+            echo; echo "Already have Diskord? It updates itself."
           } > body.md
-          cat body.md
       - name: Publish release
-        if: steps.cfg.outputs.ok == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.v.outputs.version }}
@@ -74,3 +67,4 @@ jobs:
             desktop/dist/Diskord-Setup-*.exe
             desktop/dist/Diskord-Setup-*.exe.blockmap
             desktop/dist/latest.yml
+            out/diskord-server.zip

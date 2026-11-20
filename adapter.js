@@ -1,41 +1,78 @@
-// Diskord ⇄ Firebase connector.
-// Shows Diskord's own Log in / Sign up screen, then gives the app the same small API it already uses
-// (db, user, room, assets) backed by Firebase Auth + Cloud Firestore. No Claude account involved.
+// Diskord ⇄ Diskord server connector.
+// Shows Diskord's own Server / Log in / Sign up screens, then gives the app the small API it uses
+// (db, user, room, assets), all talking to YOUR Diskord server over a WebSocket. No Google, no Firebase.
 (() => {
 'use strict';
-const cfg = window.DISKORD_FIREBASE;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const USER_RE = /^[a-z0-9._]{2,24}$/;
-const normUser = v => String(v || '').trim().toLowerCase().replace(/^@/, '');
-async function claimUsername(uid, name, old) {
-  const ref = fs.doc('usernames/' + name);
-  await fs.runTransaction(async t => {
-    const s = await t.get(ref);
-    if (s.exists && s.data().uid !== uid) throw { message: `@${name} is taken — try another username.` };
-    if (!s.exists) t.set(ref, { uid, at: Date.now() });
-    t.set(fs.doc('users/' + uid), { username: name }, { merge: true });
-  });
-  if (old && old !== name) fs.doc('usernames/' + old).delete().catch(() => {});
-}
-const COLORS = ['#ff4d7d', '#a64dff', '#22c1ee', '#2bd98a', '#ffb020', '#ff7a45', '#5b5cf6', '#e94cd8'];
+const store = { get(k) { try { return localStorage.getItem('diskord.' + k); } catch (_) { return null; } }, set(k, v) { try { v == null ? localStorage.removeItem('diskord.' + k) : localStorage.setItem('diskord.' + k, v); } catch (_) {} } };
+
+// Server address: same website the app came from, or the one baked into the desktop app, or the one the user typed.
+const fromPage = /^https?:$/.test(location.protocol) ? location.origin : '';
+const baked = (window.DISKORD_SERVER || '').trim();
+let SERVER = (store.get('server') || baked || fromPage).replace(/\/+$/, '');
+const wsUrl = base => base.replace(/^http/, 'ws') + '/ws';
+window.diskordServer = () => SERVER;
 
 let ready, resolveReady;
 ready = new Promise(r => { resolveReady = r; });
 window.claude = { use: async name => { const api = await ready; return api ? api[name] || null : null; } };
 
-if (!cfg || !cfg.apiKey || typeof firebase === 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => showAuth('setup'));
-  return;
+// ------------------------------------------------------------ connection with auto-reconnect
+let ws = null, wsOpen = false, nextRid = 1, hello = null, token = store.get('token');
+const pending = new Map(), queue = [];
+const subs = new Map(); // id -> {path, q, cb, err}
+const evHandlers = {}; let peersCb = null, lastPresence = null, authed = false;
+let backoff = 500, connectTimer = null;
+const statusCbs = new Set();
+const setConn = s => statusCbs.forEach(f => { try { f(s); } catch (_) {} });
+
+function connect() {
+  clearTimeout(connectTimer);
+  if (!SERVER) return;
+  try { ws = new WebSocket(wsUrl(SERVER)); } catch (_) { return retry(); }
+  ws.onopen = async () => {
+    wsOpen = true; backoff = 500;
+    try {
+      hello = await rawCall('hello', {}); window.DISKORD_TENOR = hello.tenorKey || '';
+      if (token) { try { await rawCall('auth', { token }); authed = true; } catch (e) { token = null; store.set('token', null); authed = false; } }
+      if (authed) await resume();
+    } catch (_) {}
+    for (const q of queue.splice(0)) q();
+    setConn('online');
+    if (onConnected) { const f = onConnected; onConnected = null; f(); }
+  };
+  ws.onmessage = e => {
+    let m; try { m = JSON.parse(e.data); } catch (_) { return; }
+    if (m.t === 'res') { const p = pending.get(m.rid); if (!p) return; pending.delete(m.rid); m.err ? p.rej(Object.assign(new Error(m.err.message), { code: m.err.code })) : p.res(m.result); }
+    else if (m.t === 'snap') { const s = subs.get(m.id); if (s) s.deliver(m); }
+    else if (m.t === 'peers') { lastPeers = m.peers || []; emitPeers(); }
+    else if (m.t === 'ev') (evHandlers[m.topic] || []).forEach(h => { try { h({ by: m.by, data: m.data, sameTab: false }); } catch (_) {} });
+  };
+  ws.onclose = () => { wsOpen = false; for (const [, p] of pending) p.rej(Object.assign(new Error('Connection lost'), { code: 'unavailable' })); pending.clear(); setConn('offline'); retry(); };
+  ws.onerror = () => {};
 }
+function retry() { clearTimeout(connectTimer); connectTimer = setTimeout(connect, backoff); backoff = Math.min(backoff * 2, 8000); }
+addEventListener('online', () => { if (!wsOpen) { backoff = 300; connect(); } });
+let onConnected = null;
+function rawCall(op, a) {
+  return new Promise((res, rej) => {
+    const rid = nextRid++;
+    pending.set(rid, { res, rej });
+    ws.send(JSON.stringify({ op, rid, a }));
+    setTimeout(() => { if (pending.has(rid)) { pending.delete(rid); rej(Object.assign(new Error('The server did not answer'), { code: 'unavailable' })); } }, 20000);
+  });
+}
+// call: waits while offline (like messages that send when you're back)
+const call = (op, a) => wsOpen ? rawCall(op, a) : new Promise((res, rej) => queue.push(() => rawCall(op, a).then(res, rej)));
+async function resume() {
+  for (const [id, s] of subs) rawCall('sub', { id, path: s.path, q: s.q }).catch(e => s.err && s.err(e));
+  if (lastPresence) rawCall('presence', { data: lastPresence }).catch(() => {});
+}
+let lastPeers = [];
+function emitPeers() { if (peersCb) peersCb({ peers: lastPeers.map(p => ({ ...p, isMe: p.by === myUid, sameTab: false })), joined: [], left: [], updated: [] }); }
+let myUid = null;
 
-firebase.initializeApp(cfg);
-const auth = firebase.auth();
-const fs = firebase.firestore();
-try { fs.settings({ ignoreUndefinedProperties: true, merge: true }); } catch (_) {}
-try { fs.enablePersistence({ synchronizeTabs: true }).catch(() => {}); } catch (_) {}
-
-// ------------------------------------------------------------ auth screen
 const AUTH_CSS = `
 #auth{position:fixed;inset:0;z-index:200;display:grid;grid-template-columns:1.05fr .95fr;background:radial-gradient(ellipse at 15% -10%,rgba(166,77,255,.28),transparent 55%),radial-gradient(ellipse at 100% 110%,rgba(255,77,125,.2),transparent 50%),#0b0912;color:#f3effc;font-family:'Plus Jakarta Sans',system-ui,sans-serif}
 #auth .l{display:flex;flex-direction:column;justify-content:center;padding:60px 70px;gap:18px}
@@ -66,206 +103,174 @@ const AUTH_CSS = `
 const LOGO_SVG = '<svg viewBox="0 0 64 64" class="lg"><defs><linearGradient id="adk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff4d7d"/><stop offset=".55" stop-color="#b14dff"/><stop offset="1" stop-color="#5b5cf6"/></linearGradient></defs><path d="M32 4C16.5 4 5 14.6 5 28.6c0 7.6 3.4 14.3 9 18.9L12 60l12.6-7.4c2.4.6 4.8.9 7.4.9 15.5 0 27-10.6 27-24.9S47.5 4 32 4z" fill="url(#adk)"/><path d="M20 17h10.5C40 17 46 22 46 29.5S40 42 30.5 42H20zm7 6v13h3.4c5 0 8.4-2.6 8.4-6.5S35.4 23 30.4 23z" fill="#fff"/><rect x="29" y="26.5" width="2.6" height="6" rx="1.3" fill="#ffd84a"/><rect x="33" y="24.5" width="2.6" height="10" rx="1.3" fill="#ffd84a"/></svg>';
 
 const ERR = {
-  'auth/invalid-email': 'That email address doesn\'t look right.',
-  'auth/missing-password': 'Type your password.',
-  'auth/invalid-credential': 'Wrong email or password.',
-  'auth/wrong-password': 'Wrong email or password.',
-  'auth/user-not-found': 'No account with that email — sign up first.',
-  'auth/email-already-in-use': 'There\'s already an account with that email. Log in instead.',
-  'auth/weak-password': 'Password must be at least 6 characters.',
-  'auth/too-many-requests': 'Too many tries. Wait a minute and try again.',
-  'auth/network-request-failed': 'No internet connection. Check your Wi-Fi and try again.',
-  'auth/operation-not-allowed': 'Email sign-in is turned off. In Firebase: Authentication → Sign-in method → enable Email/Password.',
-  'auth/user-disabled': 'This account has been disabled.',
-  'auth/configuration-not-found': 'Login isn\'t switched on in Firebase yet. Owner: Firebase console → Authentication → Get started → Sign-in method → turn on Email/Password.',
-  'auth/admin-restricted-operation': 'New sign-ups are turned off. Owner: Firebase console → Authentication → Settings → User actions → allow "Enable create (sign-up)".',
-  'auth/missing-email': 'Type your email.',
-  'auth/invalid-api-key': 'Diskord\'s Firebase key is wrong — the owner needs to check firebase-config.js.',
-  'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'Diskord\'s Firebase key is wrong — the owner needs to check firebase-config.js.',
-  'auth/app-not-authorized': 'This app isn\'t allowed to use the Firebase project. Owner: Authentication → Settings → Authorized domains.',
-  'auth/unauthorized-domain': 'This website isn\'t allowed yet. Owner: Firebase → Authentication → Settings → Authorized domains → add this site.',
-  'auth/internal-error': 'Firebase had a problem. Check that Authentication is set up (Get started) and Email/Password is on, then try again.',
-  'permission-denied': 'Account made, but the database blocked it. Owner: Firestore Database → Rules → paste firestore.rules → Publish.'
+  'invalid-credential': 'Wrong email/username or password.',
+  'already-exists': null, 'invalid-argument': null, 'permission-denied': null,
+  'resource-exhausted': 'Too many tries. Wait a few minutes and try again.',
+  'unavailable': 'Can\'t reach the Diskord server. Check your internet, or the server address.',
+  'unauthenticated': 'Please log in again.'
 };
-const niceErr = e => {
-  const code = e && (e.code || ((String(e.message || '').match(/\((auth\/[^)]+)\)/) || [])[1]));
-  if (code && ERR[code]) return ERR[code];
-  let m = e && e.message ? String(e.message).replace(/^Firebase:\s*/, '').replace(/\s*\(auth\/[^)]+\)\.?/, '').trim() : '';
-  if (!m || m === 'Error') m = 'Something went wrong.';
-  return code ? `${m} (${code})` : m;
-};
+const niceErr = e => (e && ERR[e.code]) || (e && e.message) || 'Something went wrong.';
 
 function showAuth(tab) {
   if (!document.getElementById('authCss')) { const st = document.createElement('style'); st.id = 'authCss'; st.textContent = AUTH_CSS; document.head.appendChild(st); }
   let el = $('auth');
   if (!el) { el = document.createElement('div'); el.id = 'auth'; document.body.appendChild(el); }
   const sp = $('splash'); if (sp) sp.classList.add('hidden');
-  el.innerHTML = `<div class="l">${LOGO_SVG}<h1>Welcome to <span>Diskord</span></h1><p class="lead">Your servers, your crew — chat, GIFs, voice calls, video calls and screen sharing in one app.</p>
+  el.innerHTML = `<div class="l">${LOGO_SVG}<h1>Welcome to <span>${esc((hello && hello.name) || 'Diskord')}</span></h1><p class="lead">Your servers, your crew — chat, GIFs, voice calls, video calls and screen sharing in one app.</p>
     <div class="ft"><div>💬 <b>Servers & channels</b> with custom emoji and GIFs</div><div>📞 <b>Voice & video calls</b> with screen share</div><div>🛡️ <b>Owners & co-owners</b> to run your server</div></div></div>
     <div class="r"><div class="card" id="aCard"></div></div>`;
   draw(tab || 'login');
 }
 function draw(tab) {
   const c = $('aCard');
-  if (tab === 'setup') {
-    c.innerHTML = `<h2>Almost ready ⚙️</h2><p class="s">Diskord isn't connected to its Firebase project yet. The owner pastes the Firebase web config into <code>firebase-config.js</code>.</p>`;
-    return;
-  }
   const tabs = `<div class="tabs"><button data-t="login" class="${tab === 'login' ? 'on' : ''}">Log in</button><button data-t="signup" class="${tab === 'signup' ? 'on' : ''}">Sign up</button></div>`;
-  if (tab === 'login') c.innerHTML = tabs + `<h2>Welcome back! 👋</h2><p class="s">We're so excited to see you again.</p>
-    <form id="aForm"><label>Email</label><input id="aEmail" type="email" autocomplete="email" required>
+  const serverLine = `<button type="button" class="lnk" id="aSrv" style="display:block;margin-top:14px">🌐 Server: ${esc(SERVER.replace(/^https?:\/\//, '') || 'not set')} — change</button>`;
+  if (tab === 'server') {
+    c.innerHTML = `<h2>Connect to a server 🌐</h2><p class="s">Type the address of your Diskord server — the owner gets it when they start the server (for example <code>123.45.67.89:3000</code> or <code>chat.mydomain.com</code>).</p>
+      <form id="aForm"><label>Server address</label><input id="aAddr" placeholder="123.45.67.89:3000" value="${esc(SERVER.replace(/^https?:\/\//, ''))}" autocomplete="url"><div id="aMsg"></div><button class="go" id="aGo">Connect</button></form>`;
+  } else if (tab === 'login') c.innerHTML = tabs + `<h2>Welcome back! 👋</h2><p class="s">We're so excited to see you again.</p>
+    <form id="aForm"><label>Email or username</label><input id="aEmail" autocomplete="username" required>
     <label>Password</label><div class="pw"><input id="aPass" type="password" autocomplete="current-password" required><button type="button" id="aEye">SHOW</button></div>
     <button type="button" class="lnk" id="aForgot">Forgot your password?</button>
-    <div id="aMsg"></div><button class="go" id="aGo">Log in</button></form>`;
-  else if (tab === 'signup') c.innerHTML = tabs + `<h2>Create an account ✨</h2><p class="s">Free forever. Takes 20 seconds.</p>
+    <div id="aMsg"></div><button class="go" id="aGo">Log in</button></form>` + serverLine;
+  else if (tab === 'signup') c.innerHTML = tabs + `<h2>Create an account ✨</h2><p class="s">${hello && hello.allowSignup === false ? 'Sign-ups are closed on this server.' : 'Free forever. Takes 20 seconds.'}</p>
     <form id="aForm"><label>Display name</label><input id="aName" maxlength="32" autocomplete="nickname" required placeholder="What should everyone call you?">
     <label>Username</label><input id="aUser" maxlength="24" autocomplete="username" required placeholder="lowercase, e.g. bandera">
     <label>Email</label><input id="aEmail" type="email" autocomplete="email" required>
     <label>Password</label><div class="pw"><input id="aPass" type="password" autocomplete="new-password" minlength="6" required placeholder="At least 6 characters"><button type="button" id="aEye">SHOW</button></div><div class="meter"><i id="aMeter"></i></div>
-    <div id="aMsg"></div><button class="go" id="aGo">Create account</button></form>`;
-  else if (tab === 'reset') c.innerHTML = `<h2>Reset your password 🔑</h2><p class="s">Type your email and we'll send you a link to make a new password.</p>
-    <form id="aForm"><label>Email</label><input id="aEmail" type="email" autocomplete="email" required><div id="aMsg"></div><button class="go" id="aGo">Send reset link</button></form>
-    <button class="lnk" id="aBack">← Back to log in</button>`;
+    <div id="aMsg"></div><button class="go" id="aGo">Create account</button></form>` + serverLine;
+  else if (tab === 'reset') c.innerHTML = `<h2>Forgot your password? 🔑</h2><p class="s">Ask the owner of this Diskord server to reset it. They type <code>resetpw yourname newpassword</code> in the server console, then you log in with the new password and change it in Settings.</p><button class="lnk" id="aBack">← Back to log in</button>`;
   c.querySelectorAll('[data-t]').forEach(b => b.onclick = () => draw(b.dataset.t));
   const eye = $('aEye'); if (eye) eye.onclick = () => { const p = $('aPass'); p.type = p.type === 'password' ? 'text' : 'password'; eye.textContent = p.type === 'password' ? 'SHOW' : 'HIDE'; };
   const meter = $('aMeter'); if (meter) $('aPass').oninput = e => { const v = e.target.value; const sc = (v.length >= 6) + (v.length >= 10) + /[A-Z]/.test(v) + /[0-9]/.test(v) + /[^A-Za-z0-9]/.test(v); meter.style.width = sc * 20 + '%'; meter.style.background = ['#ff4d5e', '#ff4d5e', '#ffb020', '#ffb020', '#2bd98a', '#2bd98a'][sc]; };
   if ($('aForgot')) $('aForgot').onclick = () => draw('reset');
   if ($('aBack')) $('aBack').onclick = () => draw('login');
-  const msg = (t, ok) => { $('aMsg').innerHTML = t ? `<div class="${ok ? 'ok' : 'err'}">${esc(t)}</div>` : ''; };
-  $('aForm').onsubmit = async e => {
+  if ($('aSrv')) $('aSrv').onclick = () => draw('server');
+  const msg = (t, ok) => { const m = $('aMsg'); if (m) m.innerHTML = t ? `<div class="${ok ? 'ok' : 'err'}">${esc(t)}</div>` : ''; };
+  const form = $('aForm'); if (!form) return;
+  form.onsubmit = async e => {
     e.preventDefault();
     const go = $('aGo'), label = go.textContent; go.disabled = true; go.textContent = 'Please wait…'; msg('');
-    const email = $('aEmail').value.trim();
     try {
-      if (tab === 'login') await auth.signInWithEmailAndPassword(email, $('aPass').value);
-      else if (tab === 'signup') {
-        const name = $('aName').value.trim().slice(0, 32);
-        if (name.length < 2) throw { message: 'Pick a display name (2+ letters).' };
-        const uname = normUser($('aUser').value);
-        if (!USER_RE.test(uname)) throw { message: 'Username: 2–24 characters, only a–z, 0–9, dot and underscore.' };
-        const taken = await fs.doc('usernames/' + uname).get().catch(() => null);
-        if (taken && taken.exists) throw { message: `@${uname} is taken — try another username.` };
-        const cred = await auth.createUserWithEmailAndPassword(email, $('aPass').value);
-        try { await claimUsername(cred.user.uid, uname); } catch (_) {}
-        await cred.user.updateProfile({ displayName: name });
-        await fs.doc('users/' + cred.user.uid).set({ name, color: COLORS[Math.floor(Math.random() * COLORS.length)], created: Date.now() }, { merge: true });
-        start(cred.user);
-      } else if (tab === 'reset') { await auth.sendPasswordResetEmail(email); msg('Check your inbox (and spam) for the reset link.', true); go.disabled = false; go.textContent = label; return; }
-    } catch (er) { console.warn('Diskord auth error', er && er.code, er && er.message); msg(niceErr(er)); go.disabled = false; go.textContent = label; }
+      if (tab === 'server') {
+        let v = $('aAddr').value.trim().replace(/\/+$/, '');
+        if (!v) throw { message: 'Type the server address.' };
+        if (!/^https?:\/\//.test(v)) v = (/^(localhost|127\.|\d+\.\d+\.\d+\.\d+)/.test(v) || /:\d+$/.test(v) ? 'http://' : 'https://') + v;
+        const r = await fetch(v + '/api/health', { cache: 'no-store' }).then(x => x.json()).catch(() => null);
+        if (!r || !r.ok) throw { message: 'No Diskord server answered at that address. Check the address and that the server is running.' };
+        SERVER = v; store.set('server', v); try { ws && ws.close(); } catch (_) {} connect();
+        msg(`Connected to ${r.name} ✅`, true); setTimeout(() => draw('login'), 500); return;
+      }
+      if (!wsOpen) throw { code: 'unavailable' };
+      let res;
+      if (tab === 'login') res = await rawCall('login', { email: $('aEmail').value, password: $('aPass').value });
+      else res = await rawCall('signup', { name: $('aName').value, username: $('aUser').value, email: $('aEmail').value, password: $('aPass').value });
+      token = res.token; store.set('token', token); authed = true;
+      start();
+    } catch (er) { msg(niceErr(er)); go.disabled = false; go.textContent = label; }
   };
   setTimeout(() => { const f = c.querySelector('input'); if (f) f.focus(); }, 30);
 }
 
-// ------------------------------------------------------------ API for the app
+// ------------------------------------------------------------ boot
 let started = false;
-function start(u) {
+async function start() {
   if (started) return; started = true;
   const a = $('auth'); if (a) a.remove();
   const sp = $('splash'); if (sp) sp.classList.remove('hidden');
-  resolveReady(makeApi(u));
+  const me = await call('me', {});
+  myUid = me.id;
+  resolveReady(makeApi(me));
 }
-auth.onAuthStateChanged(u => {
-  if (u) { if (u.displayName || started) start(u); else setTimeout(() => start(u), 800); }
-  else if (started) location.reload();
-  else showAuth('login');
+window.diskordLogout = async () => { try { await call('logout', { token }); } catch (_) {} store.set('token', null); location.reload(); };
+window.diskordChangeServer = () => { store.set('server', null); store.set('token', null); location.reload(); };
+window.diskordOnConn = cb => { statusCbs.add(cb); };
+document.addEventListener('DOMContentLoaded', () => {
+  if (!SERVER) return showAuth('server');
+  onConnected = () => { if (authed) start(); else showAuth('login'); };
+  connect();
+  setTimeout(() => { if (!wsOpen && !started && !$('auth')) { showAuth(token ? 'login' : 'login'); const m = $('aMsg'); if (m) m.innerHTML = '<div class="err">Can\'t reach the Diskord server right now. Is it running? It will connect by itself when it comes back.</div>'; } }, 6000);
 });
-window.diskordLogout = () => auth.signOut().then(() => location.reload());
 
-function makeApi(u) {
-  const uid = u.uid;
-  // ---- user
+// ------------------------------------------------------------ Firestore-like database API backed by the server
+function snapOfDocs(docs, prevIds) {
+  const list = docs.map(d => ({ id: d.id, exists: true, data: () => JSON.parse(JSON.stringify(d.data)) }));
+  const changes = list.filter(d => !prevIds.has(d.id)).map(d => ({ type: 'added', doc: d }));
+  return { docs: list, size: list.length, empty: !list.length, forEach: f => list.forEach(f), docChanges: () => changes, metadata: { fromCache: false, hasPendingWrites: false } };
+}
+const docSnap = d => ({ id: d.id, exists: !!d.exists, data: () => d.exists ? JSON.parse(JSON.stringify(d.data)) : undefined });
+let subSeq = 1;
+function docRef(path) {
+  return {
+    id: path.split('/').pop(), path,
+    get: () => call('get', { path }).then(docSnap),
+    set: (data, opts) => call('write', { op: 'set', path, data, merge: !!(opts && opts.merge) }),
+    update: data => call('write', { op: 'update', path, data }),
+    delete: () => call('write', { op: 'delete', path }),
+    collection: p => colRef(path + '/' + p),
+    onSnapshot(cb, errCb) {
+      const id = 's' + subSeq++;
+      subs.set(id, { path, deliver: m => cb(docSnap(m.doc)), err: errCb });
+      call('sub', { id, path }).catch(e => errCb && errCb(e));
+      return () => { subs.delete(id); if (wsOpen) rawCall('unsub', { id }).catch(() => {}); };
+    }
+  };
+}
+const autoId = () => { const a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; let s = ''; const r = crypto.getRandomValues(new Uint8Array(20)); for (const x of r) s += a[x % a.length]; return s; };
+function colRef(path, q = {}) {
+  const self = {
+    path,
+    where: (f, op, v) => colRef(path, { ...q, where: [...(q.where || []), [f, op, v]] }),
+    orderBy: (f, dir = 'asc') => colRef(path, { ...q, orderBy: [f, dir] }),
+    limit: n => colRef(path, { ...q, limit: n }),
+    doc: id => docRef(path + '/' + (id || autoId())),
+    async add(data) { const r = self.doc(); await r.set(data); return r; },
+    get: () => call('get', { path, q }).then(r => snapOfDocs(r.docs || [], new Set())),
+    onSnapshot(cb, errCb) {
+      const id = 's' + subSeq++;
+      let prev = new Set();
+      subs.set(id, { path, q, deliver: m => { const snap = snapOfDocs(m.docs || [], prev); prev = new Set((m.docs || []).map(d => d.id)); cb(snap); }, err: errCb });
+      call('sub', { id, path, q }).catch(e => errCb && errCb(e));
+      return () => { subs.delete(id); if (wsOpen) rawCall('unsub', { id }).catch(() => {}); };
+    }
+  };
+  return self;
+}
+
+function makeApi(meInfo) {
+  const uid = meInfo.id;
   const pcache = {};
+  const db = { doc: docRef, collection: p => colRef(p) };
   const user = {
     async id() { return uid; },
-    async me() {
-      let d = {};
-      try { const s = await fs.doc('users/' + uid).get(); d = s.exists ? s.data() : {}; } catch (_) {}
-      if (!d.name) { d = { name: u.displayName || (u.email || 'user').split('@')[0], color: COLORS[uid.charCodeAt(0) % COLORS.length], created: Date.now(), ...d }; fs.doc('users/' + uid).set(d, { merge: true }).catch(() => {}); }
-      // The first account ever becomes the Diskord owner (can manage every server).
-      let owner = false;
-      try {
-        const ref = fs.doc('meta/app');
-        owner = await fs.runTransaction(async t => { const s = await t.get(ref); if (!s.exists) { t.set(ref, { owner: uid, at: Date.now() }); return true; } return s.data().owner === uid; });
-      } catch (_) {}
-      pcache[uid] = { name: d.name, color: d.color, avatarUrl: '', username: d.username || '' };
-      return { id: uid, name: d.name, color: d.color, username: d.username || '', avatarUrl: '', email: u.email, isOwner: owner, canEdit: owner, isMe: true };
-    },
+    async me() { const m = await call('me', {}); pcache[uid] = { name: m.name, color: m.color, username: m.username, avatarUrl: '' }; return { ...m, avatarUrl: '', isMe: true }; },
     async profiles(ids) {
-      const out = {};
-      await Promise.all([].concat(ids).map(async id => {
-        if (!pcache[id]) { try { const s = await fs.doc('users/' + id).get(); const d = s.exists ? s.data() : {}; pcache[id] = { name: d.name || 'User', color: d.color || '#8b5cf6', avatarUrl: '', username: d.username || '' }; } catch (_) { pcache[id] = { name: 'User', color: '#8b5cf6', avatarUrl: '' }; } }
-        out[id] = { id, ...pcache[id] };
-      }));
-      return out;
+      const need = [].concat(ids).filter(id => !pcache[id]);
+      if (need.length) { const r = await call('profiles', { ids: need }); for (const [id, p] of Object.entries(r)) pcache[id] = { name: p.name, color: p.color, username: p.username, avatarUrl: '' }; }
+      const out = {}; for (const id of [].concat(ids)) out[id] = { id, ...(pcache[id] || { name: 'User', color: '#8b5cf6', username: '' }) }; return out;
     },
-    async rename(name) { await fs.doc('users/' + uid).set({ name }, { merge: true }); await u.updateProfile({ displayName: name }); pcache[uid] = { ...(pcache[uid] || {}), name }; },
+    async rename(name) { await db.doc('users/' + uid).set({ name }, { merge: true }); pcache[uid] = { ...(pcache[uid] || {}), name }; },
+    async setColor(color) { await db.doc('users/' + uid).set({ color }, { merge: true }); pcache[uid] = { ...(pcache[uid] || {}), color }; },
+    async setUsername(name) { const r = await call('setUsername', { name }); pcache[uid] = { ...(pcache[uid] || {}), username: r.name }; return r.name; },
+    async findUsername(name) { const r = await call('findUsername', { name }); return r.uid; },
+    async changePassword(old, pw) { const r = await call('changePassword', { old, password: pw }); token = r.token; store.set('token', token); },
     async can() { return true; },
-    async setColor(color) { await fs.doc('users/' + uid).set({ color }, { merge: true }); pcache[uid] = { ...(pcache[uid] || {}), color }; },
-    async setUsername(name, old) { name = normUser(name); if (!USER_RE.test(name)) throw { message: 'Username: 2–24 characters, only a–z, 0–9, dot and underscore.' }; await claimUsername(uid, name, old); pcache[uid] = { ...(pcache[uid] || {}), username: name }; return name; },
-    async findUsername(name) { name = normUser(name); if (!USER_RE.test(name)) return null; const s = await fs.doc('usernames/' + name).get(); return s.exists ? s.data().uid : null; },
-    forget(id) { delete pcache[id]; },
-    email: u.email
-  };
-  // ---- room (presence + live events), stored in Firestore
-  let myPresence = null, peersCb = null, peerDocs = {};
-  const PRES_TTL = 120000;
-  const pushPres = () => myPresence && fs.doc('presence/' + uid).set({ ...myPresence, at: Date.now() }).catch(() => {});
-  setInterval(pushPres, 45000);
-  addEventListener('beforeunload', () => { try { fs.doc('presence/' + uid).delete(); } catch (_) {} });
-  const emitPeers = () => {
-    if (!peersCb) return;
-    const now = Date.now();
-    const peers = Object.entries(peerDocs).filter(([, d]) => d && now - (d.at || 0) < PRES_TTL).map(([id, d]) => ({ by: id, kind: 'viewer', presence: d, isMe: id === uid, sameTab: id === uid }));
-    peersCb({ peers, joined: [], left: [], updated: [] });
-  };
-  setInterval(emitPeers, 20000);
-  const handlers = {};
-  const since = Date.now() - 2000;
-  let lastEvent = null, evSub = false;
-  const subEvents = () => {
-    if (evSub) return; evSub = true;
-    fs.collection('events').where('at', '>', since).orderBy('at').onSnapshot(snap => {
-      snap.docChanges().forEach(ch => {
-        if (ch.type !== 'added') return;
-        const d = ch.doc.data(); if (!d || d.by === uid || Date.now() - d.at > 30000) return;
-        (handlers[d.topic] || []).forEach(h => { try { h({ by: d.by, data: d.data, sameTab: false }); } catch (_) {} });
-      });
-    }, () => {});
+    forget(id) { delete pcache[id]; }
   };
   const room = {
-    async presence(p) { myPresence = p || {}; await pushPres(); },
-    onPeers(cb) { peersCb = cb; fs.collection('presence').onSnapshot(s => { peerDocs = {}; s.forEach(d => { peerDocs[d.id] = d.data(); }); emitPeers(); }, () => {}); return () => { peersCb = null; }; },
-    on(topic, h) { (handlers[topic] = handlers[topic] || []).push(h); subEvents(); return () => {}; },
-    async emit(topic, data) {
-      const ref = await fs.collection('events').add({ topic, data: data || {}, by: uid, at: Date.now() });
-      if (lastEvent) fs.doc('events/' + lastEvent).delete().catch(() => {});
-      lastEvent = ref.id;
-    }
+    async presence(p) { lastPresence = p || {}; await call('presence', { data: lastPresence }); },
+    onPeers(cb) { peersCb = cb; emitPeers(); return () => { peersCb = null; }; },
+    on(topic, h) { (evHandlers[topic] = evHandlers[topic] || []).push(h); return () => {}; },
+    async emit(topic, data) { await call('emit', { topic, data: data || {} }); }
   };
-  // ---- assets: pictures saved in Firestore (no paid Storage needed)
-  const MAX = 740 * 1024;
-  const readURL = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
-  async function shrink(file) {
-    if (file.type === 'image/gif') { if (file.size > MAX) throw new Error('That GIF is too big — keep GIFs under 740 KB.'); return readURL(file); }
-    if (file.size <= MAX * 0.7 && file.type !== 'image/bmp') return readURL(file);
-    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Could not read that image.')); i.src = URL.createObjectURL(file); });
-    for (const [side, q] of [[1600, .85], [1280, .8], [1024, .75], [800, .7], [600, .65]]) {
-      const k = Math.min(1, side / Math.max(img.width, img.height));
-      const cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
-      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-      const url = cv.toDataURL('image/webp', q);
-      if (url.length * 0.75 < MAX) return url;
-    }
-    throw new Error('That picture is too big.');
-  }
   const assets = {
     async upload(file) {
-      const d = await shrink(file);
-      const ref = await fs.collection('blobs').add({ d, by: uid, at: Date.now(), type: file.type });
-      window.__diskordBlob && window.__diskordBlob(ref.id, d);
-      return { id: ref.id, url: d, sizeBytes: Math.round(d.length * .75), contentType: file.type };
+      const r = await fetch(SERVER + '/upload', { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': file.type || 'application/octet-stream' }, body: file });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || 'Upload failed');
+      return { id: j.id, url: SERVER + '/blob/' + j.id, sizeBytes: j.size, contentType: j.type };
     }
   };
-  return { db: fs, user, room, assets };
+  return { db, user, room, assets, hello };
 }
 })();
