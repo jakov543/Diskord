@@ -1,5 +1,22 @@
 # Diskord changelog
 
+## 6.7.0
+- 🔊 **New Diskord sounds**, with holiday packs:
+  - Diskord: the normal sounds
+  - 🎄 **Christmas**: bells, sleigh jingles, and Jingle Bells when someone calls
+  - 🎃 **Halloween**: ghost sounds, creaky doors, and a spooky organ ringtone
+  - 🐣 **Easter**: happy chirps and a bouncy spring ringtone
+  - **Auto** switches packs by itself at Christmas, Halloween and Easter
+  - New sounds for messages, mentions, calls, joining, leaving, mute, deafen and friend requests
+  - Change them in **your profile → Sounds**, where you can listen to each pack ▶ and set the volume
+- ✨ **Avatar decorations**: rings around your profile picture
+  - Free: Neon, Rainbow, Hearts, Christmas, Halloween, Easter
+  - 💎 Nitro: Golden Stars, Fire, Galaxy, Crown, Cat Ears
+  - They show everywhere (chat, members list, profiles) and move on big profile pictures
+  - Pick one in **Edit Profile → Avatar decoration**
+- 🖼️ **Banners can be a GIF or a picture** for everyone
+- 🎨 **New icons** in menus, profiles and buttons
+
 ## 6.6.0
 - 🖼️ **Profile pictures look clean everywhere.** The status dot now sits in a cut-out of the picture like Discord, instead of a coloured ring on top
   - Idle shows a moon 🌙, Do Not Disturb shows a minus ⛔, and offline shows a grey ring

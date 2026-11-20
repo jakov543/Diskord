@@ -7,6 +7,7 @@
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
 <script src="diskord-config.js"></script>
+<script src="sounds.js"></script>
 <meta name="theme-color" content="#000000">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -166,6 +167,7 @@ header .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let tT; const toast = m => { $('toast').textContent = m; $('toast').classList.add('show'); clearTimeout(tT); tT = setTimeout(() => $('toast').classList.remove('show'), 2600); };
+const sfx = n => { try { window.DiskordSounds && window.DiskordSounds.play(n); } catch (_) {} };
 const store = { get: (k, d) => { try { return localStorage.getItem('flixcall.' + k) ?? d; } catch (_) { return d; } }, set: (k, v) => { try { localStorage.setItem('flixcall.' + k, v); } catch (_) {} } };
 const I = {
   mic: '<svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11z"/></svg>',
@@ -283,7 +285,7 @@ $('join').onclick = async () => {
     setTimeout(() => { if (START_MUTED && !me.muted) $('bMic').click(); if (START_DEAF && !me.deaf) toggleDeaf(); if (WANT_VIDEO && !me.cam) $('bCam').click(); if (WANT_SCREEN && !me.screen) $('bScreen').click(); }, 300);
     tellOpener('alive'); setInterval(() => { if (!left) tellOpener('alive'); }, 20000);
     $('lobby').classList.add('hidden'); ['stage', 'bar', 'live'].forEach(x => $(x).classList.remove('hidden'));
-    addTile(id, true); claimDirectory(); refresh();
+    addTile(id, true); claimDirectory(); refresh(); sfx('join');
   });
   peer.on('call', call => { call.answer(outStream()); wireCall(call); });
   peer.on('error', e => { if (e.type === 'peer-unavailable') return; console.warn(e); if (!me.id) { $('join').disabled = false; $('join').textContent = 'Try again'; toast('Could not connect (' + e.type + ')'); } });
@@ -330,12 +332,13 @@ function onMembers(list) {
     if (typeof m.id !== 'string' || !m.id.startsWith(PREFIX + '-')) continue;
     ids.add(m.id);
     if (m.id === me.id) continue;
+    if (!members.has(m.id) && joinedAt && Date.now() - joinedAt > 1500) sfx('join');
     members.set(m.id, sanitize(m));
     if (!calls.has(m.id) && me.id < m.id) wireCall(peer.call(m.id, outStream()));
     updateTile(m.id);
   }
   for (const id of [...calls.keys()]) if (!ids.has(id)) dropPeer(id);
-  for (const id of [...members.keys()]) if (!ids.has(id)) members.delete(id);
+  for (const id of [...members.keys()]) if (!ids.has(id)) { members.delete(id); sfx('leave'); }
   $('count').textContent = ids.size + (ids.size === 1 ? ' person' : ' people');
   refresh();
 }
@@ -429,14 +432,14 @@ function drawButtons() {
 drawButtons();
 $('bMic').onclick = () => {
   if (me.deaf && me.muted) toggleDeaf();
-  else { me.muted = !me.muted; mic && mic.getAudioTracks().forEach(t => t.enabled = !me.muted); }
+  else { me.muted = !me.muted; mic && mic.getAudioTracks().forEach(t => t.enabled = !me.muted); sfx(me.muted ? 'mute' : 'unmute'); }
   drawButtons(); updateTile(me.id); sendState();
 };
 function toggleDeaf() {
   me.deaf = !me.deaf; for (const t of tiles.values()) if (!t.mine) t.video.muted = me.deaf;
   if (me.deaf) { me.muted = true; mic && mic.getAudioTracks().forEach(t => t.enabled = false); }
   else { me.muted = false; mic && mic.getAudioTracks().forEach(t => t.enabled = true); }
-  sfxBus && (sfxBus.gain.value = me.deaf ? 0 : .7);
+  sfxBus && (sfxBus.gain.value = me.deaf ? 0 : .7); sfx(me.deaf ? 'deafen' : 'undeafen');
   drawButtons(); updateTile(me.id); sendState(); toast(me.deaf ? 'Deafened 🎧' : 'Undeafened');
 }
 async function startCam() {
@@ -619,7 +622,7 @@ async function openSharePicker() {
 
 let left = false;
 $('bLeave').onclick = () => {
-  left = true; tellOpener('left');
+  left = true; tellOpener('left'); sfx('leave');
   for (const id of [...calls.keys()]) dropPeer(id);
   [peer, dirPeer].forEach(p => p && p.destroy());
   [mic, screenAudio].forEach(x => x && x.getTracks().forEach(t => t.stop())); [camTrack, screenTrack].forEach(t => t && t.stop());
