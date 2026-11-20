@@ -18,6 +18,7 @@ jobs:
         run: |
           mkdir -p desktop/app/icons desktop/app/vendor
           cp index.html call.html adapter.js sounds.js diskord-config.js logo.svg manifest.webmanifest desktop/app/
+          cp -r sounds desktop/app/
           cp vendor/nostr.bundle.js desktop/app/vendor/
           cp icons/*.png desktop/app/icons/
           cp CHANGELOG.md desktop/CHANGELOG.md

@@ -1,5 +1,17 @@
 # Diskord changelog
 
+## 6.8.0
+- 🔊 **Real Google sounds.** The normal Diskord sound pack now uses Google's Android sounds:
+  - Tethys for new messages
+  - Io for @mentions
+  - Ariel for friend requests
+  - the Titania ringtone for incoming calls
+  - Android's record start/stop sounds for joining and leaving calls
+  - lock/unlock sounds for mute
+  - dock/undock sounds for deafen
+- The ringtone now stops right away when you answer or decline
+- The Christmas, Halloween and Easter packs are still there (your profile → Sounds)
+
 ## 6.7.1
 - 🔊 **Sounds fixed**
   - They were far too quiet; now they're clearly audible

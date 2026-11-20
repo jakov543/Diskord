@@ -60,7 +60,7 @@
   // ---- packs: message, mention, join, leave, mute, unmute, deafen, undeafen, ring (one loop), friend
   const PACKS = {
     classic: {
-      name: 'Diskord', icon: '💙',
+      name: 'Diskord (Google sounds)', icon: '💙',
       message: () => { tone(N.E6, 0, .12, { v: .12 }); tone(N.G6 * 1.0, .06, .16, { v: .1 }); },
       mention: () => { tone(N.C6, 0, .1, { v: .14 }); tone(N.E6, .08, .1, { v: .14 }); tone(N.G6, .16, .2, { v: .12 }); },
       join: () => { tone(N.C5, 0, .14, { v: .18 }); tone(N.G5, .1, .22, { v: .18 }); },
@@ -114,11 +114,36 @@
       friend: () => { chirp(0, 2600, 3800); [N.E5, N.G5, N.C6].forEach((f, i) => tone(f, .1 + i * .08, .3, { v: .12, type: 'triangle' })); }
     }
   };
+  // ---- the Diskord pack uses real Google Android sounds (sounds/*.ogg, Apache 2.0 — see sounds/NOTICE.txt)
+  const BASE = (() => { try { return new URL('sounds/', document.currentScript.src).href; } catch (_) { return 'sounds/'; } })();
+  const FILES = ['message', 'mention', 'friend', 'ring', 'join', 'leave', 'mute', 'unmute', 'deafen', 'undeafen'];
+  const buffers = new Map(); let ringSrc = null;
+  function getBuf(name) {
+    if (!buffers.has(name)) buffers.set(name, fetch(BASE + name + '.ogg').then(r => { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); }).then(b => ctx().decodeAudioData(b)).catch(e => { buffers.delete(name); throw e; }));
+    return buffers.get(name);
+  }
+  async function playFile(name) {
+    const a = ctx(), buf = await getBuf(name);
+    if (name === 'ring' && ringSrc) return; // already ringing
+    const src = a.createBufferSource(), g = a.createGain(); src.buffer = buf; g.gain.value = name === 'ring' ? .5 : .6;
+    src.connect(g); g.connect(out);
+    if (name === 'ring') { src.loop = true; ringSrc = src; src.onended = () => { if (ringSrc === src) ringSrc = null; }; }
+    src.start();
+  }
+  function stop(name) { if (name === 'ring' && ringSrc) { try { ringSrc.stop(); } catch (_) {} ringSrc = null; } }
+  // load the Google sounds early so the first one plays right away
+  setTimeout(() => { if (activePack() === 'classic') FILES.forEach(n => getBuf(n).catch(() => {})); }, 1500);
   function play(name, force) {
     const cfg = load(); if (!cfg.on && !force) return;
-    const p = PACKS[activePack()] || PACKS.classic;
+    const pack = activePack();
+    if (pack === 'classic' && FILES.includes(name)) { playFile(name).catch(() => { try { PACKS.classic[name](); } catch (_) {} }); return; }
+    const p = PACKS[pack] || PACKS.classic;
     try { (p[name] || PACKS.classic[name] || (() => {}))(); } catch (_) {}
   }
-  function preview(pack) { const p = PACKS[pack === 'auto' ? seasonal() : pack] || PACKS.classic; try { ctx(); p.join(); setTimeout(() => p.message(), 600); setTimeout(() => p.ring(), 1200); } catch (_) {} }
-  window.DiskordSounds = { _ctx: () => ctx(), _out: () => out, play, preview, load, save, seasonal, activePack, packs: () => Object.entries(PACKS).map(([k, v]) => ({ key: k, name: v.name, icon: v.icon })) };
+  function preview(pack) {
+    const k = pack === 'auto' ? seasonal() : pack; ctx();
+    if (k === 'classic') { playFile('join').catch(() => {}); setTimeout(() => playFile('message').catch(() => {}), 600); setTimeout(() => { playFile('ring').catch(() => {}); setTimeout(() => stop('ring'), 3500); }, 1700); return; }
+    const p = PACKS[k] || PACKS.classic; try { p.join(); setTimeout(() => p.message(), 600); setTimeout(() => p.ring(), 1200); } catch (_) {}
+  }
+  window.DiskordSounds = { _ctx: () => ctx(), _out: () => out, stop, play, preview, load, save, seasonal, activePack, packs: () => Object.entries(PACKS).map(([k, v]) => ({ key: k, name: v.name, icon: v.icon })) };
 })();

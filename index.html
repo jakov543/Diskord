@@ -1196,7 +1196,7 @@ function callPerson(uid, video) {
   return callLink(room, label, video);
 }
 let ringTimer = null, ringAudio = null;
-function stopRing() { clearInterval(ringTimer); ringTimer = null; document.querySelectorAll('.incoming').forEach(x => x.remove()); }
+function stopRing() { clearInterval(ringTimer); ringTimer = null; try { window.DiskordSounds && window.DiskordSounds.stop('ring'); } catch (_) {} document.querySelectorAll('.incoming').forEach(x => x.remove()); }
 function onRing(msg) {
   const d = msg && msg.data; if (!d || msg.sameTab || !msg.by || msg.by === S.myId || typeof d.room !== 'string') return;
   if (d.kind === 'dm' && d.to !== S.myId) return;
@@ -2656,7 +2656,7 @@ function soundsModal() {
   const DS = window.DiskordSounds; if (!DS) return toast('Sounds are not available here', true);
   let cfg = DS.load();
   const packs = [{ key: 'auto', name: 'Auto (holidays)', icon: '📅' }, ...DS.packs()];
-  const desc = { auto: `Changes by itself — now: ${DS.packs().find(p => p.key === DS.seasonal()).name}`, classic: 'The normal Diskord sounds', christmas: 'Bells, sleigh jingles and Jingle Bells when someone calls', halloween: 'Spooky ghosts, creaky doors and an organ ringtone', easter: 'Happy chirps and a bouncy spring ringtone' };
+  const desc = { auto: `Changes by itself — now: ${DS.packs().find(p => p.key === DS.seasonal()).name}`, classic: 'Real Android sounds by Google', christmas: 'Bells, sleigh jingles and Jingle Bells when someone calls', halloween: 'Spooky ghosts, creaky doors and an organ ringtone', easter: 'Happy chirps and a bouncy spring ringtone' };
   modal(`<div class="mh" style="text-align:left"><h2>Sounds</h2><p>Pick how Diskord sounds for messages, calls, joining, leaving and muting.</p></div>
     <div class="mb"><div class="cm-priv" style="margin:0 0 14px"><div><b>Play sounds</b><small>Message, call and mute sounds</small></div><button class="toggle" id="sdOn"></button></div>
     <div class="sd-grid">${packs.map(p => `<button class="sd-pack" data-p="${p.key}"><span class="sd-ic">${p.icon}</span><b>${esc(p.name)}</b><small>${esc(desc[p.key] || '')}</small><span class="sd-play" data-play="${p.key}" title="Listen">▶</span></button>`).join('')}</div>

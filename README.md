@@ -32,3 +32,8 @@ Diskord (formerly **Flixcord**) is a Discord-style app for you and your friends:
 | `manifest.webmanifest`, `sw.js`, `icons/` | What makes Diskord installable |
 
 Calls are peer-to-peer: audio and video go straight between the people in the call, and nothing is recorded.
+
+## Credits
+- Sounds in `sounds/`: Android sounds by Google from the Android Open Source Project, Apache License 2.0 (see `sounds/NOTICE.txt`).
+- Icons: [Lucide](https://lucide.dev), ISC License.
+- GIFs: [KLIPY](https://klipy.com).

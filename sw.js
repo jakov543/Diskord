@@ -1,5 +1,5 @@
 // Diskord service worker: makes the app installable and opens instantly (app shell cache).
-const CACHE = 'diskord-v5';
+const CACHE = 'diskord-v6';
 const SHELL = ['./', './index.html', './call.html', './adapter.js', './sounds.js', './diskord-config.js', './vendor/nostr.bundle.js', './logo.svg', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
