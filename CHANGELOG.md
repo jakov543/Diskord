@@ -1,5 +1,9 @@
 # Diskord changelog
 
+## 6.1.0
+### ✨ New
+- 🎧 **New Diskord logo**: a gamer headset around a chat-bubble "D" on a blue app tile. It's on the app icon, taskbar, installer, login screen, loading screens, server list and Discord Rich Presence
+
 ## 6.0.0
 ### ✨ New
 - 💙 **New blue look**: blue logo, buttons, highlights and loading screens, plus a darker blue background
