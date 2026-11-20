@@ -1,5 +1,13 @@
 # Diskord changelog
 
+## 6.7.1
+- 🔊 **Sounds fixed**
+  - They were far too quiet; now they're clearly audible
+  - All packs (Diskord, Christmas, Halloween, Easter) are equally loud, with a limiter so nothing gets too loud
+  - The default volume is higher (change it in your profile → Sounds)
+  - In the web version, sounds start working after your first click
+- 📞 In the web version, calls wait for you to press **Join**, so the browser doesn't keep your microphone silent
+
 ## 6.7.0
 - 🔊 **New Diskord sounds**, with holiday packs:
   - Diskord: the normal sounds

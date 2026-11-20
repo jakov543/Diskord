@@ -224,6 +224,7 @@ function audioCtx() {
     ac = new (window.AudioContext || window.webkitAudioContext)();
     outDest = ac.createMediaStreamDestination(); micGain = ac.createGain(); micGain.connect(outDest);
     sfxBus = ac.createGain(); sfxBus.gain.value = .7; sfxBus.connect(outDest); sfxBus.connect(ac.destination);
+    ac.onstatechange = () => useMixedAudio();
   }
   return ac;
 }
@@ -267,7 +268,14 @@ function meterFor(stream, cb, isMic) {
 const me = { id: null, name: '', muted: false, deaf: false, cam: false, screen: false, av: MY_AV };
 let peer = null, dirPeer = null, dirConn = null, joinedAt = 0;
 const calls = new Map(), members = new Map(), dirConns = new Map(), dirMembers = new Map();
-const outAudio = () => outDest.stream.getAudioTracks();
+// send the mixed track (mic + soundboard + PC sound) once audio is allowed; until then send the mic straight
+const outAudio = () => ac && ac.state === 'running' ? outDest.stream.getAudioTracks() : (mic ? mic.getAudioTracks() : []);
+function useMixedAudio() {
+  if (!ac || ac.state !== 'running') return;
+  const tr = outDest.stream.getAudioTracks()[0]; if (!tr) return;
+  for (const c of calls.values()) { const sn = c.peerConnection && c.peerConnection.getSenders().find(x => x.track && x.track.kind === 'audio'); if (sn && sn.track !== tr) sn.replaceTrack(tr).catch(() => {}); }
+}
+['pointerdown', 'keydown'].forEach(e => addEventListener(e, () => { if (ac && ac.state === 'suspended') ac.resume().then(useMixedAudio).catch(() => {}); }, true));
 const outStream = () => new MediaStream([...outAudio(), currentVideo()]);
 const currentVideo = () => screenTrack || camTrack || blankTrack;
 getMic();
@@ -292,7 +300,7 @@ $('join').onclick = async () => {
   peer.on('disconnected', () => { if (!left) setTimeout(() => peer && !peer.destroyed && peer.reconnect(), 1500); });
 };
 // opened from the Diskord app with your name: go straight in, like Discord
-if (params.get('n') && (window.opener || DESK)) { $('lobbyTitle').textContent = 'Connecting…'; $('lobbyText').textContent = TITLE; setTimeout(() => $('join').click(), 50); }
+if (params.get('n') && DESK) { $('lobbyTitle').textContent = 'Connecting…'; $('lobbyText').textContent = TITLE; setTimeout(() => $('join').click(), 50); }
 setInterval(() => { if (!joinedAt) return; const s = Math.floor((Date.now() - joinedAt) / 1000); $('timer').textContent = (s >= 3600 ? Math.floor(s / 3600) + ':' : '') + String(Math.floor(s / 60) % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }, 1000);
 
 // The "directory" is one peer with a fixed id that keeps the member list and relays reactions.

@@ -3,15 +3,25 @@
 (() => {
   'use strict';
   const KEY = 'flix.sounds';
-  const load = () => { try { return Object.assign({ pack: 'auto', volume: 0.6, on: true }, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (_) { return { pack: 'auto', volume: 0.6, on: true }; } };
+  const load = () => { try { return Object.assign({ pack: 'auto', volume: 0.8, on: true }, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (_) { return { pack: 'auto', volume: 0.8, on: true }; } };
   const save = cfg => { try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (_) {} };
-  let ac = null, master = null;
+  // sounds -> boost -> limiter -> volume -> speakers (loud and even, never clipping)
+  let ac = null, master = null, out = null;
+  const BOOST = 5;
   function ctx() {
-    if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.connect(ac.destination); }
+    if (!ac) {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = BOOST;
+      const lim = ac.createDynamicsCompressor(); lim.threshold.value = -9; lim.knee.value = 4; lim.ratio.value = 20; lim.attack.value = .002; lim.release.value = .15;
+      out = ac.createGain(); master.connect(lim); lim.connect(out); out.connect(ac.destination);
+    }
     if (ac.state === 'suspended') ac.resume().catch(() => {});
-    master.gain.value = load().volume;
+    out.gain.value = Math.max(0, Math.min(1, load().volume));
     return ac;
   }
+  // browsers only allow sound after you click or press a key once
+  const unlock = () => { try { ctx(); } catch (_) {} if (ac && ac.state === 'running') ['pointerdown', 'keydown'].forEach(e => removeEventListener(e, unlock, true)); };
+  ['pointerdown', 'keydown'].forEach(e => addEventListener(e, unlock, true));
   // easter sunday (anonymous Gregorian algorithm)
   function easter(y) { const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), mo = Math.floor((h + l - 7 * m + 114) / 31), da = ((h + l - 7 * m + 114) % 31) + 1; return new Date(y, mo - 1, da); }
   function seasonal(now = new Date()) {
@@ -110,5 +120,5 @@
     try { (p[name] || PACKS.classic[name] || (() => {}))(); } catch (_) {}
   }
   function preview(pack) { const p = PACKS[pack === 'auto' ? seasonal() : pack] || PACKS.classic; try { ctx(); p.join(); setTimeout(() => p.message(), 600); setTimeout(() => p.ring(), 1200); } catch (_) {} }
-  window.DiskordSounds = { play, preview, load, save, seasonal, activePack, packs: () => Object.entries(PACKS).map(([k, v]) => ({ key: k, name: v.name, icon: v.icon })) };
+  window.DiskordSounds = { _ctx: () => ctx(), _out: () => out, play, preview, load, save, seasonal, activePack, packs: () => Object.entries(PACKS).map(([k, v]) => ({ key: k, name: v.name, icon: v.icon })) };
 })();
