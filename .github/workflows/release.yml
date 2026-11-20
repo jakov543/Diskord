@@ -18,7 +18,6 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Build installer
         working-directory: desktop
-        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
         run: npm run dist
       - name: Publish release
         uses: softprops/action-gh-release@v2
