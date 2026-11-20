@@ -602,7 +602,7 @@ function openChannel(cid) {
 function pushPresence() {
   if (S.room && S.myId) S.room.presence({ uid: S.myId, cid: S.cid || null, status: S.status, call: S.myCall ? S.myCall.room : null, callLabel: S.myCall ? S.myCall.label : null, muted: !!S.selfMute, deaf: !!S.selfDeaf }).catch(() => {});
 }
-function joinCall(room, label) { S.myCall = { room, label, at: Date.now() }; ls.set('myCall', S.myCall); pushPresence(); renderAll(); }
+function joinCall(room, label, video) { S.myCall = { room, label, at: Date.now(), video: !!video }; ls.set('myCall', S.myCall); pushPresence(); renderAll(); }
 window.addEventListener('message', e => {
   const d = e.data; if (!d || typeof d !== 'object' || typeof d.diskord !== 'string' || !S.myCall || d.room !== S.myCall.room) return;
   if (d.diskord === 'alive') S.callAlive = Date.now();
@@ -764,7 +764,19 @@ function renderMe() {
 }
 
 // ====================================================================== render: main
+// Discord Rich Presence (desktop app only)
+let rpcKey = '';
+function updateRpc() {
+  if (!window.diskord || typeof window.diskord.presence !== 'function') return;
+  const sv = curServer(), c = curChannel();
+  const p = S.myCall
+    ? { details: S.myCall.video ? '🎥 In a video call' : '📞 In a voice call', state: (S.myCall.label || 'Diskord call').slice(0, 100), call: true, video: !!S.myCall.video, callStart: S.myCall.at }
+    : { details: sv ? `In ${sv.name}` : 'Using Diskord', state: c ? `Chatting in #${c.name}` : 'Chatting with friends' };
+  const k = JSON.stringify(p); if (k === rpcKey) return; rpcKey = k;
+  try { window.diskord.presence(p); } catch (_) {}
+}
 function renderHeader() {
+  updateRpc();
   const c = curChannel();
   $('chName').textContent = c ? c.name : (curServer() ? 'no channel' : 'Diskord');
   $('chTitle').querySelector('.hash').classList.toggle('hidden', !c);
@@ -852,7 +864,7 @@ async function startChannelCall(e, video) {
   const bc = $('btnCall'), c = curChannel();
   if (!c || !S.myId) { e.preventDefault(); return; }
   const room = bc.dataset.room, label = bc.dataset.label;
-  joinCall(room, label);
+  joinCall(room, label, video);
   if (S.room) S.room.emit('ring', { kind: 'channel', room, label, cid: c.id, sid: S.sid, video: !!video }).catch(() => {});
   try { await S.db.collection(`ch/${c.id}/m`).add({ uid: S.myId, text: '', at: Date.now(), call: video ? { room, label, video: true } : { room, label } }); } catch (err) { writeError(err); }
   bc.dataset.cid = ''; renderHeader();
@@ -862,7 +874,7 @@ $('btnVideo').addEventListener('click', e => startChannelCall(e, true));
 function callPerson(uid, video) {
   const room = roomId('dm-' + [S.myId, uid].sort().join('-').replace(/[^a-zA-Z0-9]/g, '').slice(0, 40) + '-' + Date.now().toString(36));
   const label = nameOf(S.myId) + ' & ' + nameOf(uid);
-  joinCall(room, label);
+  joinCall(room, label, video);
   if (S.room) S.room.emit('ring', { kind: 'dm', to: uid, room, label, video: !!video }).catch(() => {});
   toast((video ? 'Video calling ' : 'Calling ') + nameOf(uid) + '…');
   return callLink(room, label, video);
@@ -883,7 +895,7 @@ function onRing(msg) {
     <div class="row2"><button class="btn danger" data-no>Decline</button><a class="btn go" target="_blank" rel="opener" href="${esc(callLink(room, label, !!d.video))}" data-yes>${d.video ? '🎥 Join' : 'Join'}</a></div>`;
   document.body.appendChild(el);
   el.querySelector('[data-no]').onclick = stopRing;
-  el.querySelector('[data-yes]').onclick = () => { joinCall(room, label); stopRing(); };
+  el.querySelector('[data-yes]').onclick = () => { joinCall(room, label, !!d.video); stopRing(); };
   let n = 0;
   const beep = () => { try { audioCtx = audioCtx || new AudioContext(); [0, .18].forEach(t => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.frequency.value = t ? 660 : 880; g.gain.value = .07; o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + t); g.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime + t + .16); o.stop(audioCtx.currentTime + t + .17); }); } catch (_) {} if (++n > 14) stopRing(); };
   beep(); ringTimer = setInterval(beep, 2000);

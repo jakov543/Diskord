@@ -2,6 +2,10 @@
 // splash -> (offline screen | welcome / log in / sign up | chat). Calls open in their own window with mic, camera and screen share.
 const { app, BrowserWindow, shell, session, desktopCapturer, Menu, Tray, ipcMain, net, dialog, nativeImage, protocol } = require('electron');
 const { pathToFileURL } = require('url');
+const DiscordRPC = require('./discord');
+const DISCORD_APP_ID = '1571423751231373405';
+const RPC_LOGO = 'https://raw.githubusercontent.com/jakov543/Diskord/main/icons/icon-512.png';
+let rpc = null, rpcStart = Date.now(), rpcLast = null;
 let autoUpdater = null;
 try { ({ autoUpdater } = require('electron-updater')); } catch (_) {}
 const path = require('path');
@@ -45,6 +49,28 @@ function showChat() { mode = 'chat'; main.loadURL(CHAT_URL); }
 function route() { if (!net.isOnline()) return showOffline('net'); showChat(); }
 
 ipcMain.on('version', e => { e.returnValue = app.getVersion(); });
+// ---------------------------------------------------------------- Discord Rich Presence
+const clip = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
+function setPresence(p) {
+  rpcLast = p || rpcLast || {};
+  if (!rpc) return;
+  if (state.rpcOff) return rpc.clear();
+  const a = rpcLast;
+  const inCall = !!a.call;
+  rpc.setActivity({
+    details: clip(a.details, 100) || 'Using Diskord',
+    state: clip(a.state, 100) || 'Chatting with friends',
+    timestamps: { start: inCall && a.callStart ? a.callStart : rpcStart },
+    assets: { large_image: RPC_LOGO, large_text: 'Diskord ' + app.getVersion(), small_image: inCall ? 'https://raw.githubusercontent.com/jakov543/Diskord/main/icons/icon-192.png' : undefined, small_text: inCall ? (a.video ? 'In a video call' : 'In a voice call') : undefined },
+    buttons: [{ label: 'Get Diskord', url: 'https://github.com/jakov543/Diskord/releases/latest' }],
+    instance: false
+  });
+}
+ipcMain.on('presence', (e, p) => {
+  if (!fromLocal(e) || !p || typeof p !== 'object') return;
+  setPresence({ details: clip(p.details, 100), state: clip(p.state, 100), call: !!p.call, video: !!p.video, callStart: Number(p.callStart) || 0 });
+});
+function toggleRpc() { state.rpcOff = !state.rpcOff; saveState(); setPresence(); createTray(); }
 ipcMain.on('quit', e => { if (fromLocal(e)) { quitting = true; app.quit(); } });
 ipcMain.on('retry', e => { if (fromLocal(e) && net.isOnline()) { mode = 'retry'; route(); } });
 
@@ -97,11 +123,13 @@ function createSplash() {
 
 function createTray() {
   try {
+    if (tray) { try { tray.destroy(); } catch (_) {} }
     tray = new Tray(nativeImage.createFromPath(ICON).resize({ width: 16, height: 16 }));
     tray.setToolTip('Diskord');
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: 'Open Diskord', click: () => { if (main) { main.show(); main.focus(); } } },
       { label: 'Reload', click: () => route() },
+      { label: 'Show on Discord (Rich Presence)', type: 'checkbox', checked: !state.rpcOff, click: () => toggleRpc() },
       { label: 'Check for updates', click: () => checkForUpdatesNow() },
       { label: "What's new", click: () => dialog.showMessageBox(main, { type: 'info', title: "What's new", message: 'Diskord ' + app.getVersion(), detail: notesFor(app.getVersion()) || 'New features and fixes.' }) },
       { type: 'separator' },
@@ -177,11 +205,12 @@ app.whenReady().then(async () => {
   createSplash();
   status('Checking connection…');
   createMain();
+  rpc = new DiscordRPC(DISCORD_APP_ID); rpc.start(); setPresence({ details: 'Using Diskord', state: 'Starting up…' });
   createTray();
   setupUpdates();
   whatsNew();
   await new Promise(r => setTimeout(r, 900)); // let the splash show for a moment
   route();
 });
-app.on('before-quit', () => { quitting = true; });
+app.on('before-quit', () => { quitting = true; try { rpc && rpc.stop(); } catch (_) {} });
 app.on('window-all-closed', () => app.quit());

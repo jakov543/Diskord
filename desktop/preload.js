@@ -3,5 +3,6 @@ contextBridge.exposeInMainWorld('diskord', {
   version: ipcRenderer.sendSync('version'),
   retry: () => ipcRenderer.send('retry'),
   quit: () => ipcRenderer.send('quit'),
+  presence: p => ipcRenderer.send('presence', p),
   onStatus: cb => ipcRenderer.on('status', (_e, t) => cb(t))
 });

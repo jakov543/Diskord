@@ -1,7 +1,7 @@
 {
   "name": "diskord",
   "productName": "Diskord",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "Diskord desktop app - chat, voice calls and video calls",
   "author": "jakov543",
   "main": "main.js",
@@ -28,7 +28,8 @@
       "app/**",
       "build/icon.png",
       "package.json",
-      "CHANGELOG.md"
+      "CHANGELOG.md",
+      "discord.js"
     ],
     "win": {
       "target": "nsis",

@@ -1,5 +1,10 @@
 # Diskord changelog
 
+## 2.2.0
+### ✨ New
+- 🎮 **Discord Rich Presence**: your Discord profile shows that you're using Diskord, which server and #channel you're in, and "📞 In a voice call" or "🎥 In a video call" with a call timer, plus a **Get Diskord** button
+- Turn it on or off any time: right-click the Diskord icon by the clock → **Show on Discord (Rich Presence)**
+
 ## 2.1.1
 ### 🛠️ Fixes
 - Sign up / Log in now say exactly what went wrong instead of just "Error" (for example when Email/Password login isn't switched on in Firebase, or the database rules are missing)
