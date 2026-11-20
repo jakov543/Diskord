@@ -1,0 +1,69 @@
+rules_version = '2';
+// Diskord security rules: paste this in Firebase console → Firestore Database → Rules → Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function appOwner() { return signedIn() && exists(/databases/$(database)/documents/meta/app) && get(/databases/$(database)/documents/meta/app).data.owner == me(); }
+    function server(sid) { return get(/databases/$(database)/documents/servers/$(sid)).data; }
+    function manages(sid) { let s = server(sid); return s.owner == me() || me() in s.get('admins', []) || appOwner(); }
+    function managesChannel(cid) { return manages(get(/databases/$(database)/documents/channels/$(cid)).data.sid); }
+    function onlyChanged(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+
+    match /meta/app {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.owner == me();
+      allow update: if appOwner();
+    }
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && me() == uid && request.resource.data.get('name', 'ok').size() <= 32;
+    }
+    match /profiles/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && me() == uid;
+    }
+    match /presence/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && me() == uid;
+    }
+    match /events/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.by == me();
+      allow delete: if signedIn() && resource.data.by == me();
+    }
+    match /blobs/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.by == me() && request.resource.data.d.size() < 1040000;
+      allow delete: if signedIn() && (resource.data.by == me() || appOwner());
+    }
+    match /gifs/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.by == me();
+      allow delete: if signedIn() && (resource.data.by == me() || appOwner());
+    }
+    match /servers/{sid} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.owner == me();
+      allow update: if signedIn() && request.resource.data.owner == resource.data.owner && (
+        resource.data.owner == me() || appOwner() ||
+        (me() in resource.data.get('admins', []) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['admins', 'owner'])));
+      allow delete: if signedIn() && (resource.data.owner == me() || appOwner());
+    }
+    match /channels/{cid} {
+      allow read: if signedIn();
+      allow create: if signedIn() && manages(request.resource.data.sid);
+      allow update: if signedIn() && request.resource.data.sid == resource.data.sid && (onlyChanged(['last', 'lastUid']) || manages(resource.data.sid));
+      allow delete: if signedIn() && manages(resource.data.sid);
+    }
+    match /ch/{cid}/m/{mid} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == me() && request.resource.data.get('text', '').size() <= 4000;
+      allow update: if signedIn() && request.resource.data.uid == resource.data.uid && (
+        (resource.data.uid == me() && onlyChanged(['text', 'edited', 'react', 'poll', 'pinned'])) ||
+        onlyChanged(['react', 'poll']) ||
+        (onlyChanged(['pinned']) && managesChannel(cid)));
+      allow delete: if signedIn() && (resource.data.uid == me() || managesChannel(cid));
+    }
+  }
+}

@@ -2,7 +2,7 @@ name: Build Diskord installer
 on:
   push:
     branches: [main]
-    paths: ['desktop/**', '.github/workflows/release.yml']
+    paths-ignore: ['README.md', 'firestore.rules']
   workflow_dispatch:
 permissions:
   contents: write
@@ -13,17 +13,41 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
+      - name: Check Firebase is configured
+        id: cfg
+        shell: bash
+        run: |
+          if grep -q "DISKORD_FIREBASE = null" firebase-config.js; then echo "::notice::firebase-config.js is still empty - skipping the installer"; echo "ok=false" >> $GITHUB_OUTPUT; else echo "ok=true" >> $GITHUB_OUTPUT; fi
+      - name: Bundle the Diskord app into the desktop app
+        if: steps.cfg.outputs.ok == 'true'
+        shell: bash
+        run: |
+          mkdir -p desktop/app/icons desktop/app/vendor
+          cp index.html call.html adapter.js firebase-config.js logo.svg manifest.webmanifest desktop/app/
+          cp icons/*.png desktop/app/icons/
+          cd desktop/app/vendor
+          npm pack firebase@10.14.1 peerjs@1.5.4 --silent
+          tar -xzf firebase-10.14.1.tgz && cp package/firebase-app-compat.js package/firebase-auth-compat.js package/firebase-firestore-compat.js . && rm -rf package
+          tar -xzf peerjs-1.5.4.tgz && cp package/dist/peerjs.min.js . && rm -rf package *.tgz
+          cd ..
+          sed -i 's#https://www.gstatic.com/firebasejs/10.14.1/#vendor/#g' index.html
+          sed -i 's#https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js#vendor/peerjs.min.js#' call.html
+          ls -la . vendor
       - name: Install
+        if: steps.cfg.outputs.ok == 'true'
         working-directory: desktop
         run: npm install --no-audit --no-fund
       - name: Build installer
+        if: steps.cfg.outputs.ok == 'true'
         working-directory: desktop
         run: npm run dist
       - name: Read version
+        if: steps.cfg.outputs.ok == 'true'
         id: v
         shell: bash
         run: echo "version=$(node -p "require('./desktop/package.json').version")" >> $GITHUB_OUTPUT
       - name: Publish release
+        if: steps.cfg.outputs.ok == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.v.outputs.version }}
@@ -33,9 +57,9 @@ jobs:
             ## Diskord for Windows 10 / 11
             1. Download **Diskord-Setup-${{ steps.v.outputs.version }}.exe** below.
             2. Run it. If Windows SmartScreen says "Windows protected your PC", click **More info → Run anyway** (the app isn't code-signed).
-            3. Open Diskord from the desktop or Start menu, then **Log in** or **Sign up**.
+            3. Open Diskord, then **Sign up** (email + password) or **Log in**.
 
-            **New in this version:** startup screen, Log in / Sign up screen, offline screen that reconnects by itself, Log out (tray icon or View menu), remembers window size, F5 to reload.
+            **New in 2.0:** Diskord has its own accounts now — Sign up / Log in with email + password, password reset, change your display name. Works offline with your recent messages, and has a branded installer.
 
             Calls open in their own Diskord window with mic, camera and screen share.
           files: desktop/dist/Diskord-Setup-*.exe

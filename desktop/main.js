@@ -1,16 +1,19 @@
 // Diskord desktop app
 // splash -> (offline screen | welcome / log in / sign up | chat). Calls open in their own window with mic, camera and screen share.
-const { app, BrowserWindow, shell, session, desktopCapturer, Menu, Tray, ipcMain, net, dialog, nativeImage } = require('electron');
+const { app, BrowserWindow, shell, session, desktopCapturer, Menu, Tray, ipcMain, net, dialog, nativeImage, protocol } = require('electron');
+const { pathToFileURL } = require('url');
 const path = require('path');
 const fs = require('fs');
 
-const CHAT_URL = 'https://claude.ai/artifact/JmfsXjNXdnXfMiNrJP5a3t';
-const LOGIN_URL = 'https://claude.ai/login';
-const CALL_PREFIX = 'https://jakov543.github.io/Diskord/';
+// The Diskord app files ship inside the installer and are served as diskord://app/...
+const APP_DIR = path.join(__dirname, 'app');
+const CHAT_URL = 'diskord://app/index.html';
+const CALL_PREFIX = 'diskord://app/call.html';
+protocol.registerSchemesAsPrivileged([{ scheme: 'diskord', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
 const UI = f => path.join(__dirname, 'ui', f);
 const ICON = path.join(__dirname, 'build', 'icon.png');
 const UA = `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${process.versions.chrome} Safari/537.36`;
-const SIGN_IN_HOSTS = ['claude.ai', 'anthropic.com', 'accounts.google.com', 'appleid.apple.com'];
+const SIGN_IN_HOSTS = ['accounts.google.com'];
 const NET_ERRORS = new Set([-2, -7, -21, -100, -101, -102, -104, -105, -106, -109, -118, -130, -137, -138]);
 
 if (!app.requestSingleInstanceLock()) { app.quit(); }
@@ -22,42 +25,26 @@ let state = {};
 const loadState = () => { try { state = JSON.parse(fs.readFileSync(stateFile(), 'utf8')); } catch (_) { state = {}; } };
 const saveState = () => { try { fs.writeFileSync(stateFile(), JSON.stringify(state)); } catch (_) {} };
 
-let main = null, splash = null, tray = null, mode = 'start', lastWanted = CHAT_URL, quitting = false;
+let main = null, splash = null, tray = null, mode = 'start', quitting = false;
 const host = u => { try { return new URL(u).hostname; } catch (_) { return ''; } };
 const isCall = u => u.startsWith(CALL_PREFIX);
 const isSignIn = u => SIGN_IN_HOSTS.some(h => host(u) === h || host(u).endsWith('.' + h));
-const fromLocal = e => { try { return (e.senderFrame && e.senderFrame.url || '').startsWith('file://'); } catch (_) { return false; } };
+const fromLocal = e => { try { return /^(file|diskord):/.test(e.senderFrame && e.senderFrame.url || ''); } catch (_) { return false; } };
 const status = t => { if (splash && !splash.isDestroyed()) splash.webContents.send('status', t); };
 
-// ---------------------------------------------------------------- login state
-async function hasSession() {
-  try { const c = await session.defaultSession.cookies.get({ url: 'https://claude.ai' }); if (c.some(x => x.name === 'sessionKey' && x.value)) return true; } catch (_) {}
-  return !!state.loggedIn;
-}
-async function logout() {
-  state.loggedIn = false; saveState();
-  try { await session.defaultSession.clearStorageData({ origin: 'https://claude.ai' }); } catch (_) {}
-  try { const cs = await session.defaultSession.cookies.get({}); for (const c of cs) if (/claude\.ai|anthropic\.com/.test(c.domain)) await session.defaultSession.cookies.remove(`https://${c.domain.replace(/^\./, '')}${c.path}`, c.name); } catch (_) {}
+function logout() {
   BrowserWindow.getAllWindows().forEach(w => { if (w !== main && w !== splash) w.close(); });
-  showWelcome();
+  if (main) main.webContents.executeJavaScript('window.diskordLogout && window.diskordLogout()').catch(() => {});
 }
 
 // ---------------------------------------------------------------- screens
-function showWelcome(signup) { mode = 'welcome'; main.loadFile(UI('welcome.html'), signup ? { hash: 'signup' } : {}); }
 function showOffline(reason) { if (mode === 'offline') return; mode = 'offline'; main.loadFile(UI('offline.html'), { query: { reason: reason || 'net' } }); }
-function showChat() { mode = 'chat'; lastWanted = CHAT_URL; main.loadURL(CHAT_URL); }
-function showLogin() { mode = 'login'; lastWanted = LOGIN_URL; main.loadURL(LOGIN_URL); }
-
-async function route() {
-  if (!net.isOnline()) return showOffline('net');
-  if (await hasSession()) showChat(); else showWelcome();
-}
+function showChat() { mode = 'chat'; main.loadURL(CHAT_URL); }
+function route() { if (!net.isOnline()) return showOffline('net'); showChat(); }
 
 ipcMain.on('version', e => { e.returnValue = app.getVersion(); });
-ipcMain.on('login', e => { if (fromLocal(e)) showLogin(); });
-ipcMain.on('signup', e => { if (fromLocal(e)) showLogin(); });
 ipcMain.on('quit', e => { if (fromLocal(e)) { quitting = true; app.quit(); } });
-ipcMain.on('retry', e => { if (!fromLocal(e)) return; if (!net.isOnline()) return; mode = 'retry'; if (lastWanted === LOGIN_URL) showLogin(); else route(); });
+ipcMain.on('retry', e => { if (fromLocal(e) && net.isOnline()) { mode = 'retry'; route(); } });
 
 // ---------------------------------------------------------------- windows
 function wire(win) {
@@ -68,7 +55,7 @@ function wire(win) {
     return { action: 'deny' };
   });
   win.webContents.on('did-create-window', child => wire(child));
-  win.webContents.on('will-navigate', (e, url) => { if (!/^https?:|^file:/.test(url)) e.preventDefault(); });
+  win.webContents.on('will-navigate', (e, url) => { if (!/^(diskord|file):/.test(url)) { e.preventDefault(); if (/^https?:/.test(url)) shell.openExternal(url); } });
 }
 
 function createMain() {
@@ -85,7 +72,7 @@ function createMain() {
 
   let shown = false;
   const reveal = () => { if (shown) return; shown = true; setTimeout(() => { if (splash && !splash.isDestroyed()) splash.close(); splash = null; main.show(); }, 350); };
-  main.webContents.on('did-start-loading', () => { if (mode === 'chat') status('Loading your servers…'); if (mode === 'login') status('Opening log in…'); });
+  main.webContents.on('did-start-loading', () => { if (mode === 'chat') status('Loading Diskord…'); });
   main.webContents.on('did-finish-load', reveal);
   setTimeout(reveal, 15000); // never get stuck on the splash
 
@@ -93,14 +80,6 @@ function createMain() {
     if (!isMain || code === -3) return; // -3 = aborted (redirects)
     if (NET_ERRORS.has(code) || !net.isOnline()) showOffline(net.isOnline() ? 'server' : 'net');
     reveal();
-  });
-  // Logged in? When claude.ai leaves the login pages, go to the chat.
-  main.webContents.on('did-navigate', (e, url) => {
-    if (host(url) !== 'claude.ai') return;
-    const p = new URL(url).pathname;
-    const onLogin = /^\/(login|signup|magic-link|oauth|verify|onboarding)/.test(p);
-    if (mode === 'login' && !onLogin) { state.loggedIn = true; saveState(); showChat(); }
-    else if (mode === 'chat' && onLogin) { state.loggedIn = false; saveState(); showWelcome(); }
   });
   main.webContents.on('page-title-updated', (e) => { e.preventDefault(); main.setTitle('Diskord'); });
   main.webContents.on('render-process-gone', () => { if (!quitting) route(); });
@@ -129,15 +108,6 @@ function createTray() {
   } catch (_) {}
 }
 
-// Watch the connection while the app is open.
-let wasOnline = true;
-setInterval(() => {
-  if (!main) return;
-  const on = net.isOnline();
-  if (!on && wasOnline && mode !== 'offline') showOffline('net');
-  wasOnline = on;
-}, 4000);
-
 app.on('second-instance', () => { if (main) { if (main.isMinimized()) main.restore(); main.show(); main.focus(); } });
 
 app.whenReady().then(async () => {
@@ -146,6 +116,12 @@ app.whenReady().then(async () => {
     { role: 'reload', accelerator: 'F5' }, { role: 'toggleDevTools', accelerator: 'Ctrl+Shift+I' },
     { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'togglefullscreen' },
     { label: 'Log out', click: () => logout() }] }]));
+  protocol.handle('diskord', req => {
+    const rel = decodeURIComponent(new URL(req.url).pathname).replace(/^\/+/, '') || 'index.html';
+    const file = path.normalize(path.join(APP_DIR, rel));
+    if (!file.startsWith(APP_DIR)) return new Response('Not found', { status: 404 });
+    return net.fetch(pathToFileURL(file).toString());
+  });
   const ses = session.defaultSession;
   ses.setUserAgent(UA);
   ses.setPermissionRequestHandler((wc, permission, cb) => cb(['media', 'display-capture', 'notifications', 'clipboard-sanitized-write', 'fullscreen'].includes(permission)));

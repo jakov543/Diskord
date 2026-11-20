@@ -1,7 +1,7 @@
 {
   "name": "diskord",
   "productName": "Diskord",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Diskord desktop app - chat, voice calls and video calls",
   "author": "jakov543",
   "main": "main.js",
@@ -25,6 +25,7 @@
       "main.js",
       "preload.js",
       "ui/**",
+      "app/**",
       "build/icon.png",
       "package.json"
     ],
@@ -40,7 +41,12 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Diskord",
       "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico"
+      "uninstallerIcon": "build/icon.ico",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/installerSidebar.bmp",
+      "installerHeaderIcon": "build/icon.ico",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
     },
     "publish": null
   }
