@@ -1,12 +1,12 @@
 <!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self'">
 <link rel="stylesheet" href="common.css"><style>
 body { background: transparent; display: grid; place-items: center; }
-.card { width: 300px; height: 300px; border-radius: 14px; background: linear-gradient(135deg, #1b1446 0%, #3a0b4c 40%, #4c1a35 72%, #4a2a0c 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 20px 50px rgba(0,0,0,.5); -webkit-app-region: drag; position: relative; overflow: hidden; }
+.card { width: 300px; height: 300px; border-radius: 14px; background: linear-gradient(135deg, #071a3d 0%, #0c2b6b 40%, #0a3a74 72%, #06213f 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 20px 50px rgba(0,0,0,.5); -webkit-app-region: drag; position: relative; overflow: hidden; }
 .logo { width: 92px; animation: b 1.6s ease-in-out infinite; filter: drop-shadow(0 10px 24px rgba(0,0,0,.35)); }
 @keyframes b { 0%,100% { transform: translateY(0) scale(1); } 45% { transform: translateY(-9px) scale(1.04); } 60% { transform: translateY(0) scale(.97); } }
 #status { color: #fff; font-size: 13.5px; font-weight: 600; margin-top: 22px; min-height: 18px; }
 .bar { width: 170px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.15); overflow: hidden; margin-top: 10px; opacity: 0; transition: opacity .2s; }
-.bar.on { opacity: 1; } .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg,#ff4d7d,#a64dff); transition: width .2s; }
+.bar.on { opacity: 1; } .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg,#38bdf8,#3b82f6); transition: width .2s; }
 small { position: absolute; bottom: 12px; color: rgba(255,255,255,.45); font-size: 11px; }
 </style></head><body><div class="card"><img class="logo" src="logo.svg" alt=""><div id="status">Starting…</div><div class="bar" id="bar"><i id="fill"></i></div><small id="ver"></small></div>
 <script>

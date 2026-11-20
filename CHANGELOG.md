@@ -1,5 +1,14 @@
 # Diskord changelog
 
+## 6.0.0
+### ✨ New
+- 💙 **New blue look**: blue logo, buttons, highlights and loading screens, plus a darker blue background
+- 🖥️ **Choose what to share**: screen sharing now opens a picker with **Applications** (one app window, e.g. Minecraft or FiveM) or **Entire screen**, with previews and an **Also share sound** option
+- ⬆️ **Updates install when you open Diskord**: no more "Restart now?" popups. New versions download in the background and install the next time you open (or close) Diskord. The tray menu has **Restart to update** if you want it right away
+### 🛠️ Fixes
+- 📞 Calls now work between different homes and mobile data too: added free relay servers for when routers block direct connections. Tested with 3 people: voice, camera, leave and rejoin
+- The GIF picker opens on Diskord GIFs when Tenor search isn't set up, instead of showing an error
+
 ## 5.0.0
 ### ✨ New
 - 🌍 **No server needed — just install and use, like Discord.** Diskord now runs on the open **Nostr** network: your messages are saved on several free public relays at once, so there's no VPS, no Firebase and nothing to set up

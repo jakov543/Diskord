@@ -330,11 +330,11 @@ function makeApi(info) {
   const usersSub = want('c:users', colFilter('users'));
   const user = {
     async id() { return me; },
-    async me() { await usersSub.ready; const u = name(me); return { id: me, name: u.name || info.name || 'You', color: u.color || '#ff4d7d', username: u.username || info.username || '', avatarUrl: '', isOwner: false, canEdit: false, isMe: true }; },
+    async me() { await usersSub.ready; const u = name(me); return { id: me, name: u.name || info.name || 'You', color: u.color || '#38bdf8', username: u.username || info.username || '', avatarUrl: '', isOwner: false, canEdit: false, isMe: true }; },
     async profiles(ids) {
       const missing = [].concat(ids).filter(id => !resolved.get('users/' + id) && /^[0-9a-f]{64}$/.test(id));
       if (missing.length) { const evs = await fetchOnce([{ kinds: [KIND], '#d': missing.slice(0, 100).map(id => NS + 'users/' + id) }], 2500); evs.forEach(ingest); }
-      const out = {}; for (const id of [].concat(ids)) { const u = name(id); out[id] = { id, name: u.name || 'User', color: u.color || '#8b5cf6', username: u.username || '', avatarUrl: '' }; } return out;
+      const out = {}; for (const id of [].concat(ids)) { const u = name(id); out[id] = { id, name: u.name || 'User', color: u.color || '#6366f1', username: u.username || '', avatarUrl: '' }; } return out;
     },
     async rename(n) { await db.doc('users/' + me).set({ name: n }, { merge: true }); },
     async setColor(c) { await db.doc('users/' + me).set({ color: c }, { merge: true }); },
@@ -370,33 +370,33 @@ function makeApi(info) {
   return { db, user, room, assets };
 }
 const AUTH_CSS = `
-#auth{position:fixed;inset:0;z-index:200;display:grid;grid-template-columns:1.05fr .95fr;background:radial-gradient(ellipse at 15% -10%,rgba(166,77,255,.28),transparent 55%),radial-gradient(ellipse at 100% 110%,rgba(255,77,125,.2),transparent 50%),#0b0912;color:#f3effc;font-family:'Plus Jakarta Sans',system-ui,sans-serif}
+#auth{position:fixed;inset:0;z-index:200;display:grid;grid-template-columns:1.05fr .95fr;background:radial-gradient(ellipse at 15% -10%,rgba(59,130,246,.28),transparent 55%),radial-gradient(ellipse at 100% 110%,rgba(56,189,248,.2),transparent 50%),#0a0f1c;color:#eef3fc;font-family:'Plus Jakarta Sans',system-ui,sans-serif}
 #auth .l{display:flex;flex-direction:column;justify-content:center;padding:60px 70px;gap:18px}
-#auth .l .lg{width:84px;filter:drop-shadow(0 12px 32px rgba(177,77,255,.5))}
+#auth .l .lg{width:84px;filter:drop-shadow(0 12px 32px rgba(59,130,246,.5))}
 #auth h1{font-size:46px;line-height:1.05;font-weight:800;letter-spacing:-1.2px}
-#auth h1 span{background:linear-gradient(135deg,#ff4d7d,#5b5cf6);-webkit-background-clip:text;color:transparent}
-#auth .lead{color:#a39cbd;font-size:16px;line-height:1.6;max-width:440px}
-#auth .ft{display:grid;gap:10px;color:#a39cbd;font-size:14px}#auth .ft b{color:#f3effc}
+#auth h1 span{background:linear-gradient(135deg,#38bdf8,#4f46e5);-webkit-background-clip:text;color:transparent}
+#auth .lead{color:#9caccc;font-size:16px;line-height:1.6;max-width:440px}
+#auth .ft{display:grid;gap:10px;color:#9caccc;font-size:14px}#auth .ft b{color:#eef3fc}
 #auth .r{display:grid;place-items:center;padding:30px}
-#auth .card{width:100%;max-width:410px;background:#171325;border:1px solid rgba(255,255,255,.06);border-radius:22px;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,.45);animation:aIn .4s ease}
+#auth .card{width:100%;max-width:410px;background:#141c2f;border:1px solid rgba(255,255,255,.06);border-radius:22px;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,.45);animation:aIn .4s ease}
 @keyframes aIn{from{opacity:0;transform:translateY(10px)}}
-#auth .tabs{display:flex;background:#0b0912;border-radius:12px;padding:4px;margin-bottom:20px}
-#auth .tabs button{flex:1;padding:10px;border-radius:9px;font-weight:700;color:#a39cbd;background:none;border:0;cursor:pointer;font:inherit;font-weight:700}
-#auth .tabs button.on{background:#1f1a31;color:#f3effc}
-#auth h2{font-size:22px;margin-bottom:4px}#auth p.s{color:#a39cbd;font-size:14px;margin-bottom:18px;line-height:1.5}
-#auth label{display:block;font-size:11.5px;font-weight:800;color:#a39cbd;text-transform:uppercase;letter-spacing:.6px;margin:12px 0 7px}
-#auth input{width:100%;padding:12px 14px;border-radius:10px;border:0;background:#0b0912;color:#f3effc;outline:none;font:inherit;font-size:15px}
-#auth input:focus{box-shadow:0 0 0 2px #a64dff}
-#auth .go{width:100%;margin-top:20px;padding:14px;border-radius:12px;border:0;cursor:pointer;background:linear-gradient(135deg,#ff4d7d,#5b5cf6);color:#fff;font:inherit;font-weight:800;font-size:15.5px;box-shadow:0 10px 28px rgba(166,77,255,.35)}
+#auth .tabs{display:flex;background:#0a0f1c;border-radius:12px;padding:4px;margin-bottom:20px}
+#auth .tabs button{flex:1;padding:10px;border-radius:9px;font-weight:700;color:#9caccc;background:none;border:0;cursor:pointer;font:inherit;font-weight:700}
+#auth .tabs button.on{background:#1b2540;color:#eef3fc}
+#auth h2{font-size:22px;margin-bottom:4px}#auth p.s{color:#9caccc;font-size:14px;margin-bottom:18px;line-height:1.5}
+#auth label{display:block;font-size:11.5px;font-weight:800;color:#9caccc;text-transform:uppercase;letter-spacing:.6px;margin:12px 0 7px}
+#auth input{width:100%;padding:12px 14px;border-radius:10px;border:0;background:#0a0f1c;color:#eef3fc;outline:none;font:inherit;font-size:15px}
+#auth input:focus{box-shadow:0 0 0 2px #3b82f6}
+#auth .go{width:100%;margin-top:20px;padding:14px;border-radius:12px;border:0;cursor:pointer;background:linear-gradient(135deg,#38bdf8,#4f46e5);color:#fff;font:inherit;font-weight:800;font-size:15.5px;box-shadow:0 10px 28px rgba(59,130,246,.35)}
 #auth .go:disabled{opacity:.6;cursor:default}
 #auth .lnk{background:none;border:0;color:#8ab4ff;cursor:pointer;font:inherit;font-size:13px;padding:0;margin-top:10px}
 #auth .err{background:rgba(255,77,94,.12);border:1px solid rgba(255,77,94,.4);color:#ffb3bb;border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:14px}
 #auth .ok{background:rgba(43,217,138,.12);border:1px solid rgba(43,217,138,.4);color:#a8f0cd;border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:14px}
-#auth .pw{position:relative}#auth .pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:#a39cbd;cursor:pointer;font-size:12px;font-weight:700}
-#auth .meter{height:4px;border-radius:2px;background:#2a2342;margin-top:7px;overflow:hidden}#auth .meter i{display:block;height:100%;width:0;transition:.2s}
-#auth code{background:#0b0912;padding:2px 6px;border-radius:5px;font-size:12.5px}
+#auth .pw{position:relative}#auth .pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:#9caccc;cursor:pointer;font-size:12px;font-weight:700}
+#auth .meter{height:4px;border-radius:2px;background:#24304f;margin-top:7px;overflow:hidden}#auth .meter i{display:block;height:100%;width:0;transition:.2s}
+#auth code{background:#0a0f1c;padding:2px 6px;border-radius:5px;font-size:12.5px}
 @media(max-width:900px){#auth{grid-template-columns:1fr}#auth .l{display:none}}`;
-const LOGO_SVG = '<svg viewBox="0 0 64 64" class="lg"><defs><linearGradient id="adk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff4d7d"/><stop offset=".55" stop-color="#b14dff"/><stop offset="1" stop-color="#5b5cf6"/></linearGradient></defs><path d="M32 4C16.5 4 5 14.6 5 28.6c0 7.6 3.4 14.3 9 18.9L12 60l12.6-7.4c2.4.6 4.8.9 7.4.9 15.5 0 27-10.6 27-24.9S47.5 4 32 4z" fill="url(#adk)"/><path d="M20 17h10.5C40 17 46 22 46 29.5S40 42 30.5 42H20zm7 6v13h3.4c5 0 8.4-2.6 8.4-6.5S35.4 23 30.4 23z" fill="#fff"/><rect x="29" y="26.5" width="2.6" height="6" rx="1.3" fill="#ffd84a"/><rect x="33" y="24.5" width="2.6" height="10" rx="1.3" fill="#ffd84a"/></svg>';
+const LOGO_SVG = '<svg viewBox="0 0 64 64" class="lg"><defs><linearGradient id="adk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset=".55" stop-color="#3b82f6"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs><path d="M32 4C16.5 4 5 14.6 5 28.6c0 7.6 3.4 14.3 9 18.9L12 60l12.6-7.4c2.4.6 4.8.9 7.4.9 15.5 0 27-10.6 27-24.9S47.5 4 32 4z" fill="url(#adk)"/><path d="M20 17h10.5C40 17 46 22 46 29.5S40 42 30.5 42H20zm7 6v13h3.4c5 0 8.4-2.6 8.4-6.5S35.4 23 30.4 23z" fill="#fff"/><rect x="29" y="26.5" width="2.6" height="6" rx="1.3" fill="#ffd84a"/><rect x="33" y="24.5" width="2.6" height="10" rx="1.3" fill="#ffd84a"/></svg>';
 
 const niceErr = e => (e && e.message) || 'Something went wrong.';
 function showAuth(tab) {

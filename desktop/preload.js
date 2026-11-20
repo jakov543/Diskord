@@ -5,5 +5,7 @@ contextBridge.exposeInMainWorld('diskord', {
   quit: () => ipcRenderer.send('quit'),
   presence: p => ipcRenderer.send('presence', p),
   upload: (buf, name, type) => ipcRenderer.invoke('upload', { buf, name, type }),
-  onStatus: cb => ipcRenderer.on('status', (_e, t) => cb(t))
+  onStatus: cb => ipcRenderer.on('status', (_e, t) => cb(t)),
+  onSources: cb => ipcRenderer.on('sources', (_e, s) => cb(s)),
+  pickerChoose: (id, audio) => ipcRenderer.send('picker-choice', { id, audio })
 });

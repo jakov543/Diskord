@@ -90,7 +90,7 @@ ipcMain.on('retry', e => { if (fromLocal(e) && net.isOnline()) { mode = 'retry';
 // ---------------------------------------------------------------- windows
 function wire(win) {
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (isCall(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 1100, height: 720, minWidth: 640, minHeight: 480, backgroundColor: '#0b0912', icon: ICON, autoHideMenuBar: true, title: 'Diskord Call' } };
+    if (isCall(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 1100, height: 720, minWidth: 640, minHeight: 480, backgroundColor: '#0a0f1c', icon: ICON, autoHideMenuBar: true, title: 'Diskord Call' } };
     if (isSignIn(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 520, height: 720, icon: ICON, autoHideMenuBar: true, title: 'Sign in' } };
     if (/^https?:/.test(url)) shell.openExternal(url);
     return { action: 'deny' };
@@ -103,7 +103,7 @@ function createMain() {
   const b = state.bounds || {};
   main = new BrowserWindow({
     width: b.width || 1360, height: b.height || 860, x: b.x, y: b.y, minWidth: 900, minHeight: 600,
-    backgroundColor: '#0b0912', icon: ICON, title: 'Diskord', autoHideMenuBar: true, show: false,
+    backgroundColor: '#0a0f1c', icon: ICON, title: 'Diskord', autoHideMenuBar: true, show: false,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: true, allowRunningInsecureContent: true }
   });
   if (state.maximized) main.maximize();
@@ -143,6 +143,7 @@ function createTray() {
       { label: 'Open Diskord', click: () => { if (main) { main.show(); main.focus(); } } },
       { label: 'Reload', click: () => route() },
       { label: 'Show on Discord (Rich Presence)', type: 'checkbox', checked: !state.rpcOff, click: () => toggleRpc() },
+      ...(updateReady ? [{ label: `⬆️ Restart to update to ${updateReady}`, click: () => { quitting = true; autoUpdater.quitAndInstall(true, true); } }] : []),
       { label: 'Check for updates', click: () => checkForUpdatesNow() },
       { label: "What's new", click: () => dialog.showMessageBox(main, { type: 'info', title: "What's new", message: 'Diskord ' + app.getVersion(), detail: notesFor(app.getVersion()) || 'New features and fixes.' }) },
       { type: 'separator' },
@@ -151,6 +152,32 @@ function createTray() {
     ]));
     tray.on('click', () => { if (main) { main.show(); main.focus(); } });
   } catch (_) {}
+}
+
+// ---------------------------------------------------------------- screen-share picker
+let pickerBusy = false;
+async function openPicker(cb) {
+  if (pickerBusy) return cb({});
+  pickerBusy = true;
+  let done = false;
+  const finish = r => { if (done) return; done = true; pickerBusy = false; try { cb(r); } catch (_) {} };
+  const sources = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 400, height: 225 }, fetchWindowIcons: true });
+  const own = new Set(BrowserWindow.getAllWindows().map(w => w.getMediaSourceId && w.getMediaSourceId()));
+  const list = sources.filter(s => !own.has(s.id) && !/^Diskord( Call)?$/.test(s.name)).map(s => ({ id: s.id, name: s.name, type: s.id.startsWith('screen') ? 'screen' : 'window', thumb: s.thumbnail.toDataURL(), icon: s.appIcon ? s.appIcon.toDataURL() : '' }));
+  const parent = BrowserWindow.getFocusedWindow() || undefined;
+  const win = new BrowserWindow({ width: 820, height: 600, parent, modal: !!parent, resizable: false, minimizable: false, maximizable: false, autoHideMenuBar: true, backgroundColor: '#0f1729', icon: ICON, title: 'Share your screen',
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true } });
+  const onChoice = (e, a) => {
+    if (e.sender !== win.webContents) return;
+    ipcMain.removeListener('picker-choice', onChoice);
+    const src = a && a.id && sources.find(s => s.id === a.id);
+    finish(src ? { video: src, audio: a.audio && process.platform === 'win32' ? 'loopback' : undefined } : {});
+    if (!win.isDestroyed()) win.close();
+  };
+  ipcMain.on('picker-choice', onChoice);
+  win.on('closed', () => { ipcMain.removeListener('picker-choice', onChoice); finish({}); });
+  win.webContents.once('did-finish-load', () => win.webContents.send('sources', list));
+  win.loadFile(UI('picker.html'));
 }
 
 // ---------------------------------------------------------------- updates
@@ -167,15 +194,15 @@ function setupUpdates() {
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.on('download-progress', p => { if (phase === 'startup') status(`Downloading update… ${Math.round(p.percent || 0)}%`); });
-  autoUpdater.on('update-available', info => { if (phase === 'startup') { startupDownloading = true; status('Downloading update ' + info.version + '… 0%'); return; } if (manualCheck) dialog.showMessageBox(main, { type: 'info', title: 'Update found', message: `Diskord ${info.version} is downloading…`, detail: 'You can keep chatting. We\'ll ask you to restart when it\'s ready.' }); });
+  autoUpdater.on('update-available', info => { if (phase === 'startup') { startupDownloading = true; status('Downloading update ' + info.version + '… 0%'); return; } if (manualCheck) dialog.showMessageBox(main, { type: 'info', title: 'Update found', message: `Diskord ${info.version} is downloading…`, detail: 'It installs automatically the next time you open Diskord.' }); });
   autoUpdater.on('update-not-available', () => { if (phase === 'startup' && startupDone) return startupDone(false); if (manualCheck) dialog.showMessageBox(main, { type: 'info', title: 'No updates', message: 'You have the newest Diskord (' + app.getVersion() + ').' }); manualCheck = false; });
   autoUpdater.on('error', err => { if (phase === 'startup' && startupDone) return startupDone(false); if (manualCheck) dialog.showMessageBox(main, { type: 'warning', title: 'Update check failed', message: 'Couldn\'t check for updates right now.', detail: String(err && err.message || err).slice(0, 300) }); manualCheck = false; });
   autoUpdater.on('update-downloaded', async info => {
-    updateReady = true; manualCheck = false;
+    updateReady = info.version; manualCheck = false;
     if (phase === 'startup' && startupDone) { status('Installing update…'); setTimeout(() => { quitting = true; autoUpdater.quitAndInstall(true, true); }, 700); return startupDone(true); }
-    const notes = typeof info.releaseNotes === 'string' ? info.releaseNotes.replace(/<[^>]+>/g, '').trim() : '';
-    const r = await dialog.showMessageBox(main, { type: 'info', buttons: ['Restart now', 'Later'], defaultId: 0, cancelId: 1, title: 'Update ready', message: `Diskord ${info.version} is ready to install 🎉`, detail: (notes || 'New features and fixes.').slice(0, 1200) + '\n\nRestart now to update? (If you pick Later, it installs when you close Diskord.)' });
-    if (r.response === 0) { quitting = true; setImmediate(() => autoUpdater.quitAndInstall(false, true)); }
+    // While Diskord is open: no popup. It installs by itself when Diskord closes, so it's ready the next time you open it.
+    createTray();
+    if (tray) try { tray.displayBalloon({ title: 'Diskord update ready', content: `Diskord ${info.version} will install the next time you open Diskord.`, iconType: 'info' }); } catch (_) {}
   });
   const check = () => autoUpdater.checkForUpdates().catch(() => {});
   setInterval(check, 3 * 3600e3);
@@ -188,7 +215,7 @@ function startupUpdate() {
     startupDone = updated => { if (done) return; done = true; startupDone = null; resolve(updated); };
     status('Checking for updates…');
     // Give the check 8 s; once a download has started, wait for it (up to 3 minutes).
-    setTimeout(() => { if (!startupDownloading && startupDone) startupDone(false); }, 8000);
+    setTimeout(() => { if (!startupDownloading && startupDone) startupDone(false); }, 15000);
     setTimeout(() => { if (startupDone) startupDone(false); }, 180000);
     autoUpdater.checkForUpdates().catch(() => startupDone && startupDone(false));
   });
@@ -226,9 +253,8 @@ app.whenReady().then(async () => {
   ses.setUserAgent(UA);
   ses.setPermissionRequestHandler((wc, permission, cb) => cb(['media', 'display-capture', 'notifications', 'clipboard-sanitized-write', 'fullscreen'].includes(permission)));
   ses.setPermissionCheckHandler((wc, permission) => ['media', 'notifications', 'clipboard-sanitized-write', 'fullscreen'].includes(permission));
-  ses.setDisplayMediaRequestHandler((req, cb) => {
-    desktopCapturer.getSources({ types: ['screen', 'window'] }).then(srcs => cb(srcs.length ? { video: srcs[0], audio: process.platform === 'win32' ? 'loopback' : undefined } : {})).catch(() => cb({}));
-  });
+  // Screen share: let the user pick a whole screen or one app window (like Discord).
+  ses.setDisplayMediaRequestHandler((req, cb) => { openPicker(cb).catch(() => cb({})); });
   createSplash();
   setupUpdates();
   await new Promise(r => setTimeout(r, 700));

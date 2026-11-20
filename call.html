@@ -6,14 +6,15 @@
 <title>Diskord Call</title>
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0b0912">
+<script src="diskord-config.js"></script>
+<meta name="theme-color" content="#0a0f1c">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
-:root { --bg0:#0b0912; --bg1:#110e1b; --bg2:#171325; --bg3:#1f1a31; --bg4:#2a2342; --text:#f3effc; --muted:#a39cbd; --a1:#ff3d6e; --a2:#8b5cf6; --grad:linear-gradient(135deg,var(--a1),var(--a2)); --ok:#2bd98a; --bad:#ff4d5e; }
+:root { --bg0:#0a0f1c; --bg1:#0f1626; --bg2:#141c2f; --bg3:#1b2540; --bg4:#24304f; --text:#eef3fc; --muted:#9caccc; --a1:#38bdf8; --a2:#6366f1; --grad:linear-gradient(135deg,var(--a1),var(--a2)); --ok:#2bd98a; --bad:#ff4d5e; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
-body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: radial-gradient(ellipse at 20% 0%, rgba(139,92,246,.18), transparent 55%), radial-gradient(ellipse at 90% 100%, rgba(255,61,110,.14), transparent 50%), var(--bg0); color: var(--text); overflow: hidden; }
+body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: radial-gradient(ellipse at 20% 0%, rgba(59,130,246,.18), transparent 55%), radial-gradient(ellipse at 90% 100%, rgba(56,189,248,.14), transparent 50%), var(--bg0); color: var(--text); overflow: hidden; }
 button, input { font: inherit; color: inherit; }
 button { background: none; border: 0; cursor: pointer; }
 .hidden { display: none !important; }
@@ -27,11 +28,11 @@ header .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--
 /* lobby */
 .lobby { position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; }
 .card { width: min(440px, 100%); background: var(--bg2); border: 1px solid rgba(255,255,255,.06); border-radius: 18px; padding: 28px; text-align: center; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
-.card .logo { width: 70px; height: 70px; margin: 0 auto 12px; filter: drop-shadow(0 10px 26px rgba(177,77,255,.45)); }
+.card .logo { width: 70px; height: 70px; margin: 0 auto 12px; filter: drop-shadow(0 10px 26px rgba(59,130,246,.45)); }
 .card h1 { font-size: 23px; font-weight: 800; }
 .card p { color: var(--muted); font-size: 14px; margin: 6px 0 18px; line-height: 1.5; }
 .card input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 0; background: var(--bg0); outline: none; margin-bottom: 12px; font-size: 15px; }
-.card input:focus { box-shadow: 0 0 0 2px #b14dff; }
+.card input:focus { box-shadow: 0 0 0 2px #3b82f6; }
 .meter { height: 6px; border-radius: 3px; background: var(--bg4); overflow: hidden; margin: 4px 0 16px; }
 .meter i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .08s; }
 .big { width: 100%; padding: 13px; border-radius: 10px; background: var(--grad); color: #fff; font-weight: 800; font-size: 15.5px; }
@@ -118,7 +119,12 @@ const COLORS = ['#ff3d6e', '#8b5cf6', '#22c1ee', '#2bd98a', '#ffb020', '#ff7a45'
 const colorOf = s => COLORS[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
 const PREFIX = 'flixcord-v1-' + ROOM;
 const tellOpener = t => { try { if (window.opener) window.opener.postMessage({ diskord: t, room: ROOM }, '*'); } catch (_) {} };
-const ICE = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
+// STUN finds a direct path; the free TURN relays are used when two people are behind strict routers / mobile data.
+const ICE = { iceServers: [
+  { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] },
+  { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turn:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }
+] };
+const PEER_OPTS = () => Object.assign({ config: ICE, debug: 0 }, window.DISKORD_PEER || {});
 
 // ------------------------------------------------------------ local media
 let mic = null, camTrack = null, screenTrack = null;
@@ -166,7 +172,7 @@ $('join').onclick = async () => {
   $('join').disabled = true; $('join').textContent = 'Connecting…';
   if (ac && ac.state === 'suspended') ac.resume();
   if (!mic) await getMic();
-  peer = new Peer(PREFIX + '-' + Math.random().toString(36).slice(2, 10), { config: ICE, debug: 0 });
+  peer = new Peer(PREFIX + '-' + Math.random().toString(36).slice(2, 10), PEER_OPTS());
   peer.on('open', id => { me.id = id; setTimeout(() => { if (START_MUTED && !me.muted) $('bMic').click(); if (START_DEAF && !me.deaf) $('bDeaf').click(); if (WANT_VIDEO && !me.cam) $('bCam').click(); if (WANT_SCREEN && !me.screen) $('bScreen').click(); }, 300); tellOpener('alive'); setInterval(() => { if (!left) tellOpener('alive'); }, 20000); $('lobby').classList.add('hidden'); ['stage', 'bar', 'live'].forEach(x => $(x).classList.remove('hidden')); addTile(id, true); claimDirectory(); });
   peer.on('call', call => { call.answer(outStream()); wireCall(call); });
   peer.on('error', e => { if (e.type === 'peer-unavailable') return; console.warn(e); if (!me.id) { $('join').disabled = false; $('join').textContent = 'Try again'; toast('Could not connect (' + e.type + ')'); } });
@@ -176,7 +182,7 @@ $('join').onclick = async () => {
 // The "directory" is one peer with a fixed id that keeps the member list. Whoever grabs the id first runs it;
 // if they leave, everyone else races to take it over and re-registers.
 function claimDirectory() {
-  const d = new Peer(PREFIX, { config: ICE, debug: 0 });
+  const d = new Peer(PREFIX, PEER_OPTS());
   d.on('open', () => { dirPeer = d; registerWithDirectory(); });
   d.on('connection', conn => {
     conn.on('open', () => dirConns.set(conn.peer, conn));
