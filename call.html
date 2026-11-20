@@ -102,7 +102,7 @@ const store = { get: (k, d) => { try { return localStorage.getItem('flixcall.' +
 const params = new URLSearchParams(location.hash.slice(1));
 const ROOM = (params.get('r') || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
 const TITLE = (params.get('t') || '').slice(0, 60);
-const WANT_VIDEO = params.get('v') === '1', START_MUTED = params.get('m') === '1', START_DEAF = params.get('d') === '1';
+const WANT_SCREEN = params.get('s') === '1', WANT_VIDEO = params.get('v') === '1', START_MUTED = params.get('m') === '1', START_DEAF = params.get('d') === '1';
 $('name').value = params.get('n') || store.get('name', '');
 $('roomLabel').textContent = TITLE ? '· ' + TITLE : '';
 if (WANT_VIDEO) { $('lobbyTitle').textContent = '🎥 Join the video call'; $('join').textContent = 'Join with video'; }
@@ -167,7 +167,7 @@ $('join').onclick = async () => {
   if (ac && ac.state === 'suspended') ac.resume();
   if (!mic) await getMic();
   peer = new Peer(PREFIX + '-' + Math.random().toString(36).slice(2, 10), { config: ICE, debug: 0 });
-  peer.on('open', id => { me.id = id; setTimeout(() => { if (START_MUTED && !me.muted) $('bMic').click(); if (START_DEAF && !me.deaf) $('bDeaf').click(); if (WANT_VIDEO && !me.cam) $('bCam').click(); }, 300); tellOpener('alive'); setInterval(() => { if (!left) tellOpener('alive'); }, 20000); $('lobby').classList.add('hidden'); ['stage', 'bar', 'live'].forEach(x => $(x).classList.remove('hidden')); addTile(id, true); claimDirectory(); });
+  peer.on('open', id => { me.id = id; setTimeout(() => { if (START_MUTED && !me.muted) $('bMic').click(); if (START_DEAF && !me.deaf) $('bDeaf').click(); if (WANT_VIDEO && !me.cam) $('bCam').click(); if (WANT_SCREEN && !me.screen) $('bScreen').click(); }, 300); tellOpener('alive'); setInterval(() => { if (!left) tellOpener('alive'); }, 20000); $('lobby').classList.add('hidden'); ['stage', 'bar', 'live'].forEach(x => $(x).classList.remove('hidden')); addTile(id, true); claimDirectory(); });
   peer.on('call', call => { call.answer(outStream()); wireCall(call); });
   peer.on('error', e => { if (e.type === 'peer-unavailable') return; console.warn(e); if (!me.id) { $('join').disabled = false; $('join').textContent = 'Try again'; toast('Could not connect (' + e.type + ')'); } });
   peer.on('disconnected', () => { if (!left) setTimeout(() => peer && !peer.destroyed && peer.reconnect(), 1500); });

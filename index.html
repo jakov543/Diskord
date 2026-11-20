@@ -136,6 +136,65 @@ a.btn.go { color: #062814; } a.btn.primary { color: #fff; }
 .gif-empty { grid-column: 1 / -1; color: var(--muted); text-align: center; padding: 40px 10px; font-size: 13.5px; }
 .msg .gif { margin-top: 6px; max-width: 300px; max-height: 260px; border-radius: 10px; display: block; cursor: zoom-in; }
 .crown { font-size: 12px; }
+.find { width: calc(100% - 4px); margin: 0 2px 10px; padding: 7px 9px; border-radius: 6px; background: var(--bg0); color: var(--dim); font-size: 13px; text-align: left; }
+.find:hover { color: var(--muted); }
+.home-link .hash svg { display: block; } .home-link { padding: 9px 8px; }
+.dm-row { position: relative; display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: var(--dim); margin-bottom: 2px; }
+.dm-row:hover { background: var(--bg3); color: var(--muted); } .dm-row.active { background: var(--bg4); color: var(--text); }
+.dm-row.unread { color: var(--text); } .dm-row .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
+.dm-row .av .st { border-color: var(--bg1); }
+.dm-row .n { flex: 1; min-width: 0; line-height: 1.2; } .dm-row .n b { display: block; font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .dm-row .n small { display: block; font-size: 11.5px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm-row .x { display: none; color: var(--dim); font-size: 13px; padding: 2px 4px; } .dm-row:hover .x { display: block; } .dm-row .x:hover { color: var(--text); }
+.ftabs { display: flex; align-items: center; gap: 6px; padding: 0 18px 12px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.ftabs .ft { display: flex; align-items: center; gap: 8px; margin-right: 10px; padding-right: 16px; border-right: 1px solid var(--line); }
+.ftabs button { padding: 4px 10px; border-radius: 6px; color: var(--muted); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.ftabs button:hover { background: var(--bg3); color: var(--text); } .ftabs button.on { background: var(--bg4); color: var(--text); }
+.ftabs button.add { background: var(--ok); color: #062814; } .ftabs button.add.on { background: transparent; color: var(--ok); }
+.pbadge { font-style: normal; background: var(--dnd); color: #fff; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 0 6px; }
+.fbody { padding: 14px 18px; } .fh { color: var(--dim); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; margin: 6px 0 8px; }
+.fnote { color: var(--muted); font-size: 13.5px; margin-bottom: 10px; } .fnote a { color: #8ab4ff; }
+.frow { display: flex; align-items: center; gap: 12px; padding: 10px; border-top: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.frow:hover { background: var(--bg3); } .frow .n { flex: 1; min-width: 0; } .frow .n b { font-weight: 700; } .frow .n b span { color: var(--dim); font-weight: 500; font-size: 13px; display: none; } .frow:hover .n b span { display: inline; }
+.frow .n small { display: block; color: var(--muted); font-size: 12.5px; } .frow .acts { display: flex; gap: 8px; align-items: center; }
+.ra { width: 36px; height: 36px; border-radius: 50%; background: var(--bg1); color: var(--muted); font-size: 15px; display: grid; place-items: center; } .ra:hover { color: var(--text); background: var(--bg0); } .ra.ok:hover { color: var(--ok); }
+.fempty { text-align: center; color: var(--muted); padding: 60px 20px; } .fempty p { margin: 10px 0 16px; }
+.addf h3 { font-size: 16px; text-transform: uppercase; letter-spacing: .4px; } .addf p { color: var(--muted); font-size: 14px; margin: 6px 0 14px; }
+.addbox { display: flex; gap: 8px; background: var(--bg0); border-radius: 10px; padding: 8px 8px 8px 14px; border: 1px solid var(--line); }
+.addbox input { flex: 1; background: none; border: 0; outline: none; font-size: 15px; } .addbox:focus-within { border-color: var(--accent); }
+#addMsg .bad { color: var(--dnd); font-size: 13.5px; margin-top: 8px; } #addMsg .good { color: var(--ok); font-size: 13.5px; margin-top: 8px; }
+.dmside { min-height: 100%; margin: -16px -8px; padding-bottom: 20px; }
+.dsb { height: 120px; } .dsa { margin: -46px 0 0 16px; } .dsa .av .st { width: 20px; height: 20px; border-width: 4px; border-color: var(--bg1); }
+.dsc { margin: 10px 12px 0; padding: 14px; border-radius: 10px; background: rgba(0,0,0,.28); } .dsn { font-size: 20px; font-weight: 800; } .dsu { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+.dsh { font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: var(--muted); margin-top: 14px; } .dst { font-size: 13.5px; margin-top: 4px; white-space: pre-wrap; }
+.pcard2 { width: 320px; padding: 0 !important; overflow: hidden; background: var(--bg1) !important; border-radius: 12px !important; color: var(--text); }
+.pc-banner { height: 110px; } .pc-av { position: relative; margin: -46px 0 0 16px; display: flex; align-items: flex-end; gap: 8px; }
+.pc-av .av { border: 6px solid var(--bg1); border-radius: 50%; box-sizing: content-box; } .pc-av .av .st { width: 18px; height: 18px; border-width: 4px; }
+.pc-bubble { background: var(--bg0); border-radius: 12px; padding: 6px 10px; font-size: 12.5px; margin-bottom: 18px; max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+.pc-body { padding: 8px 16px 16px; } .pc-name { font-size: 21px; font-weight: 800; } .pc-user { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+.pc-role { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: rgba(0,0,0,.3); color: var(--text); }
+.pc-about { font-size: 13.5px; margin-top: 12px; white-space: pre-wrap; line-height: 1.45; }
+.pc-box { margin-top: 12px; background: rgba(0,0,0,.25); border-radius: 10px; padding: 10px 12px; } .pc-h { font-size: 11.5px; font-weight: 800; color: var(--muted); margin-bottom: 6px; } .pc-t { font-size: 13.5px; }
+.pc-act { display: flex; gap: 10px; align-items: center; } .pc-ic { width: 44px; height: 44px; border-radius: 10px; background: var(--bg3); display: grid; place-items: center; font-size: 20px; } .pc-act b { display: block; font-size: 14px; } .pc-act small { color: var(--ok); font-size: 12px; }
+.pc-menu { margin-top: 12px; background: rgba(0,0,0,.25); border-radius: 10px; padding: 6px; }
+.pc-menu button { display: flex !important; align-items: center; gap: 10px; justify-content: flex-start !important; width: 100%; padding: 9px 10px !important; border-radius: 6px; color: var(--text) !important; font-weight: 600; font-size: 14px; }
+.pc-menu button span { flex: 1; text-align: left; } .pc-menu button i { font-style: normal; color: var(--muted); font-size: 18px; } .pc-menu button:hover { background: rgba(255,255,255,.07) !important; color: var(--text) !important; }
+.pc-menu button.danger { color: var(--dnd) !important; }
+.st-dot { flex: 0 0 12px !important; width: 12px; height: 12px; border-radius: 50%; background: var(--ok); } .st-dot.idle { background: var(--idle); } .st-dot.dnd { background: var(--dnd); } .st-dot.off { background: var(--dim); }
+.pc-actions { display: flex; gap: 8px; margin-top: 14px; } .pc-actions .btn { padding: 9px 12px; } .pc-actions .btn.primary { flex: 1; }
+.btn.alt { background: var(--bg3); color: var(--text); }
+.modal.wide { width: min(900px, 95vw); }
+.pe { display: grid; grid-template-columns: 1fr 340px; gap: 24px; padding: 22px 22px 6px; }
+.pe h2 { font-size: 20px; margin-bottom: 14px; } .pe-r { position: sticky; top: 0; align-self: start; } .pe-pv-h { font-size: 11.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.pe .pcard2.pv { border: 1px solid var(--line); }
+.pe-sw { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; } .pe-sw button { width: 34px; height: 34px; border-radius: 8px; border: 2px solid transparent; color: var(--muted); font-weight: 800; }
+.pe-sw button.sel { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); } .pe-sw button.none { background: var(--bg0); }
+.pe-sw input[type=color] { width: 34px; height: 34px; border: 0; border-radius: 8px; background: none; padding: 0; cursor: pointer; }
+.vc { padding: 8px 10px 10px; background: var(--bg1); border-top: 1px solid var(--line); }
+.vc-top { display: flex; align-items: center; gap: 8px; } .vc-sig { color: var(--ok); display: grid; } .vc-sig svg { width: 20px; height: 20px; }
+.vc-i { flex: 1; min-width: 0; line-height: 1.25; } .vc-i b { color: var(--ok); font-size: 14px; display: block; } .vc-i small { color: var(--muted); font-size: 12px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vc-ib { width: 32px; height: 32px; border-radius: 6px; display: grid; place-items: center; color: var(--muted); } .vc-ib:hover { background: var(--bg3); color: var(--text); } .vc-ib svg { width: 19px; height: 19px; } .vc-ib.bad:hover { color: var(--dnd); }
+.vc-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+.vc-b { height: 34px; border-radius: 8px; background: var(--bg3); display: grid; place-items: center; color: var(--text); } .vc-b:hover { background: var(--bg4); } .vc-b svg { width: 19px; height: 19px; } .vc-b.bad { color: var(--dnd); }
 .ch .mbadge { background: var(--dnd); color: #fff; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 1px 6px; }
 .me-bar { display: flex; align-items: center; gap: 9px; padding: 8px 10px; background: var(--bg0); flex: 0 0 auto; }
 .me-bar .who { flex: 1; min-width: 0; line-height: 1.2; }
@@ -327,7 +386,16 @@ mark { background: rgba(255,176,32,.35); color: inherit; border-radius: 3px; }
 
 /* ---------- empty / onboarding ---------- */
 .splash { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: radial-gradient(ellipse at 30% 0%, rgba(139,92,246,.25), transparent 60%), radial-gradient(ellipse at 80% 100%, rgba(255,61,110,.18), transparent 50%), var(--bg0); }
-.splash .card { text-align: center; max-width: 440px; padding: 30px; }
+.splash { background: linear-gradient(135deg, #1b1446 0%, #3a0b4c 38%, #4c1a35 70%, #4a2a0c 100%) !important; }
+.splash .card { text-align: center; max-width: 460px; padding: 30px; }
+.splash .ltip-h { color: rgba(255,255,255,.7); font-weight: 700; font-size: 15px; margin-top: 26px; }
+.splash .ltip { color: #fff; font-size: 15.5px; line-height: 1.45; margin: 8px auto 0 !important; max-width: 360px; }
+.splash #splashText, .splash .ltip-s { color: rgba(255,255,255,.55); font-size: 12.5px; margin-top: 22px !important; display: flex; gap: 8px; justify-content: center; align-items: center; }
+.splash .logo { animation: dkBounce 1.6s ease-in-out infinite; }
+@keyframes dkBounce { 0%, 100% { transform: translateY(0) scale(1); } 45% { transform: translateY(-10px) scale(1.04); } 60% { transform: translateY(0) scale(.97); } }
+.sfoot { position: absolute; bottom: 34px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,.75); font-size: 13.5px; font-weight: 600; }
+.sfoot a { color: #8ab4ff; text-decoration: none; } .sfoot a:hover { text-decoration: underline; }
+.spin.sm { width: 14px; height: 14px; border-width: 2px; margin: 0 !important; }
 .splash .logo { width: 84px; height: 84px; margin: 0 auto 16px; filter: drop-shadow(0 10px 30px rgba(177,77,255,.45)); }
 .splash h1 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
 .splash h1 span { background: var(--grad); -webkit-background-clip: text; color: transparent; }
@@ -374,8 +442,9 @@ mark { background: rgba(255,176,32,.35); color: inherit; border-radius: 3px; }
   <aside class="members" id="members"></aside>
 </div>
 
-<div class="splash" id="splash"><div class="card"><div id="splashLogo"></div><h1>Dis<span>kord</span></h1><p id="splashText">Connecting…</p><div class="spin" id="splashSpin"></div><div id="splashAct"></div></div></div>
+<div class="splash" id="splash"><div class="card"><div id="splashLogo"></div><div class="ltip-h" id="splashTipH">Did you know</div><p class="ltip" id="splashTip"></p><p id="splashText">Connecting…</p><div class="spin hidden" id="splashSpin"></div><div id="splashAct"></div></div></div>
 <div class="toast" id="toast"></div>
+<div class="splash hidden" id="offline"><div class="card"><div class="logo"><svg viewBox="0 0 64 64" width="84" height="84"><path d="M32 4C16.5 4 5 14.6 5 28.6c0 7.6 3.4 14.3 9 18.9L12 60l12.6-7.4c2.4.6 4.8.9 7.4.9 15.5 0 27-10.6 27-24.9S47.5 4 32 4z" fill="#fff"/><path d="M20 17h10.5C40 17 46 22 46 29.5S40 42 30.5 42H20zm7 6v13h3.4c5 0 8.4-2.6 8.4-6.5S35.4 23 30.4 23z" fill="#3a0b4c"/></svg></div><div class="ltip-h">You're offline</div><p class="ltip">Diskord lost its connection. Your recent messages are still here, and anything you send goes out when you're back.</p><p class="ltip-s"><span class="spin sm"></span> Reconnecting…</p></div><div class="sfoot">Connection problems? Check your Wi-Fi or cable · Turn airplane mode off · <a href="#" id="offRetry">Try again</a></div></div>
 <input type="file" id="fileInput" accept="image/*" class="hidden">
 
 <script>
@@ -400,6 +469,14 @@ const ICON = {
   image: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4z"/></svg>',
   smile: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-3.5 6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm7 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM12 18a6 6 0 0 1-5.2-3h10.4A6 6 0 0 1 12 18z"/></svg>',
   send: '<svg viewBox="0 0 24 24"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg>',
+  friends: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3.3 3.1-6 7-6s7 2.7 7 6zm15 0c0-2.1-.9-4-2.3-5.3.6-.1 1.2-.2 1.8-.2 2.9 0 5.5 2.1 5.5 5.5z"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm0 2v.5l8 5 8-5V7zm16 2.9-8 5-8-5V17h16z"/></svg>',
+  signal: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 18h2v2H4zm4-4h2v6H8zm4-4h2v10h-2zm4-4h2v14h-2z"/></svg>',
+  popout: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14zM5 5h6v2H5v12h12v-6h2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>',
+  hang: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.1.3-4.6.7v3.1a1 1 0 0 1-.6.9 11 11 0 0 0-2.6 1.8 1 1 0 0 1-1.4 0L.3 13a1 1 0 0 1 0-1.4C3.3 8.7 7.4 7 12 7s8.7 1.7 11.7 4.6a1 1 0 0 1 0 1.4l-2.5 2.5a1 1 0 0 1-1.4 0 11 11 0 0 0-2.6-1.8 1 1 0 0 1-.6-.9V9.7C15.1 9.3 13.6 9 12 9z"/></svg>',
+  cam: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>',
+  screen: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h6v2H8v2h8v-2h-2v-2h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 12H4V6h16zm-8-9-4 4h3v3h2v-3h3z"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.6 13.4a1 1 0 0 1 0-1.4l3.4-3.4a1 1 0 1 1 1.4 1.4L12 13.4a1 1 0 0 1-1.4 0zM7 17a3 3 0 0 1-2.1-5.1l2.8-2.8 1.4 1.4-2.8 2.8a1 1 0 0 0 1.4 1.4l2.8-2.8 1.4 1.4-2.8 2.8A3 3 0 0 1 7 17zm9.3-3.1-1.4-1.4 2.8-2.8a1 1 0 0 0-1.4-1.4l-2.8 2.8-1.4-1.4 2.8-2.8a3 3 0 0 1 4.2 4.2z"/></svg>',
   mic: '<svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11z"/></svg>',
   micOff: '<svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11z"/><path d="M3.5 3.5l17 17" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
   head: '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9v7a2 2 0 0 0 2 2h3v-8H5v-1a7 7 0 0 1 14 0v1h-3v8h3a2 2 0 0 0 2-2v-7a9 9 0 0 0-9-9z"/></svg>',
@@ -452,7 +529,7 @@ const S = {
   typing: {}, lastTypingEmit: 0, panel: null, query: '',
   theme: ls.get('theme', 'flix'), compact: ls.get('compact', false),
   status: 'online', custom: '', mentions: new Map(), // name -> uid for composer tokens
-  isSuper: false, inCall: new Map(), myCall: (c => c && Date.now() - c.at < 3 * 3600e3 ? c : null)(ls.get('myCall', null)), callAlive: 0, gifs: [], favGifs: ls.get('favGifs', []), recent: ls.get('recent', []), selfMute: ls.get('selfMute', false), selfDeaf: ls.get('selfDeaf', false), peerAudio: new Map()
+  isSuper: false, inCall: new Map(), myCall: (c => c && Date.now() - c.at < 3 * 3600e3 ? c : null)(ls.get('myCall', null)), callAlive: 0, gifs: [], favGifs: ls.get('favGifs', []), recent: ls.get('recent', []), selfMute: ls.get('selfMute', false), dms: [], friends: [], usernames: {}, homeTab: 'online', selfDeaf: ls.get('selfDeaf', false), peerAudio: new Map()
 };
 document.documentElement.dataset.theme = S.theme;
 
@@ -470,7 +547,7 @@ async function resolveNow() {
   const ids = [...resolveQ]; resolveQ.clear();
   if (!ids.length || !S.user) return;
   const ps = await S.user.profiles(ids);
-  for (const id of ids) { const p = ps[id] || {}; S.names[id] = p.name || ''; S.avatars[id] = p.avatarUrl || ''; S.colors[id] = p.color || '#8b5cf6'; }
+  for (const id of ids) { const p = ps[id] || {}; S.names[id] = p.name || ''; S.avatars[id] = p.avatarUrl || ''; S.colors[id] = p.color || '#8b5cf6'; S.usernames[id] = p.username || ''; }
   renderAll();
 }
 function avatarHtml(uid, size, withStatus) {
@@ -506,8 +583,23 @@ const serverEmojis = () => { const sv = S.servers.find(x => x.id === S.sid); ret
 const onlyEmoji = t => t && t.length <= 24 && /^(\p{Extended_Pictographic}|\p{Emoji_Component}|‍|️|\s)+$/u.test(t) && /\p{Extended_Pictographic}/u.test(t);
 
 // ====================================================================== boot
+const TIPS = [
+  'Press ↑ in an empty message box to edit your last message.',
+  'Click the GIF button to search millions of GIFs from Tenor.',
+  'Type /poll Question | Yes | No to start a poll.',
+  'Wrap text in ||double bars|| to make a spoiler.',
+  'Right-click a channel to edit or delete it.',
+  'Click someone\'s name to call them, video call them or add them as a friend.',
+  'Upload your own server emoji and use them with :name:.',
+  'Make friends co-owners so they can help run your server.',
+  'Share your username so friends can add you from the Friends tab.',
+  'Pick a gradient display name and profile theme in Edit Profile.',
+  'Drag and drop or paste an image straight into the message box.',
+  'Turn on Show on Discord in the tray menu to show your Diskord activity on Discord.'
+];
 async function boot() {
   $('splashLogo').innerHTML = `<div class="logo">${LOGO}</div>`;
+  $('splashTip').textContent = TIPS[Math.floor(Math.random() * TIPS.length)];
   const slow = setTimeout(() => { $('splashText').textContent = 'Still connecting… if this stays, check your internet connection.'; }, 10000);
   const [db, user, room, assets] = await Promise.all(['db', 'user', 'room', 'assets'].map(n => window.claude ? window.claude.use(n).catch(() => null) : Promise.resolve(null)));
   clearTimeout(slow);
@@ -520,12 +612,14 @@ async function boot() {
   if (user) {
     const me = await user.me();
     S.myId = me.id; S.me = me;
-    S.names[me.id] = me.name || 'You'; S.avatars[me.id] = me.avatarUrl; S.colors[me.id] = me.color;
+    S.names[me.id] = me.name || 'You'; S.avatars[me.id] = me.avatarUrl; S.colors[me.id] = me.color; S.usernames[me.id] = me.username || '';
     S.isAdmin = !!me.isOwner; S.isSuper = !!me.isOwner;
     const w = await user.can('data.write'); S.canWrite = w !== false;
   }
   subscribeCore();
+  subscribeHome();
   setupRoom();
+  if (!S.usernames[S.myId]) setTimeout(() => usernameModal(true), 1500);
   $('splash').classList.add('hidden');
   renderAll();
 }
@@ -536,7 +630,7 @@ function subscribeCore() {
   S.db.collection('servers').orderBy('at').onSnapshot(snap => {
     S.servers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     coreLoaded.servers = true;
-    if (!S.servers.find(s => s.id === S.sid)) S.sid = S.servers[0] ? S.servers[0].id : null;
+    if (S.sid !== '@me' && !S.servers.find(s => s.id === S.sid)) S.sid = S.servers[0] ? S.servers[0].id : '@me';
     pickChannel(); renderAll();
   }, fail);
   S.db.collection('channels').orderBy('pos').onSnapshot(snap => {
@@ -570,6 +664,7 @@ async function ensureProfile() {
 
 function serverChannels(sid) { return S.channels.filter(c => c.sid === sid).sort((a, b) => (a.pos || 0) - (b.pos || 0)); }
 function pickChannel() {
+  if (isHome()) { if (S.cid && !String(S.cid).startsWith('dm_')) openChannel(null); return; }
   const chs = serverChannels(S.sid);
   const remembered = ls.get('cid.' + S.sid, null);
   let next = chs.find(c => c.id === S.cid) || chs.find(c => c.id === remembered) || chs[0];
@@ -684,7 +779,10 @@ function tip(el, text) {
 function renderRail() {
   const r = $('rail'); r.innerHTML = '';
   const home = document.createElement('button'); home.className = 'srv home'; home.innerHTML = `<span class="pill"></span><span class="logo-in">${LOGO}</span>`;
-  home.onclick = () => openSettings('profile'); tip(home, 'Diskord'); r.appendChild(home);
+  const dmUnread = S.dms.filter(d => dmAccepted(d) && isDmUnread(d)).length + pendingIn().length + requestDms().length;
+  home.className = 'srv home' + (isHome() ? ' active' : '') + (dmUnread ? ' unread' : '');
+  if (dmUnread) home.insertAdjacentHTML('beforeend', `<span class="badge">${dmUnread}</span>`);
+  home.onclick = () => goHome(); tip(home, 'Direct Messages'); r.appendChild(home);
   const sep = document.createElement('div'); sep.className = 'rail-sep'; r.appendChild(sep);
   for (const s of S.servers) {
     const b = document.createElement('button');
@@ -706,12 +804,16 @@ function renderRail() {
   }
 }
 function curServer() { return S.servers.find(s => s.id === S.sid) || null; }
-function curChannel() { return S.channels.find(c => c.id === S.cid) || null; }
+function curChannel() {
+  if (isHome()) { if (!S.cid || !String(S.cid).startsWith('dm_')) return null; const u = dmOther(S.cid); return { id: S.cid, name: nameOf(u), dm: true, other: u, topic: '' }; }
+  return S.channels.find(c => c.id === S.cid) || null;
+}
 const isCo = (s, uid) => !!(s && Array.isArray(s.admins) && s.admins.includes(uid));
 const canManage = s => !!s && (S.isSuper || s.owner === S.myId || isCo(s, S.myId));
 const isOwnerOf = s => !!s && (S.isSuper || s.owner === S.myId);
 
 function renderChannels() {
+  if (isHome()) return renderHomeSidebar();
   const s = curServer();
   $('srvName').textContent = s ? s.name : 'Diskord';
   const box = $('channels');
@@ -735,10 +837,19 @@ $('sideHead').onclick = e => { const s = curServer(); if (s) serverMenu(e, s); }
 function renderVoiceBar() {
   const v = $('voiceBar');
   if (!S.myCall) { v.innerHTML = ''; return; }
-  v.innerHTML = `<div class="voice-bar"><div class="vi"><b>📞 In a call</b><small>${esc(S.myCall.label || 'Call')}</small></div>
-    <a class="icon-btn" title="Open the call again" target="_blank" rel="opener" href="${esc(callLink(S.myCall.room, S.myCall.label))}"><svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14zM5 5h6v2H5v12h12v-6h2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></a>
-    <button class="icon-btn" id="vLeave" title="I left the call" style="color:var(--dnd)"><svg viewBox="0 0 24 24"><path d="M12 9c-1.6 0-3.1.3-4.6.7v3.1a1 1 0 0 1-.6.9 11 11 0 0 0-2.6 1.8 1 1 0 0 1-1.4 0L.3 13a1 1 0 0 1 0-1.4C3.3 8.7 7.4 7 12 7s8.7 1.7 11.7 4.6a1 1 0 0 1 0 1.4l-2.5 2.5a1 1 0 0 1-1.4 0 11 11 0 0 0-2.6-1.8 1 1 0 0 1-.6-.9V9.7C15.1 9.3 13.6 9 12 9z"/></svg></button></div>`;
+  const c = S.myCall, base = (extra) => esc(callLink(c.room, c.label, !!c.video) + (extra || ''));
+  v.innerHTML = `<div class="vc"><div class="vc-top"><span class="vc-sig">${ICON.signal}</span><div class="vc-i"><b>Voice Connected</b><small>${esc(c.label || 'Call')}</small></div>
+      <a class="vc-ib" title="Open call window" target="_blank" rel="opener" href="${base()}">${ICON.popout}</a>
+      <button class="vc-ib bad" id="vLeave" title="Disconnect">${ICON.hang}</button></div>
+    <div class="vc-row">
+      <a class="vc-b" title="Turn on camera" target="_blank" rel="opener" href="${esc(callLink(c.room, c.label, true))}">${ICON.cam}</a>
+      <a class="vc-b" title="Share your screen" target="_blank" rel="opener" href="${base('&s=1')}">${ICON.screen}</a>
+      <a class="vc-b" title="Copy invite link" href="#" id="vInvite">${ICON.link}</a>
+      <button class="vc-b ${S.selfMute ? 'bad' : ''}" title="${S.selfMute ? 'Unmute' : 'Mute'}" id="vMute">${S.selfMute ? ICON.micOff : ICON.mic}</button>
+    </div></div>`;
   $('vLeave').onclick = leaveCall;
+  $('vMute').onclick = () => $('btnMute') && $('btnMute').click();
+  $('vInvite').onclick = async e => { e.preventDefault(); try { await navigator.clipboard.writeText(callLink(c.room, c.label, !!c.video).replace(/&n=[^&]*/, '')); toast('Invite link copied 🔗'); } catch (_) { toast('Could not copy', true); } };
 }
 function saveAudio(msg) {
   ls.set('selfMute', S.selfMute); ls.set('selfDeaf', S.selfDeaf); pushPresence(); renderMe(); renderChannels();
@@ -771,23 +882,25 @@ function updateRpc() {
   const sv = curServer(), c = curChannel();
   const p = S.myCall
     ? { details: S.myCall.video ? '🎥 In a video call' : '📞 In a voice call', state: (S.myCall.label || 'Diskord call').slice(0, 100), call: true, video: !!S.myCall.video, callStart: S.myCall.at }
-    : { details: sv ? `In ${sv.name}` : 'Using Diskord', state: c ? `Chatting in #${c.name}` : 'Chatting with friends' };
+    : { details: c && c.dm ? 'In Direct Messages' : sv ? `In ${sv.name}` : 'Using Diskord', state: c ? (c.dm ? 'Chatting with a friend' : `Chatting in #${c.name}`) : 'Chatting with friends' };
   const k = JSON.stringify(p); if (k === rpcKey) return; rpcKey = k;
   try { window.diskord.presence(p); } catch (_) {}
 }
 function renderHeader() {
   updateRpc();
   const c = curChannel();
-  $('chName').textContent = c ? c.name : (curServer() ? 'no channel' : 'Diskord');
+  $('chName').textContent = c ? c.name : isHome() ? 'Friends' : (curServer() ? 'no channel' : 'Diskord');
+  $('chTitle').querySelector('.hash').textContent = c && c.dm ? '@' : '#';
   $('chTitle').querySelector('.hash').classList.toggle('hidden', !c);
+  $('btnPins').classList.toggle('hidden', !c);
   $('chTopic').textContent = c ? (c.topic || '') : '';
   $('chTopic').classList.toggle('hidden', !(c && c.topic));
   $('btnMembers').classList.toggle('on', ls.get('members', true));
-  $('members').classList.toggle('hidden', !ls.get('members', true));
+  $('members').classList.toggle('hidden', !ls.get('members', true) || (isHome() && !c));
   $('btnMobile').style.display = window.innerWidth <= 760 ? '' : 'none';
   const bc = $('btnCall');
   bc.classList.toggle('hidden', !(c && S.myId && S.canWrite)); $('btnVideo').classList.toggle('hidden', !(c && S.myId && S.canWrite));
-  if (c && !bc.dataset.cid || c && bc.dataset.cid !== c.id) { const sv = curServer(); bc.dataset.cid = c.id; bc.dataset.room = roomId('c-' + c.id + '-' + Date.now().toString(36)); bc.dataset.label = '#' + c.name + (sv ? ' · ' + sv.name : ''); bc.href = callLink(bc.dataset.room, bc.dataset.label); }
+  if (c && !bc.dataset.cid || c && bc.dataset.cid !== c.id) { const sv = curServer(); bc.dataset.cid = c.id; bc.dataset.room = roomId('c-' + c.id + '-' + Date.now().toString(36)); bc.dataset.label = c.dm ? nameOf(S.myId) + ' & ' + c.name : '#' + c.name + (sv ? ' · ' + sv.name : ''); bc.href = callLink(bc.dataset.room, bc.dataset.label); }
   if (c) { $('btnVideo').href = callLink(bc.dataset.room, bc.dataset.label, true); bc.href = callLink(bc.dataset.room, bc.dataset.label); }
 }
 const nearBottom = () => { const f = $('feed'); return f.scrollHeight - f.scrollTop - f.clientHeight < 120; };
@@ -795,11 +908,12 @@ const nearBottom = () => { const f = $('feed'); return f.scrollHeight - f.scroll
 function renderFeed(scrollDown) {
   const f = $('feed');
   const s = curServer(), c = curChannel();
-  if (!s) { f.innerHTML = emptyState(); bindEmpty(); renderComposer(); return; }
+  if (isHome() && !c) { renderFriendsPage(); renderComposer(); return; }
+  if (!s && !isHome()) { f.innerHTML = emptyState(); bindEmpty(); renderComposer(); return; }
   if (!c) { f.innerHTML = `<div class="empty-main"><div><div style="font-size:48px">#</div><h2>No channels yet</h2><p>${canManage(s) ? 'Create one with the + next to TEXT CHANNELS.' : 'Ask the server owner to create one.'}</p></div></div>`; renderComposer(); return; }
   const prevTop = f.scrollTop, prevH = f.scrollHeight;
   const oldEdit = f.querySelector('.edit-ta'); if (oldEdit) S.editDraft = oldEdit.value;
-  let html = `<div class="welcome"><div class="big">#</div><h2>Welcome to #${esc(c.name)}!</h2><p>This is the start of the #${esc(c.name)} channel${c.topic ? ' — ' + esc(c.topic) : ''}.</p></div>`;
+  let html = c.dm ? `<div class="welcome">${avatarHtml(c.other, 80)}<h2 style="margin-top:10px">${esc(c.name)}</h2><div style="color:var(--muted);font-weight:600">${unameOf(c.other) ? '@' + esc(unameOf(c.other)) : ''}</div><p>This is the beginning of your direct message history with <b>${esc(c.name)}</b>.</p>${(() => { const d = dmDoc(c.id); return d && !dmAccepted(d) ? `<div style="margin-top:10px;display:flex;gap:8px"><button class="btn go" id="reqAcc">Accept message request</button><button class="btn sm" id="reqIgn">Ignore</button></div>` : ''; })()}</div>` : `<div class="welcome"><div class="big">#</div><h2>Welcome to #${esc(c.name)}!</h2><p>This is the start of the #${esc(c.name)} channel${c.topic ? ' — ' + esc(c.topic) : ''}.</p></div>`;
   if (S.loadingMsgs) html += '<div style="padding:30px"><div class="spin"></div></div>';
   let lastDay = '', last = null;
   for (const m of S.msgs) {
@@ -811,6 +925,7 @@ function renderFeed(scrollDown) {
   }
   f.innerHTML = html;
   bindFeed();
+  if (c.dm) { const d = dmDoc(c.id); const ra = $('reqAcc'); if (ra && d) ra.onclick = () => acceptRequest(d); const ri = $('reqIgn'); if (ri && d) ri.onclick = () => hideDm(d); }
   const ne = f.querySelector('.edit-ta'); if (ne && oldEdit) { ne.focus(); ne.selectionStart = ne.selectionEnd = ne.value.length; }
   if (!S.editing) S.editDraft = null;
   if (scrollDown) f.scrollTop = f.scrollHeight;
@@ -847,7 +962,7 @@ function msgHtml(m, cont) {
   }
   if (cont) return `<div class="msg cont ${mentioned ? 'mention' : ''}" data-id="${esc(m.id)}"><div class="time-side">${esc(fmtTime(m.at))}</div><div class="body">${body}</div>${tools}</div>`;
   return `<div class="msg ${mentioned ? 'mention' : ''}" data-id="${esc(m.id)}">${avatarHtml(m.uid, 40)}<div class="body">${replyRef}
-    <div class="meta"><b data-uid="${esc(m.uid)}" style="color:${S.colors[m.uid] || 'inherit'}">${esc(nameOf(m.uid))}</b>${isOwnerTag ? '<span class="tag">OWNER</span>' : ''}${isCoTag ? '<span class="tag co">CO-OWNER</span>' : ''}<span class="t">${esc(stamp(m.at))}</span>${m.pinned ? '<span class="pinned-flag">📌 pinned</span>' : ''}</div>${body}</div>${tools}</div>`;
+    <div class="meta"><b data-uid="${esc(m.uid)}" style="${nameStyle(m.uid)}">${esc(nameOf(m.uid))}</b>${isOwnerTag ? '<span class="tag">OWNER</span>' : ''}${isCoTag ? '<span class="tag co">CO-OWNER</span>' : ''}<span class="t">${esc(stamp(m.at))}</span>${m.pinned ? '<span class="pinned-flag">📌 pinned</span>' : ''}</div>${body}</div>${tools}</div>`;
 }
 
 function refreshCallCards() {
@@ -865,7 +980,7 @@ async function startChannelCall(e, video) {
   if (!c || !S.myId) { e.preventDefault(); return; }
   const room = bc.dataset.room, label = bc.dataset.label;
   joinCall(room, label, video);
-  if (S.room) S.room.emit('ring', { kind: 'channel', room, label, cid: c.id, sid: S.sid, video: !!video }).catch(() => {});
+  if (S.room) S.room.emit('ring', c.dm ? { kind: 'dm', to: c.other, room, label, video: !!video } : { kind: 'channel', room, label, cid: c.id, sid: S.sid, video: !!video }).catch(() => {});
   try { await S.db.collection(`ch/${c.id}/m`).add({ uid: S.myId, text: '', at: Date.now(), call: video ? { room, label, video: true } : { room, label } }); } catch (err) { writeError(err); }
   bc.dataset.cid = ''; renderHeader();
 }
@@ -959,7 +1074,7 @@ function renderComposer() {
     <div id="picker"></div>
     <div class="row">
       ${S.assets ? `<button class="icon-btn" id="btnAttach" title="Upload an image">${ICON.image}</button>` : ''}
-      <textarea id="ta" rows="1" placeholder="Message #${esc(c.name)}" maxlength="4000"></textarea>
+      <textarea id="ta" rows="1" placeholder="Message ${c.dm ? '@' : '#'}${esc(c.name)}" maxlength="4000"></textarea>
       <button class="icon-btn gifbtn" id="btnGif" title="GIFs">GIF</button>
       <button class="icon-btn" id="btnEmoji" title="Emoji">${ICON.smile}</button>
       <button class="send" id="btnSend" title="Send">${ICON.send}</button>
@@ -1066,7 +1181,8 @@ async function send() {
     ta.value = ''; ls.set('draft.' + c.id, ''); S.reply = null; S.pendingImg = null; S.mentions.clear();
     if (S.room) S.room.emit('stoptyping', { cid: c.id }).catch(() => {});
     renderComposer(); $('feed').scrollTop = $('feed').scrollHeight;
-    S.db.doc('channels/' + c.id).update({ last: at, lastUid: S.myId }).catch(() => {});
+    if (c.dm) S.db.doc('dms/' + c.id.slice(3)).set({ members: [S.myId, c.other].sort(), last: at, lastUid: S.myId, ok: { [S.myId]: true }, hide: { [S.myId]: false, [c.other]: false } }, { merge: true }).catch(() => {});
+    else S.db.doc('channels/' + c.id).update({ last: at, lastUid: S.myId }).catch(() => {});
   } catch (e) { writeError(e); }
   finally { sending = false; const b = $('btnSend'); if (b) b.disabled = false; const t = $('ta'); if (t) t.focus(); }
 }
@@ -1103,10 +1219,11 @@ async function vote(m, i) {
 
 // ====================================================================== members
 function renderMembers() {
+  const cc = curChannel(); if (cc && cc.dm) return renderDmSide(cc.other);
   const box = $('members'), sv = curServer();
   const ids = memberIds();
   const row = id => { const p = S.profiles[id] || {}; const on = !!statusOf(id); const inv = S.inCall.has(id) || (id === S.myId && S.myCall);
-    return `<button class="mem ${on ? '' : 'off'}" data-uid="${esc(id)}">${avatarHtml(id, 32, true)}<div class="n"><b style="color:${on ? (S.colors[id] || 'inherit') : 'inherit'}">${esc(nameOf(id))}${sv && sv.owner === id ? ' <span class="crown" title="Server owner">👑</span>' : isCo(sv, id) ? ' <span class="crown" title="Co-owner">🛡️</span>' : ''}</b>${inv ? '<small style="color:var(--ok)">📞 In a call</small>' : p.custom ? `<small>${esc(p.custom)}</small>` : ''}</div></button>`; };
+    return `<button class="mem ${on ? '' : 'off'}" data-uid="${esc(id)}">${avatarHtml(id, 32, true)}<div class="n"><b style="${on ? nameStyle(id) : ''}">${esc(nameOf(id))}${sv && sv.owner === id ? ' <span class="crown" title="Server owner">👑</span>' : isCo(sv, id) ? ' <span class="crown" title="Co-owner">🛡️</span>' : ''}</b>${inv ? '<small style="color:var(--ok)">📞 In a call</small>' : p.custom ? `<small>${esc(p.custom)}</small>` : ''}</div></button>`; };
   const groups = [];
   const used = new Set();
   if (sv) {
@@ -1180,7 +1297,7 @@ async function sendGif(g) {
   const at = Date.now();
   const doc = { uid: S.myId, text: '', at, gif: g };
   if (S.reply) doc.reply = { id: S.reply.id, uid: S.reply.uid, text: (S.reply.text || '').replace(/<@[^>]+>/g, '@…').slice(0, 140) };
-  try { await S.db.collection(`ch/${c.id}/m`).add(doc); S.reply = null; renderComposer(); $('feed').scrollTop = $('feed').scrollHeight; S.db.doc('channels/' + c.id).update({ last: at, lastUid: S.myId }).catch(() => {}); }
+  try { await S.db.collection(`ch/${c.id}/m`).add(doc); S.reply = null; renderComposer(); $('feed').scrollTop = $('feed').scrollHeight; if (c.dm) S.db.doc('dms/' + c.id.slice(3)).set({ members: [S.myId, c.other].sort(), last: at, lastUid: S.myId, ok: { [S.myId]: true } }, { merge: true }).catch(() => {}); else S.db.doc('channels/' + c.id).update({ last: at, lastUid: S.myId }).catch(() => {}); }
   catch (e) { writeError(e); }
 }
 function toggleFav(g) {
@@ -1295,29 +1412,6 @@ function confirmModal(title, text, okLabel, onOk) {
 }
 function lightbox(src) { const l = document.createElement('div'); l.className = 'lightbox'; l.innerHTML = `<img src="${esc(src)}" alt="">`; l.onclick = () => l.remove(); document.body.appendChild(l); }
 
-function profileCard(e, uid) {
-  const p = S.profiles[uid] || {};
-  const st = statusOf(uid), s = curServer();
-  const el = document.createElement('div'); el.className = 'menu'; el.style.width = '300px'; el.style.padding = '0'; el.style.overflow = 'hidden';
-  const role = s && s.owner === uid ? '👑 Server owner' : isCo(s, uid) ? '🛡️ Co-owner' : '';
-  el.innerHTML = `<div style="height:${p.banner ? 110 : 64}px;background:${p.banner ? `center/cover url('${blob(p.banner)}')` : 'var(--grad)'}"></div><div style="padding:0 16px 16px;margin-top:-34px">${avatarHtml(uid, 76, true)}
-    <div style="font-size:19px;font-weight:800;margin-top:8px;color:var(--text)">${esc(nameOf(uid))}</div>
-    <div style="color:var(--muted);font-size:13px">${esc(p.custom || ({ online: 'Online', idle: 'Idle', dnd: 'Do not disturb' }[st] || 'Offline'))}</div>
-    ${role ? `<div style="margin-top:8px;display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--bg3);color:var(--text)">${role}${s ? ' · ' + esc(s.name) : ''}</div>` : ''}
-    ${p.about ? `<div style="margin-top:12px;font-size:11px;font-weight:800;color:var(--dim);text-transform:uppercase">About me</div><div style="font-size:13.5px;margin-top:4px;color:var(--text);white-space:pre-wrap">${esc(p.about)}</div>` : ''}
-    ${p.joinedAt ? `<div style="margin-top:12px;font-size:11px;font-weight:800;color:var(--dim);text-transform:uppercase">Diskord member since</div><div style="font-size:13px;color:var(--muted);margin-top:3px">${esc(new Date(p.joinedAt).toLocaleDateString())}</div>` : ''}
-    ${uid !== S.myId && S.canWrite ? `<div style="display:flex;gap:8px;margin-top:14px"><a class="btn go" style="flex:1" id="pcCall" target="_blank" rel="opener" href="#">📞 Call</a><a class="btn primary" style="flex:1" id="pcVideo" target="_blank" rel="opener" href="#">🎥 Video</a></div><a class="btn sm" style="width:100%;margin-top:8px;cursor:pointer;color:var(--text)" id="pcMention">@ Mention</a>` : ''}
-    ${uid !== S.myId && isOwnerOf(s) && s.owner !== uid ? `<a class="btn sm" style="width:100%;margin-top:8px;cursor:pointer;color:var(--text)" id="pcCo">${isCo(s, uid) ? 'Remove co-owner' : '🛡️ Make co-owner of ' + esc(s.name)}</a>` : ''}
-    ${uid === S.myId ? `<a class="btn sm" style="width:100%;margin-top:14px;cursor:pointer;color:var(--text)" id="pcEdit">✏️ Edit profile</a>` : ''}</div>`;
-  closeFloating(); place(el, e.currentTarget || e.target);
-  const call = el.querySelector('#pcCall');
-  if (call) { call.href = callLink('pending', ''); call.onclick = () => { call.href = callPerson(uid); setTimeout(closeFloating, 50); }; }
-  const vc = el.querySelector('#pcVideo');
-  if (vc) { vc.href = callLink('pending', '', true); vc.onclick = () => { vc.href = callPerson(uid, true); setTimeout(closeFloating, 50); }; }
-  const b = el.querySelector('#pcMention'); if (b) b.onclick = () => { closeFloating(); const ta = $('ta'); if (ta) { S.mentions.set('@' + nameOf(uid), uid); insertAtCursor(ta, '@' + nameOf(uid) + ' '); ta.focus(); } };
-  const co = el.querySelector('#pcCo'); if (co) co.onclick = () => { closeFloating(); toggleCo(s, uid); };
-  const ed = el.querySelector('#pcEdit'); if (ed) ed.onclick = () => { closeFloating(); openSettings('profile'); };
-}
 async function toggleCo(s, uid) {
   const list = Array.isArray(s.admins) ? [...s.admins] : [];
   const next = list.includes(uid) ? list.filter(x => x !== uid) : [...list, uid];
@@ -1339,7 +1433,7 @@ function statusMenu(e) {
     { label: 'Idle', icon: '🌙', run: () => setStatus('idle') },
     { label: 'Do not disturb', icon: '⛔', run: () => setStatus('dnd') },
     { label: 'Invisible', icon: '⚪', run: () => setStatus('invisible') }, '-',
-    { label: 'Edit profile', icon: '✏️', run: () => openSettings('profile') }, '-',
+    { label: 'Edit profile', icon: '✏️', run: () => profileEditor() }, '-',
     { label: 'Log out', icon: '🚪', danger: true, run: () => confirmModal('Log out', 'Log out of Diskord on this device?', 'Log out', () => window.diskordLogout && window.diskordLogout()) }
   ]);
 }
@@ -1564,11 +1658,311 @@ function emptyState() {
 }
 function bindEmpty() { const b = $('emptyCreate'); if (b) b.onclick = createServerModal; }
 
+// ====================================================================== Direct Messages, friends, message requests
+const isHome = () => S.sid === '@me';
+const pairId = (a, b) => [a, b].sort().join('_');
+const dmCid = uid => 'dm_' + pairId(S.myId, uid);
+const dmOther = cid => { const d = S.dms.find(x => 'dm_' + x.id === cid); if (d) return d.members.find(x => x !== S.myId) || S.myId; const p = String(cid || '').slice(3).split('_'); return p[0] === S.myId ? p[1] : p[0]; };
+const friendOf = uid => S.friends.find(f => f.members.includes(uid)) || null;
+const isFriend = uid => { const f = friendOf(uid); return !!(f && f.status === 'accepted'); };
+const dmDoc = cid => S.dms.find(d => 'dm_' + d.id === cid) || null;
+const dmAccepted = d => !d || d.by === S.myId || (d.ok && d.ok[S.myId]) || isFriend(d.members.find(x => x !== S.myId));
+const dmHidden = d => !!(d && d.hide && d.hide[S.myId]);
+const visibleDms = () => S.dms.filter(d => dmAccepted(d) && !dmHidden(d)).sort((a, b) => (b.last || b.at || 0) - (a.last || a.at || 0));
+const requestDms = () => S.dms.filter(d => !dmAccepted(d) && !dmHidden(d) && d.last);
+const pendingIn = () => S.friends.filter(f => f.status === 'pending' && f.from !== S.myId);
+const pendingOut = () => S.friends.filter(f => f.status === 'pending' && f.from === S.myId);
+const unameOf = uid => S.usernames[uid] || '';
+const isDmUnread = d => d.last && d.lastUid !== S.myId && d.last > readAt('dm_' + d.id) && 'dm_' + d.id !== S.cid;
+
+function subscribeHome() {
+  S.db.collection('friendships').where('members', 'array-contains', S.myId).onSnapshot(snap => {
+    S.friends = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    needNames(S.friends.flatMap(f => f.members));
+    renderRail(); if (isHome()) { renderChannels(); renderFeed(false); }
+  }, () => {});
+  S.db.collection('dms').where('members', 'array-contains', S.myId).onSnapshot(snap => {
+    const before = new Map(S.dms.map(d => [d.id, d.last || 0]));
+    S.dms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    needNames(S.dms.flatMap(d => d.members));
+    for (const d of S.dms) if (d.last && d.lastUid !== S.myId && before.has(d.id) && d.last > before.get(d.id) && 'dm_' + d.id !== S.cid) dmPing(d);
+    renderRail(); if (isHome()) { renderChannels(); if (!S.cid) renderFeed(false); }
+  }, () => {});
+}
+function dmPing(d) {
+  const who = d.lastUid;
+  toast('💬 New message from ' + nameOf(who));
+  try { audioCtx = audioCtx || new AudioContext(); const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.frequency.value = 740; g.gain.value = .05; o.connect(g); g.connect(audioCtx.destination); o.start(); g.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime + .2); o.stop(audioCtx.currentTime + .21); } catch (_) {}
+}
+function goHome(cid) {
+  S.sid = '@me'; ls.set('sid', '@me');
+  if (cid) openDm(dmOther(cid)); else { S.homeTab = S.homeTab || 'online'; openChannel(null); }
+}
+async function openDm(uid) {
+  if (!uid || uid === S.myId) return;
+  S.sid = '@me'; ls.set('sid', '@me');
+  const id = pairId(S.myId, uid);
+  if (!S.dms.find(d => d.id === id)) {
+    S.dms.push({ id, members: [S.myId, uid].sort(), by: S.myId, at: Date.now() });
+    S.db.doc('dms/' + id).set({ members: [S.myId, uid].sort(), by: S.myId, at: Date.now() }, { merge: true }).catch(() => {});
+  } else {
+    const d = S.dms.find(x => x.id === id);
+    if (dmHidden(d)) S.db.doc('dms/' + id).set({ hide: { [S.myId]: false } }, { merge: true }).catch(() => {});
+  }
+  closeFloating();
+  openChannel('dm_' + id);
+}
+async function acceptRequest(d) { try { await S.db.doc('dms/' + d.id).set({ ok: { [S.myId]: true } }, { merge: true }); openChannel('dm_' + d.id); } catch (e) { writeError(e); } }
+async function hideDm(d) { try { await S.db.doc('dms/' + d.id).set({ hide: { [S.myId]: true } }, { merge: true }); if (S.cid === 'dm_' + d.id) openChannel(null); } catch (e) { writeError(e); } }
+async function addFriendByUid(uid) {
+  if (!uid || uid === S.myId) return toast('That\'s you! 😄', true);
+  const f = friendOf(uid);
+  if (f && f.status === 'accepted') return toast('You\'re already friends with ' + nameOf(uid));
+  if (f && f.status === 'pending' && f.from !== S.myId) return acceptFriend(f);
+  if (f) return toast('Friend request already sent');
+  const members = [S.myId, uid].sort();
+  try { await S.db.doc('friendships/' + members.join('_')).set({ members, from: S.myId, status: 'pending', at: Date.now() }); toast('Friend request sent to ' + nameOf(uid) + ' ✉️'); }
+  catch (e) { writeError(e); }
+}
+async function acceptFriend(f) { try { await S.db.doc('friendships/' + f.id).update({ status: 'accepted', at: Date.now() }); toast('You and ' + nameOf(f.members.find(x => x !== S.myId)) + ' are now friends 🎉'); } catch (e) { writeError(e); } }
+async function removeFriend(f) { try { await S.db.doc('friendships/' + f.id).delete(); } catch (e) { writeError(e); } }
+
+function renderHomeSidebar() {
+  $('srvName').textContent = 'Direct Messages';
+  const box = $('channels');
+  const reqs = requestDms().length, pend = pendingIn().length;
+  box.innerHTML = `<button class="find" id="findConv">Find or start a conversation</button>
+    <button class="ch home-link ${!S.cid ? 'active' : ''}" data-home="friends"><span class="hash">${ICON.friends}</span><span class="nm">Friends</span>${pend ? `<span class="mbadge">${pend}</span>` : ''}</button>
+    <button class="ch home-link ${S.homeTab === 'requests' && !S.cid ? 'active' : ''}" data-home="requests"><span class="hash">${ICON.mail}</span><span class="nm">Message Requests</span>${reqs ? `<span class="mbadge">${reqs}</span>` : ''}</button>
+    <div class="cat" style="margin-top:14px"><span>Direct Messages</span><button id="newDm" title="Create DM">+</button></div>
+    ${visibleDms().map(d => { const u = d.members.find(x => x !== S.myId) || S.myId; const unread = isDmUnread(d);
+      return `<div class="dm-row ${S.cid === 'dm_' + d.id ? 'active' : ''} ${unread ? 'unread' : ''}" data-dm="${esc(u)}">${avatarHtml(u, 32, true)}<div class="n"><b>${esc(nameOf(u))}</b>${(S.profiles[u] || {}).custom ? `<small>${esc(S.profiles[u].custom)}</small>` : ''}</div>${unread ? '<span class="dot"></span>' : ''}<button class="x" data-hide="${esc(d.id)}" title="Close DM">✕</button></div>`; }).join('') ||
+      '<div style="padding:10px 10px;color:var(--dim);font-size:12.5px;line-height:1.5">No DMs yet. Add friends, then click a friend to message them.</div>'}`;
+  box.querySelectorAll('[data-home]').forEach(b => b.onclick = () => { S.homeTab = b.dataset.home === 'requests' ? 'requests' : (S.homeTab === 'requests' ? 'online' : S.homeTab || 'online'); openChannel(null); });
+  box.querySelectorAll('[data-dm]').forEach(b => b.onclick = e => { if (e.target.closest('[data-hide]')) return; openDm(b.dataset.dm); $('side').classList.remove('mobile-open'); });
+  box.querySelectorAll('[data-hide]').forEach(b => b.onclick = () => { const d = S.dms.find(x => x.id === b.dataset.hide); if (d) hideDm(d); });
+  $('findConv').onclick = quickSwitcher; $('newDm').onclick = quickSwitcher;
+}
+function quickSwitcher() {
+  modal(`<div class="mh"><h2>Find or start a conversation</h2><p>Search friends and people you've talked to, or type a @username.</p></div>
+    <div class="mb"><input id="qs" placeholder="Where would you like to go?" style="width:100%;padding:12px 14px;border-radius:10px;border:0;background:var(--bg0);outline:none;font-size:15px"><div id="qsList" style="margin-top:10px;max-height:320px;overflow:auto"></div></div>`, (o, close) => {
+    const people = () => [...new Set([...S.friends.flatMap(f => f.members), ...S.dms.flatMap(d => d.members), ...memberIds()])].filter(u => u && u !== S.myId);
+    const draw = async () => {
+      const q = o.querySelector('#qs').value.trim().toLowerCase().replace(/^@/, '');
+      let list = people().filter(u => !q || nameOf(u).toLowerCase().includes(q) || unameOf(u).includes(q)).slice(0, 12);
+      let extra = '';
+      if (q && !list.length && /^[a-z0-9._]{2,24}$/.test(q)) { const uid = await S.user.findUsername(q).catch(() => null); if (uid && uid !== S.myId) { needNames([uid]); list = [uid]; } else extra = `<div style="color:var(--muted);padding:10px">No one found with @${esc(q)}</div>`; }
+      o.querySelector('#qsList').innerHTML = list.map(u => `<button class="mem" data-u="${esc(u)}">${avatarHtml(u, 32, true)}<div class="n" style="flex:1"><b>${esc(nameOf(u))}</b><small>${unameOf(u) ? '@' + esc(unameOf(u)) : ''}</small></div></button>`).join('') + extra;
+      o.querySelectorAll('[data-u]').forEach(b => b.onclick = () => { close(); openDm(b.dataset.u); });
+    };
+    let t; o.querySelector('#qs').oninput = () => { clearTimeout(t); t = setTimeout(draw, 250); }; draw();
+  });
+}
+function renderFriendsPage() {
+  const f = $('feed'), tab = S.homeTab || 'online';
+  const friendIds = S.friends.filter(x => x.status === 'accepted').map(x => x.members.find(m => m !== S.myId));
+  const tabs = [['online', 'Online'], ['all', 'All'], ['pending', 'Pending' + (pendingIn().length ? ` <i class="pbadge">${pendingIn().length}</i>` : '')], ['requests', 'Message Requests' + (requestDms().length ? ` <i class="pbadge">${requestDms().length}</i>` : '')], ['add', 'Add Friend']];
+  let body = '';
+  const row = (u, actions, sub) => `<div class="frow" data-u="${esc(u)}">${avatarHtml(u, 36, true)}<div class="n"><b>${esc(nameOf(u))} <span>${unameOf(u) ? '@' + esc(unameOf(u)) : ''}</span></b><small>${sub || esc((S.profiles[u] || {}).custom || ({ online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb' }[statusOf(u)] || 'Offline'))}</small></div><div class="acts">${actions}</div></div>`;
+  const msgBtn = u => `<button class="ra" data-msg="${esc(u)}" title="Message">💬</button><button class="ra" data-callu="${esc(u)}" title="Voice call">📞</button>`;
+  if (tab === 'online' || tab === 'all') {
+    const list = tab === 'online' ? friendIds.filter(u => statusOf(u)) : friendIds;
+    body = `<div class="fh">${tab === 'online' ? 'Online' : 'All friends'} — ${list.length}</div>` + (list.map(u => row(u, msgBtn(u) + `<button class="ra" data-unf="${esc(u)}" title="Remove friend">✕</button>`)).join('') ||
+      `<div class="fempty"><div style="font-size:52px">🫂</div><p>${tab === 'online' ? 'No friends online right now.' : 'You don\'t have any friends yet.'}</p><button class="btn primary" data-goadd>Add Friend</button></div>`);
+  } else if (tab === 'pending') {
+    const inc = pendingIn(), out = pendingOut();
+    body = `<div class="fh">Pending — ${inc.length + out.length}</div>` + inc.map(x => { const u = x.members.find(m => m !== S.myId); return row(u, `<button class="ra ok" data-acc="${esc(x.id)}" title="Accept">✓</button><button class="ra" data-dec="${esc(x.id)}" title="Ignore">✕</button>`, 'Incoming friend request'); }).join('') +
+      out.map(x => { const u = x.members.find(m => m !== S.myId); return row(u, `<button class="ra" data-dec="${esc(x.id)}" title="Cancel">✕</button>`, 'Outgoing friend request'); }).join('') +
+      (inc.length + out.length ? '' : '<div class="fempty"><div style="font-size:52px">📭</div><p>No pending friend requests.</p></div>');
+  } else if (tab === 'requests') {
+    const reqs = requestDms();
+    body = `<div class="fh">Message Requests — ${reqs.length}</div><p class="fnote">Messages from people who aren't your friends land here. Accept to move them to your DMs.</p>` + reqs.map(d => { const u = d.members.find(m => m !== S.myId); return row(u, `<button class="btn go sm2" data-accdm="${esc(d.id)}">Accept</button><button class="btn sm" data-ign="${esc(d.id)}">Ignore</button>`, 'Sent you a message'); }).join('') +
+      (reqs.length ? '' : '<div class="fempty"><div style="font-size:52px">✉️</div><p>No message requests.</p></div>');
+  } else {
+    body = `<div class="addf"><h3>Add Friend</h3><p>You can add friends with their Diskord username.</p><form id="addForm" class="addbox"><input id="addName" placeholder="You can add friends with their Diskord username." maxlength="25" autocomplete="off"><button class="btn primary sm2" id="addGo">Send Friend Request</button></form><div id="addMsg"></div>
+      ${unameOf(S.myId) ? `<p class="fnote" style="margin-top:16px">Your username is <b>@${esc(unameOf(S.myId))}</b> — share it so friends can add you.</p>` : `<p class="fnote" style="margin-top:16px">You don't have a username yet. <a href="#" id="pickU">Pick one</a> so friends can add you.</p>`}</div>`;
+  }
+  f.innerHTML = `<div class="ftabs"><b class="ft">${ICON.friends} Friends</b>${tabs.map(([k, l]) => `<button data-ft="${k}" class="${tab === k ? 'on' : ''} ${k === 'add' ? 'add' : ''}">${l}</button>`).join('')}</div><div class="fbody">${body}</div>`;
+  f.querySelectorAll('[data-ft]').forEach(b => b.onclick = () => { S.homeTab = b.dataset.ft; renderFeed(false); renderChannels(); });
+  f.querySelectorAll('[data-msg]').forEach(b => b.onclick = () => openDm(b.dataset.msg));
+  f.querySelectorAll('[data-callu]').forEach(b => b.onclick = () => { const url = callPerson(b.dataset.callu); window.open(url, '_blank'); });
+  f.querySelectorAll('[data-unf]').forEach(b => b.onclick = () => { const x = friendOf(b.dataset.unf); if (x) confirmModal('Remove friend', 'Remove ' + nameOf(b.dataset.unf) + ' from your friends?', 'Remove', () => removeFriend(x)); });
+  f.querySelectorAll('[data-acc]').forEach(b => b.onclick = () => { const x = S.friends.find(y => y.id === b.dataset.acc); if (x) acceptFriend(x); });
+  f.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => { const x = S.friends.find(y => y.id === b.dataset.dec); if (x) removeFriend(x); });
+  f.querySelectorAll('[data-accdm]').forEach(b => b.onclick = () => { const d = S.dms.find(y => y.id === b.dataset.accdm); if (d) acceptRequest(d); });
+  f.querySelectorAll('[data-ign]').forEach(b => b.onclick = () => { const d = S.dms.find(y => y.id === b.dataset.ign); if (d) hideDm(d); });
+  f.querySelectorAll('.frow').forEach(r => r.onclick = e => { if (!e.target.closest('button')) profileCard(e, r.dataset.u); });
+  const ga = f.querySelector('[data-goadd]'); if (ga) ga.onclick = () => { S.homeTab = 'add'; renderFeed(false); };
+  const pu = f.querySelector('#pickU'); if (pu) pu.onclick = e => { e.preventDefault(); usernameModal(); };
+  const af = f.querySelector('#addForm');
+  if (af) af.onsubmit = async e => {
+    e.preventDefault();
+    const v = f.querySelector('#addName').value.trim().toLowerCase().replace(/^@/, ''), msg = f.querySelector('#addMsg');
+    if (!v) return;
+    const uid = await S.user.findUsername(v).catch(() => null);
+    if (!uid) { msg.innerHTML = `<p class="bad">Hm, didn't work. Double check that the username @${esc(v)} is correct.</p>`; return; }
+    needNames([uid]); await addFriendByUid(uid);
+    msg.innerHTML = `<p class="good">Success! Your friend request to @${esc(v)} was sent.</p>`; f.querySelector('#addName').value = '';
+  };
+}
+function usernameModal(force) {
+  modal(`<div class="mh"><h2>${force ? 'Pick your username' : 'Change username'}</h2><p>Friends add you with your username. Lowercase letters, numbers, dot and underscore.</p></div>
+    <div class="mb"><div class="field"><label>Username</label><input id="uName" maxlength="24" value="${esc(unameOf(S.myId))}" placeholder="e.g. bandera"></div><div id="uMsg" style="color:var(--dnd);font-size:13px"></div></div>
+    <div class="mf">${force ? '' : '<button class="btn ghost" data-x>Cancel</button>'}<button class="btn primary" data-ok>Save</button></div>`, (o, close) => {
+    const x = o.querySelector('[data-x]'); if (x) x.onclick = close;
+    o.querySelector('[data-ok]').onclick = async () => {
+      try { const n = await S.user.setUsername(o.querySelector('#uName').value, unameOf(S.myId)); S.usernames[S.myId] = n; close(); toast('Username set to @' + n); renderAll(); }
+      catch (e) { o.querySelector('#uMsg').textContent = (e && e.message) || 'Could not save.'; }
+    };
+  });
+}
+function renderDmSide(uid) {
+  const p = S.profiles[uid] || {}, f = friendOf(uid);
+  const theme = p.themeA ? `linear-gradient(160deg, ${p.themeA}, ${p.themeB || p.themeA})` : 'var(--bg1)';
+  $('members').innerHTML = `<div class="dmside" style="background:${theme}">
+    <div class="dsb" style="${p.banner ? `background:center/cover url('${blob(p.banner)}')` : `background:${S.colors[uid] || 'var(--grad)'}`}"></div>
+    <div class="dsa">${avatarHtml(uid, 84, true)}</div>
+    <div class="dsc"><div class="dsn" style="${nameStyle(uid)}">${esc(nameOf(uid))}</div><div class="dsu">${unameOf(uid) ? '@' + esc(unameOf(uid)) : ''}${p.pronouns ? ' • ' + esc(p.pronouns) : ''}</div>
+    ${p.about ? `<div class="dsh">About me</div><div class="dst">${esc(p.about)}</div>` : ''}
+    ${p.joinedAt ? `<div class="dsh">Member since</div><div class="dst">${esc(new Date(p.joinedAt).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }))}</div>` : ''}
+    ${!f ? `<button class="btn primary" style="width:100%;margin-top:14px" id="dsAdd">Add Friend</button>` : f.status === 'pending' && f.from !== S.myId ? `<button class="btn go" style="width:100%;margin-top:14px" id="dsAcc">Accept friend request</button>` : f.status === 'pending' ? '<div class="dst" style="margin-top:14px">Friend request sent</div>' : ''}</div></div>`;
+  const a = $('dsAdd'); if (a) a.onclick = () => addFriendByUid(uid);
+  const ac = $('dsAcc'); if (ac) ac.onclick = () => acceptFriend(f);
+}
+function nameStyle(uid) {
+  const p = S.profiles[uid] || {};
+  if (p.nameGrad && Array.isArray(p.nameGrad) && p.nameGrad.length === 2) return `background:linear-gradient(90deg,${p.nameGrad[0]},${p.nameGrad[1]});-webkit-background-clip:text;color:transparent`;
+  return `color:${S.colors[uid] || 'inherit'}`;
+}
+// ====================================================================== Discord-style profile popout + profile editor
+const HEX = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) ? v : null;
+function profileCard(e, uid) {
+  const p = S.profiles[uid] || {}, st = statusOf(uid), s = curServer(), me = uid === S.myId;
+  const a = HEX(p.themeA), b = HEX(p.themeB);
+  const el = document.createElement('div'); el.className = 'menu pcard2';
+  if (a) el.style.background = `linear-gradient(170deg, ${a}, ${b || a})`;
+  const role = s && s.owner === uid ? '👑 Server owner' : isCo(s, uid) ? '🛡️ Co-owner' : '';
+  const inCall = me ? S.myCall : (S.inCall.has(uid) ? { label: 'Voice channel' } : null);
+  const f = friendOf(uid);
+  const stLabel = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', invisible: 'Invisible' };
+  el.innerHTML = `<div class="pc-banner" style="${p.banner ? `background:center/cover url('${blob(p.banner)}')` : `background:${a || S.colors[uid] || 'var(--accent)'}`}"></div>
+    <div class="pc-av">${avatarHtml(uid, 84, true)}${p.custom ? `<div class="pc-bubble">${esc(p.custom)}</div>` : ''}</div>
+    <div class="pc-body">
+      <div class="pc-name" style="${nameStyle(uid)}">${esc(nameOf(uid))}</div>
+      <div class="pc-user">${unameOf(uid) ? '@' + esc(unameOf(uid)) : ''}${p.pronouns ? ' • ' + esc(p.pronouns) : ''}${role ? ` <span class="pc-role">${role}</span>` : ''}</div>
+      ${p.about ? `<div class="pc-about">${esc(p.about)}</div>` : ''}
+      ${inCall ? `<div class="pc-box"><div class="pc-h">${me && S.myCall && S.myCall.video ? 'In a video call' : 'In a call'}</div><div class="pc-act"><span class="pc-ic">📞</span><div><b>${esc(inCall.label || 'Call')}</b><small>Diskord</small></div></div></div>` : ''}
+      ${!me && p.joinedAt ? `<div class="pc-box"><div class="pc-h">Member since</div><div class="pc-t">${esc(new Date(p.joinedAt).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }))}</div></div>` : ''}
+      ${me ? `<div class="pc-menu">
+        <button data-pm="edit">✏️<span>Edit Profile</span></button>
+        <button data-pm="status"><span class="st-dot ${statusOf(uid) || 'off'}"></span><span>${stLabel[S.status] || 'Online'}</span><i>›</i></button>
+        <button data-pm="user">🪪<span>Username: ${unameOf(uid) ? '@' + esc(unameOf(uid)) : 'pick one'}</span><i>›</i></button>
+      </div><div class="pc-menu"><button data-pm="logout" class="danger">🚪<span>Log out</span></button></div>`
+      : `<div class="pc-actions">
+        <button class="btn primary" data-pm="dm">💬 Message</button>
+        <a class="btn go" id="pcCall" target="_blank" rel="opener" href="#" title="Voice call">📞</a>
+        <a class="btn alt" id="pcVideo" target="_blank" rel="opener" href="#" title="Video call">🎥</a>
+      </div>
+      <div class="pc-menu">
+        ${!f ? '<button data-pm="add">➕<span>Add Friend</span></button>' : f.status === 'pending' && f.from !== S.myId ? '<button data-pm="acc">✅<span>Accept friend request</span></button>' : f.status === 'pending' ? '<button data-pm="unf">⏳<span>Cancel friend request</span></button>' : '<button data-pm="unf">👋<span>Remove Friend</span></button>'}
+        ${S.cid && curChannel() && !curChannel().dm ? '<button data-pm="mention">@<span>Mention</span></button>' : ''}
+        ${isOwnerOf(s) && s.owner !== uid ? `<button data-pm="co">🛡️<span>${isCo(s, uid) ? 'Remove co-owner' : 'Make co-owner of ' + esc(s.name)}</span></button>` : ''}
+      </div>`}
+    </div>`;
+  closeFloating(); place(el, e.currentTarget || e.target);
+  const call = el.querySelector('#pcCall'); if (call) { call.href = callLink('pending', ''); call.onclick = () => { call.href = callPerson(uid); setTimeout(closeFloating, 50); }; }
+  const vc = el.querySelector('#pcVideo'); if (vc) { vc.href = callLink('pending', '', true); vc.onclick = () => { vc.href = callPerson(uid, true); setTimeout(closeFloating, 50); }; }
+  el.querySelectorAll('[data-pm]').forEach(btn => btn.onclick = ev => {
+    const k = btn.dataset.pm;
+    if (k === 'status') return statusMenu({ currentTarget: btn, clientX: ev.clientX, clientY: ev.clientY });
+    closeFloating();
+    if (k === 'edit') profileEditor();
+    if (k === 'user') usernameModal();
+    if (k === 'logout') confirmModal('Log out', 'Log out of Diskord on this device?', 'Log out', () => window.diskordLogout && window.diskordLogout());
+    if (k === 'dm') openDm(uid);
+    if (k === 'add') addFriendByUid(uid);
+    if (k === 'acc') acceptFriend(f);
+    if (k === 'unf') removeFriend(f);
+    if (k === 'co') toggleCo(s, uid);
+    if (k === 'mention') { const ta = $('ta'); if (ta) { S.mentions.set('@' + nameOf(uid), uid); insertAtCursor(ta, '@' + nameOf(uid) + ' '); ta.focus(); } }
+  });
+}
+function profileEditor() {
+  const p = S.profiles[S.myId] || {};
+  const d = { name: nameOf(S.myId), color: S.colors[S.myId] || '#ff4d7d', grad: Array.isArray(p.nameGrad) ? p.nameGrad : null, pronouns: p.pronouns || '', about: p.about || '', custom: p.custom || '', avatar: p.avatar || null, banner: p.banner || null, themeA: HEX(p.themeA), themeB: HEX(p.themeB) };
+  const SWATCH = ['#ff4d7d', '#a64dff', '#5b5cf6', '#22c1ee', '#2bd98a', '#ffd84a', '#ff7a45', '#ffffff'];
+  const GRADS = [['#ff4d7d', '#ffd84a'], ['#a64dff', '#22c1ee'], ['#2bd98a', '#22c1ee'], ['#ff7a45', '#e94cd8'], ['#5b5cf6', '#ff4d7d']];
+  const THEMES = [[null, null], ['#5b2bd9', '#1b0f3a'], ['#c2185b', '#2a0f2f'], ['#0f766e', '#0b1f2a'], ['#b45309', '#2a160b'], ['#1d4ed8', '#0b1230'], ['#be123c', '#1e1b4b']];
+  const o = modal(`<div class="pe"><div class="pe-l">
+      <h2>Profile</h2>
+      <div class="field"><label>Display name</label><input id="peName" maxlength="32"></div>
+      <div class="field"><label>Display name style</label><div class="pe-sw" id="peColor">${SWATCH.map(c => `<button data-c="${c}" style="background:${c}"></button>`).join('')}<input type="color" id="peColorPick" title="Custom colour"></div>
+        <div class="pe-sw" style="margin-top:8px" id="peGrad"><button data-g="" class="none" title="No gradient">Aa</button>${GRADS.map(g => `<button data-g="${g.join(',')}" style="background:linear-gradient(90deg,${g[0]},${g[1]})"></button>`).join('')}</div></div>
+      <div class="field"><label>Pronouns</label><input id="pePro" maxlength="20" placeholder="he/him"></div>
+      <div class="field"><label>Avatar &amp; banner</label><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" id="peAv">Change avatar</button><button class="btn sm" id="peAvRm">Remove</button><button class="btn sm" id="peBn">Change banner</button><button class="btn sm" id="peBnRm">Remove</button></div></div>
+      <div class="field"><label>Profile theme</label><div class="pe-sw" id="peTheme">${THEMES.map(t => `<button data-t="${t[0] || ''},${t[1] || ''}" style="background:${t[0] ? `linear-gradient(160deg,${t[0]},${t[1]})` : 'var(--bg1)'}" class="${t[0] ? '' : 'none'}">${t[0] ? '' : '✕'}</button>`).join('')}</div></div>
+      <div class="field"><label>Custom status</label><input id="peCustom" maxlength="60" placeholder="🎮 Playing Apex Client"></div>
+      <div class="field"><label>About me</label><textarea id="peAbout" rows="4" maxlength="190" placeholder="Tell everyone a bit about you"></textarea></div>
+    </div><div class="pe-r"><div class="pe-pv-h">Preview</div><div id="pePv"></div></div></div>
+    <div class="mf"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" data-ok>Save changes</button></div>`, (ov, close) => {
+    ov.querySelector('.modal').classList.add('wide');
+    const q = id => ov.querySelector('#' + id);
+    q('peName').value = d.name; q('pePro').value = d.pronouns; q('peCustom').value = d.custom; q('peAbout').value = d.about; q('peColorPick').value = d.color;
+    const preview = () => {
+      const a = d.themeA;
+      const nm = d.grad ? `background:linear-gradient(90deg,${d.grad[0]},${d.grad[1]});-webkit-background-clip:text;color:transparent` : `color:${d.color}`;
+      const av = d.avatar ? `<img src="${esc(blob(d.avatar))}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : `<div style="width:100%;height:100%;border-radius:50%;background:${d.color};display:grid;place-items:center;color:#fff;font-weight:800;font-size:34px">${esc((d.name[0] || '?').toUpperCase())}</div>`;
+      q('pePv').innerHTML = `<div class="pcard2 pv" style="${a ? `background:linear-gradient(170deg,${a},${d.themeB || a})` : ''}"><div class="pc-banner" style="${d.banner ? `background:center/cover url('${esc(blob(d.banner))}')` : `background:${a || d.color}`}"></div>
+        <div class="pc-av"><div class="av" style="width:84px;height:84px">${av}<span class="st ${statusOf(S.myId)}"></span></div>${d.custom ? `<div class="pc-bubble">${esc(d.custom)}</div>` : ''}</div>
+        <div class="pc-body"><div class="pc-name" style="${nm}">${esc(d.name || 'Your name')}</div><div class="pc-user">${unameOf(S.myId) ? '@' + esc(unameOf(S.myId)) : ''}${d.pronouns ? ' • ' + esc(d.pronouns) : ''}</div>${d.about ? `<div class="pc-about">${esc(d.about)}</div>` : ''}
+        <div class="pc-actions"><span class="btn primary" style="flex:1;text-align:center">💬 Message</span></div></div></div>`;
+      ov.querySelectorAll('#peColor [data-c]').forEach(x => x.classList.toggle('sel', !d.grad && x.dataset.c === d.color));
+      ov.querySelectorAll('#peGrad [data-g]').forEach(x => x.classList.toggle('sel', (x.dataset.g || null) === (d.grad ? d.grad.join(',') : null)));
+      ov.querySelectorAll('#peTheme [data-t]').forEach(x => x.classList.toggle('sel', x.dataset.t === `${d.themeA || ''},${d.themeB || ''}`));
+    };
+    q('peName').oninput = e => { d.name = e.target.value; preview(); };
+    q('pePro').oninput = e => { d.pronouns = e.target.value; preview(); };
+    q('peCustom').oninput = e => { d.custom = e.target.value; preview(); };
+    q('peAbout').oninput = e => { d.about = e.target.value; preview(); };
+    q('peColorPick').oninput = e => { d.color = e.target.value; d.grad = null; preview(); };
+    ov.querySelectorAll('#peColor [data-c]').forEach(x => x.onclick = () => { d.color = x.dataset.c; d.grad = null; preview(); });
+    ov.querySelectorAll('#peGrad [data-g]').forEach(x => x.onclick = () => { d.grad = x.dataset.g ? x.dataset.g.split(',') : null; preview(); });
+    ov.querySelectorAll('#peTheme [data-t]').forEach(x => x.onclick = () => { const [a, b] = x.dataset.t.split(','); d.themeA = a || null; d.themeB = b || null; preview(); });
+    q('peAv').onclick = () => pickFile(async f => { const id = await uploadImage(f, 8); if (id) { d.avatar = id; preview(); } });
+    q('peBn').onclick = () => pickFile(async f => { const id = await uploadImage(f, 10); if (id) { d.banner = id; preview(); } });
+    q('peAvRm').onclick = () => { d.avatar = null; preview(); };
+    q('peBnRm').onclick = () => { d.banner = null; preview(); };
+    ov.querySelector('[data-x]').onclick = close;
+    ov.querySelector('[data-ok]').onclick = async () => {
+      const name = d.name.trim().slice(0, 32); if (name.length < 2) return toast('Display name must be 2+ letters', true);
+      const btn = ov.querySelector('[data-ok]'); btn.disabled = true;
+      try {
+        if (name !== nameOf(S.myId)) { await S.user.rename(name); S.names[S.myId] = name; }
+        if (HEX(d.color) && d.color !== S.colors[S.myId]) { await S.user.setColor(d.color); S.colors[S.myId] = d.color; }
+        await S.db.doc('profiles/' + S.myId).set({ ...(S.profiles[S.myId] || {}), pronouns: d.pronouns.trim().slice(0, 20), about: d.about.trim().slice(0, 190), custom: d.custom.trim().slice(0, 60), avatar: d.avatar, banner: d.banner,
+          nameGrad: d.grad && HEX(d.grad[0]) && HEX(d.grad[1]) ? d.grad : null, themeA: HEX(d.themeA), themeB: HEX(d.themeB), status: S.status, joinedAt: p.joinedAt || Date.now() });
+        close(); toast('Profile saved ✨'); renderAll();
+      } catch (e) { btn.disabled = false; writeError(e); }
+    };
+    preview();
+  });
+  return o;
+}
+
 function renderAll() { renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }
 
 applyCompact();
-(() => { const b = document.createElement('div'); b.id = 'netBar'; b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:150;background:#ff4d5e;color:#fff;text-align:center;font-weight:700;font-size:13px;padding:6px;display:none'; b.textContent = '📡 You\'re offline — messages will send when you\'re back online.'; document.body.appendChild(b);
-  const upd = () => { b.style.display = navigator.onLine ? 'none' : 'block'; if (navigator.onLine && b.dataset.was === '1') toast('Back online ✅'); b.dataset.was = navigator.onLine ? '0' : '1'; }; addEventListener('online', upd); addEventListener('offline', upd); upd(); })();
+(() => {
+  let t = null, was = navigator.onLine;
+  const show = on => { $('offline').classList.toggle('hidden', on); };
+  const upd = () => {
+    clearTimeout(t);
+    if (navigator.onLine) { show(true); if (!was) toast('Back online ✅'); was = true; }
+    else { was = false; t = setTimeout(() => show(false), 1500); }
+  };
+  addEventListener('online', upd); addEventListener('offline', upd); upd();
+  $('offRetry').onclick = e => { e.preventDefault(); if (navigator.onLine) show(true); else toast('Still no internet connection', true); };
+})();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 boot().catch(e => { $('splashSpin').classList.add('hidden'); $('splashText').textContent = 'Diskord could not start: ' + (e && e.message || e); });
 })();

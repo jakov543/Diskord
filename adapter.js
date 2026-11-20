@@ -6,6 +6,18 @@
 const cfg = window.DISKORD_FIREBASE;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const USER_RE = /^[a-z0-9._]{2,24}$/;
+const normUser = v => String(v || '').trim().toLowerCase().replace(/^@/, '');
+async function claimUsername(uid, name, old) {
+  const ref = fs.doc('usernames/' + name);
+  await fs.runTransaction(async t => {
+    const s = await t.get(ref);
+    if (s.exists && s.data().uid !== uid) throw { message: `@${name} is taken — try another username.` };
+    t.set(ref, { uid, at: Date.now() });
+    t.set(fs.doc('users/' + uid), { username: name }, { merge: true });
+  });
+  if (old && old !== name) fs.doc('usernames/' + old).delete().catch(() => {});
+}
 const COLORS = ['#ff4d7d', '#a64dff', '#22c1ee', '#2bd98a', '#ffb020', '#ff7a45', '#5b5cf6', '#e94cd8'];
 
 let ready, resolveReady;
@@ -107,6 +119,7 @@ function draw(tab) {
     <div id="aMsg"></div><button class="go" id="aGo">Log in</button></form>`;
   else if (tab === 'signup') c.innerHTML = tabs + `<h2>Create an account ✨</h2><p class="s">Free forever. Takes 20 seconds.</p>
     <form id="aForm"><label>Display name</label><input id="aName" maxlength="32" autocomplete="nickname" required placeholder="What should everyone call you?">
+    <label>Username</label><input id="aUser" maxlength="24" autocomplete="username" required placeholder="lowercase, e.g. bandera">
     <label>Email</label><input id="aEmail" type="email" autocomplete="email" required>
     <label>Password</label><div class="pw"><input id="aPass" type="password" autocomplete="new-password" minlength="6" required placeholder="At least 6 characters"><button type="button" id="aEye">SHOW</button></div><div class="meter"><i id="aMeter"></i></div>
     <div id="aMsg"></div><button class="go" id="aGo">Create account</button></form>`;
@@ -128,7 +141,12 @@ function draw(tab) {
       else if (tab === 'signup') {
         const name = $('aName').value.trim().slice(0, 32);
         if (name.length < 2) throw { message: 'Pick a display name (2+ letters).' };
+        const uname = normUser($('aUser').value);
+        if (!USER_RE.test(uname)) throw { message: 'Username: 2–24 characters, only a–z, 0–9, dot and underscore.' };
+        const taken = await fs.doc('usernames/' + uname).get().catch(() => null);
+        if (taken && taken.exists) throw { message: `@${uname} is taken — try another username.` };
         const cred = await auth.createUserWithEmailAndPassword(email, $('aPass').value);
+        try { await claimUsername(cred.user.uid, uname); } catch (_) {}
         await cred.user.updateProfile({ displayName: name });
         await fs.doc('users/' + cred.user.uid).set({ name, color: COLORS[Math.floor(Math.random() * COLORS.length)], created: Date.now() }, { merge: true });
         start(cred.user);
@@ -169,19 +187,23 @@ function makeApi(u) {
         const ref = fs.doc('meta/app');
         owner = await fs.runTransaction(async t => { const s = await t.get(ref); if (!s.exists) { t.set(ref, { owner: uid, at: Date.now() }); return true; } return s.data().owner === uid; });
       } catch (_) {}
-      pcache[uid] = { name: d.name, color: d.color, avatarUrl: '' };
-      return { id: uid, name: d.name, color: d.color, avatarUrl: '', email: u.email, isOwner: owner, canEdit: owner, isMe: true };
+      pcache[uid] = { name: d.name, color: d.color, avatarUrl: '', username: d.username || '' };
+      return { id: uid, name: d.name, color: d.color, username: d.username || '', avatarUrl: '', email: u.email, isOwner: owner, canEdit: owner, isMe: true };
     },
     async profiles(ids) {
       const out = {};
       await Promise.all([].concat(ids).map(async id => {
-        if (!pcache[id]) { try { const s = await fs.doc('users/' + id).get(); const d = s.exists ? s.data() : {}; pcache[id] = { name: d.name || 'User', color: d.color || '#8b5cf6', avatarUrl: '' }; } catch (_) { pcache[id] = { name: 'User', color: '#8b5cf6', avatarUrl: '' }; } }
+        if (!pcache[id]) { try { const s = await fs.doc('users/' + id).get(); const d = s.exists ? s.data() : {}; pcache[id] = { name: d.name || 'User', color: d.color || '#8b5cf6', avatarUrl: '', username: d.username || '' }; } catch (_) { pcache[id] = { name: 'User', color: '#8b5cf6', avatarUrl: '' }; } }
         out[id] = { id, ...pcache[id] };
       }));
       return out;
     },
     async rename(name) { await fs.doc('users/' + uid).set({ name }, { merge: true }); await u.updateProfile({ displayName: name }); pcache[uid] = { ...(pcache[uid] || {}), name }; },
     async can() { return true; },
+    async setColor(color) { await fs.doc('users/' + uid).set({ color }, { merge: true }); pcache[uid] = { ...(pcache[uid] || {}), color }; },
+    async setUsername(name, old) { name = normUser(name); if (!USER_RE.test(name)) throw { message: 'Username: 2–24 characters, only a–z, 0–9, dot and underscore.' }; await claimUsername(uid, name, old); pcache[uid] = { ...(pcache[uid] || {}), username: name }; return name; },
+    async findUsername(name) { name = normUser(name); if (!USER_RE.test(name)) return null; const s = await fs.doc('usernames/' + name).get(); return s.exists ? s.data().uid : null; },
+    forget(id) { delete pcache[id]; },
     email: u.email
   };
   // ---- room (presence + live events), stored in Firestore

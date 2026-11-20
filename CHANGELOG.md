@@ -1,5 +1,20 @@
 # Diskord changelog
 
+## 3.0.0
+### ✨ New
+- 💬 **Direct Messages**: the Diskord button at the top of the server list opens your DMs
+- 👋 **Friends**: Online / All / Pending / Add Friend tabs. Add friends by **@username**, then accept or ignore requests
+- ✉️ **Message Requests**: messages from people who aren't your friends wait here until you accept them
+- 🪪 **Usernames**: everyone picks a unique @username (asked when you sign up, or once after you update)
+- 🎙️ **Voice Connected panel**: camera, screen share, invite link, mute and disconnect, right above your profile
+- 🧑‍🎨 **New profile card**: banner, status bubble, @username • pronouns, About me, what you're doing, plus Message / Call / Video / Add Friend
+- 🎨 **Profile editor with live preview**: display name colour or **gradient name**, pronouns, avatar, banner, **profile theme**, custom status and About me
+- 🔄 **Loading screen like Discord**: big bouncing logo with "Did you know" tips. The update window shows "Checking for updates…" and "Downloading update… 45%", then installs by itself
+- 📡 **Offline screen**: if your internet drops, Diskord shows a "You're offline" screen and reconnects automatically
+- 📞 Calling from a DM rings that friend; the DM side panel shows their profile
+### 🛠️ Fixes
+- No Shop or Nitro here, just your friends and chats
+
 ## 2.2.0
 ### ✨ New
 - 🎮 **Discord Rich Presence**: your Discord profile shows that you're using Diskord, which server and #channel you're in, and "📞 In a voice call" or "🎥 In a video call" with a call timer, plus a **Get Diskord** button
