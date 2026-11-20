@@ -807,13 +807,24 @@ function renderTyping() {
 }
 
 // ====================================================================== render: rail + sidebar
-let tipEl = null;
+// One tooltip at a time. It also disappears when its button is redrawn, clicked, or the mouse leaves the server list.
+let tipEl = null, tipOwner = null;
+function hideTip() { document.querySelectorAll('.tip').forEach(t => t.remove()); tipEl = null; tipOwner = null; }
 function tip(el, text) {
-  el.addEventListener('mouseenter', () => { tipEl = document.createElement('div'); tipEl.className = 'tip'; tipEl.textContent = text; document.body.appendChild(tipEl); const r = el.getBoundingClientRect(); tipEl.style.left = (r.right + 14) + 'px'; tipEl.style.top = (r.top + r.height / 2 - tipEl.offsetHeight / 2) + 'px'; });
-  el.addEventListener('mouseleave', () => { if (tipEl) tipEl.remove(); tipEl = null; });
+  el.addEventListener('mouseenter', () => {
+    hideTip();
+    tipEl = document.createElement('div'); tipEl.className = 'tip'; tipEl.textContent = text; tipOwner = el; document.body.appendChild(tipEl);
+    const r = el.getBoundingClientRect(); tipEl.style.left = (r.right + 14) + 'px'; tipEl.style.top = (r.top + r.height / 2 - tipEl.offsetHeight / 2) + 'px';
+  });
+  el.addEventListener('mouseleave', hideTip);
+  el.addEventListener('mousedown', hideTip);
 }
+setInterval(() => { if (tipOwner && (!tipOwner.isConnected || !tipOwner.matches(':hover'))) hideTip(); }, 400);
+$('rail').addEventListener('mouseleave', hideTip);
+$('rail').addEventListener('scroll', hideTip);
+window.addEventListener('blur', hideTip);
 function renderRail() {
-  const r = $('rail'); r.innerHTML = '';
+  const r = $('rail'); hideTip(); r.innerHTML = '';
   const home = document.createElement('button'); home.className = 'srv home'; home.innerHTML = `<span class="pill"></span><span class="logo-in">${LOGO}</span>`;
   const dmUnread = S.dms.filter(d => dmAccepted(d) && isDmUnread(d)).length + pendingIn().length + requestDms().length;
   home.className = 'srv home' + (isHome() ? ' active' : '') + (dmUnread ? ' unread' : '');
