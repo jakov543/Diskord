@@ -197,6 +197,62 @@ a.btn.go { color: #062814; } a.btn.primary { color: #fff; }
 .rulesbar { position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 160; max-width: min(980px, 94vw); background: #3a2a00; border: 1px solid #ffb020; color: #ffe2a8; padding: 10px 14px; border-radius: 10px; font-size: 13.5px; line-height: 1.6; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
 .rulesbar button, .rulesbar a { background: #ffb020; color: #2a1a00; border-radius: 6px; padding: 2px 9px; font-weight: 800; font-size: 12.5px; text-decoration: none; margin: 0 2px; }
 .rulesbar #rbX { background: none; color: #ffe2a8; }
+.cathead { cursor: pointer; margin-top: 12px; user-select: none; } .cathead:hover { color: var(--text); }
+.chev2 { display: inline-block; font-size: 12px; margin-right: 2px; transition: transform .15s; } .chev2.shut { transform: rotate(-90deg); }
+.ch .ch-gear { opacity: 0; font-size: 13px; color: var(--muted); padding: 0 2px; } .ch:hover .ch-gear { opacity: 1; } .ch .ch-gear:hover { color: var(--text); }
+.ch .lock { font-size: 11px; margin-left: auto; }
+.soon-tag { font-style: normal; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: var(--grad); color: #fff; margin-left: auto; text-transform: uppercase; letter-spacing: .3px; }
+.cm { padding: 22px; } .cm-h h2 { font-size: 21px; } .cm-h p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.cm-l { font-weight: 700; font-size: 14px; margin: 18px 0 8px; }
+.cm-type { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; background: var(--bg1); margin-bottom: 8px; cursor: pointer; border: 1px solid transparent; }
+.cm-type:hover { background: var(--bg3); } .cm-type.sel { background: var(--bg3); border-color: var(--line); } .cm-type.soon { opacity: .6; }
+.cm-type .radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--muted); flex: 0 0 20px; display: grid; place-items: center; }
+.cm-type.sel .radio { border-color: var(--accent); } .cm-type.sel .radio::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.cm-type .ic { font-size: 20px; width: 24px; text-align: center; } .cm-type b { display: block; font-size: 15px; } .cm-type small { color: var(--muted); font-size: 12.5px; }
+.cm-name { display: flex; align-items: center; gap: 8px; background: var(--bg0); border-radius: 8px; padding: 0 12px; border: 1px solid var(--accent); }
+.cm-name span { color: var(--muted); font-size: 18px; } .cm-name input { flex: 1; border: 0; background: none; outline: none; padding: 11px 0; font-size: 15px; }
+.cm-priv { display: flex; gap: 12px; align-items: center; margin-top: 16px; } .cm-priv div { flex: 1; } .cm-priv b { display: block; } .cm-priv small { color: var(--muted); font-size: 12.5px; }
+.toggle { width: 44px; height: 26px; border-radius: 13px; background: var(--bg4); position: relative; flex: 0 0 44px; transition: background .15s; }
+.toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .15s; } .toggle.on { background: var(--accent); } .toggle.on::after { left: 21px; }
+.cm-allow { margin-top: 10px; max-height: 160px; overflow: auto; background: var(--bg1); border-radius: 8px; padding: 6px; }
+.cm-mem { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 6px; cursor: pointer; font-size: 14px; } .cm-mem:hover { background: var(--bg3); }
+.cm-f { display: flex; gap: 10px; margin-top: 22px; } .cm-f .btn { flex: 1; padding: 12px; }
+.field select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 0; background: var(--bg0); color: var(--text); outline: none; }
+.inv { display: flex; flex-direction: column; max-height: 82vh; } .inv-h { padding: 20px 22px 8px; } .inv-h h2 { font-size: 19px; } .inv-h p { color: var(--muted); font-size: 13.5px; margin-top: 4px; }
+.inv-s { padding: 6px 22px 8px; } .inv-s input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg0); outline: none; }
+.inv-list { flex: 1; overflow: auto; padding: 0 14px; min-height: 120px; max-height: 360px; }
+.inv-row { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; } .inv-row:hover { background: var(--bg3); } .inv-row .n { flex: 1; min-width: 0; } .inv-row .n b { display: block; } .inv-row .n small { color: var(--muted); font-size: 12.5px; }
+.inv-b { min-width: 76px; } .inv-f { padding: 14px 22px 18px; border-top: 1px solid var(--line); background: var(--bg1); } .inv-l { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.btn.danger-o { color: var(--dnd); } .btn.danger-o:hover { background: var(--dnd); color: #fff; }
+.invcard { margin-top: 6px; max-width: 430px; background: var(--bg1); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.invcard .ivh { font-size: 11.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+.ivb { display: flex; gap: 12px; align-items: center; } .ivi { width: 50px; height: 50px; border-radius: 16px; display: grid; place-items: center; font-size: 26px; overflow: hidden; flex: 0 0 50px; } .ivi img { width: 100%; height: 100%; object-fit: cover; }
+.ivt { flex: 1; min-width: 0; } .ivt b { display: block; font-size: 16px; } .ivt small { color: var(--muted); font-size: 12.5px; display: flex; align-items: center; gap: 5px; }
+i.d { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--dim); font-style: normal; } i.d.on { background: var(--ok); }
+.ss { position: fixed; inset: 0; z-index: 120; display: flex; background: var(--bg2); animation: fade .15s ease; }
+.ss-nav { flex: 1 0 220px; background: var(--bg1); display: flex; justify-content: flex-end; overflow-y: auto; } .ss-navin { width: 220px; padding: 60px 8px 30px 18px; }
+.ss-h { font-size: 12px; font-weight: 800; color: var(--dim); text-transform: uppercase; padding: 14px 10px 6px; }
+.ss-navin button { display: block; width: 100%; text-align: left; padding: 8px 10px; border-radius: 6px; color: var(--muted); font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+.ss-navin button:hover { background: var(--bg3); color: var(--text); } .ss-navin button.on { background: var(--bg4); color: var(--text); } .ss-navin button.danger { color: var(--dnd); }
+.ss-sep { height: 1px; background: var(--line); margin: 10px; }
+.ss-main { flex: 1 1 800px; overflow-y: auto; } .ss-body { max-width: 980px; padding: 60px 40px 60px; }
+.ss-body h2 { font-size: 21px; margin-bottom: 6px; } .ss-sub { color: var(--muted); font-size: 14px; margin-bottom: 18px; line-height: 1.5; }
+.ss-x { position: fixed; top: 56px; right: 40px; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--muted); color: var(--muted); display: grid; place-items: center; font-size: 16px; }
+.ss-x small { position: absolute; top: 46px; font-size: 11px; font-weight: 700; } .ss-x:hover { color: var(--text); border-color: var(--text); }
+.ss-grid { display: grid; grid-template-columns: 1fr 320px; gap: 40px; } .ss-f { margin-bottom: 6px; } .ss-f label { display: block; font-weight: 700; margin-bottom: 8px; }
+.ss-f input, .ss-f textarea { width: 100%; padding: 11px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg0); outline: none; resize: vertical; }
+.ss-line { height: 1px; background: var(--line); margin: 22px 0; }
+.ss-ban { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; } .ss-ban button { height: 66px; border-radius: 8px; border: 3px solid transparent; } .ss-ban button.sel { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
+.ss-pv { position: sticky; top: 60px; align-self: start; background: var(--bg1); border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+.sp-b { height: 120px; } .sp-i { width: 72px; height: 72px; border-radius: 22px; margin: -36px 0 0 16px; border: 5px solid var(--bg1); display: grid; place-items: center; font-size: 34px; overflow: hidden; } .sp-i img { width: 100%; height: 100%; object-fit: cover; }
+.sp-t { padding: 8px 16px 18px; } .sp-t b { font-size: 18px; display: block; } .sp-t small { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 5px; margin-top: 3px; } .sp-t p { font-size: 13.5px; margin-top: 10px; line-height: 1.45; white-space: pre-wrap; }
+.ss-row { display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: 1px solid var(--line); } .ss-row .n { flex: 1; } .ss-row .n b { display: block; } .ss-row .n small { color: var(--muted); font-size: 12.5px; }
+.soonpage { text-align: center; max-width: 560px; margin: 0 auto; } .sp-hero { font-size: 64px; } .soonpage h2 { margin: 8px 0; }
+.perks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0 20px; text-align: left; } .perk { background: var(--bg1); border: 1px solid var(--line); border-radius: 10px; padding: 12px; font-weight: 600; font-size: 14px; display: flex; gap: 10px; align-items: center; } .perk span { font-size: 20px; }
+.nitro { padding: 30px; } .ni-hero { text-align: center; padding: 40px 20px; border-radius: 16px; background: radial-gradient(ellipse at 30% 0%, rgba(56,189,248,.35), transparent 60%), radial-gradient(ellipse at 80% 100%, rgba(99,102,241,.4), transparent 60%), var(--bg1); }
+.ni-logo { font-size: 64px; } .ni-hero h1 { font-size: 40px; font-weight: 800; } .ni-hero h1 span { background: var(--grad); -webkit-background-clip: text; color: transparent; } .ni-hero p { color: var(--muted); max-width: 480px; margin: 10px auto 20px; line-height: 1.5; }
+.btn.big { padding: 14px 30px; font-size: 16px; } .btn:disabled { opacity: .6; cursor: default; }
+.ni-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 20px; } .ni-card { background: var(--bg1); border: 1px solid var(--line); border-radius: 12px; padding: 16px; } .ni-card span { font-size: 26px; } .ni-card b { display: block; margin: 8px 0 4px; } .ni-card small { color: var(--muted); font-size: 13px; }
 .ch .mbadge { background: var(--dnd); color: #fff; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 1px 6px; }
 .me-bar { display: flex; align-items: center; gap: 9px; padding: 8px 10px; background: var(--bg0); flex: 0 0 auto; }
 .me-bar .who { flex: 1; min-width: 0; line-height: 1.2; }
@@ -664,9 +720,9 @@ async function ensureProfile() {
   } catch (_) { /* view-only viewers can't write */ }
 }
 
-function filterServers() { S.servers = (S.allServers || []).filter(s => s.owner === S.myId || (S.myJoined || []).includes(s.id)); }
+function filterServers() { S.servers = (S.allServers || []).filter(s => (s.owner === S.myId || (S.myJoined || []).includes(s.id)) && !(Array.isArray(s.bans) && s.bans.includes(S.myId))); }
 async function setJoined(list) { S.myJoined = [...new Set(list)]; filterServers(); await S.db.doc('joined/' + S.myId).set({ servers: S.myJoined }); }
-function serverMembers(s) { return [...new Set([s.owner, ...Object.entries(S.joinedBy || {}).filter(([, l]) => l.includes(s.id)).map(([u]) => u)])].filter(Boolean); }
+function serverMembers(s) { const b = Array.isArray(s.bans) ? s.bans : []; return [...new Set([s.owner, ...Object.entries(S.joinedBy || {}).filter(([, l]) => l.includes(s.id)).map(([u]) => u)])].filter(u => u && !b.includes(u)); }
 function joinModal() {
   modal(`<div class="mh"><h2>Join a server</h2><p>Enter an invite code from a friend. It looks like <code>dk-AbCd1234…</code></p></div>
     <div class="mb"><div class="field"><label>Invite code</label><input id="jCode" placeholder="dk-…" autocomplete="off"></div><div id="jMsg" style="color:var(--dnd);font-size:13px"></div></div>
@@ -689,19 +745,10 @@ function addServerModal() {
     o.querySelector('[data-j]').onclick = () => { close(); joinModal(); };
   });
 }
-function inviteModal(s) {
-  const code = 'dk-' + s.id;
-  modal(`<div class="mh"><h2>Invite friends to ${esc(s.name)}</h2><p>Send them this invite code. In Diskord they click <b>+</b> → <b>Join with an invite code</b>.</p></div>
-    <div class="mb"><div class="addbox"><input readonly value="${esc(code)}" id="invCode"><button class="btn primary sm2" id="invCopy">Copy</button></div></div>
-    <div class="mf"><button class="btn primary" data-x>Done</button></div>`, (o, close) => {
-    o.querySelector('[data-x]').onclick = close;
-    o.querySelector('#invCopy').onclick = async () => { try { await navigator.clipboard.writeText(code); o.querySelector('#invCopy').textContent = 'Copied ✓'; } catch (_) { o.querySelector('#invCode').select(); } };
-  });
-}
 function serverChannels(sid) { return S.channels.filter(c => c.sid === sid).sort((a, b) => (a.pos || 0) - (b.pos || 0)); }
 function pickChannel() {
   if (isHome()) { if (S.cid && !String(S.cid).startsWith('dm_')) openChannel(null); return; }
-  const chs = serverChannels(S.sid);
+  const sv0 = curServer(); const chs = serverChannels(S.sid).filter(c => c.type !== 'voice' && c.type !== 'category' && (!sv0 || canSee(c, sv0)));
   const remembered = ls.get('cid.' + S.sid, null);
   let next = chs.find(c => c.id === S.cid) || chs.find(c => c.id === remembered) || chs[0];
   if ((next && next.id) !== S.cid) openChannel(next ? next.id : null);
@@ -859,27 +906,6 @@ const isCo = (s, uid) => !!(s && Array.isArray(s.admins) && s.admins.includes(ui
 const canManage = s => !!s && (S.isSuper || s.owner === S.myId || isCo(s, S.myId));
 const isOwnerOf = s => !!s && (S.isSuper || s.owner === S.myId);
 
-function renderChannels() {
-  if (isHome()) return renderHomeSidebar();
-  const s = curServer();
-  $('srvName').textContent = s ? s.name : 'Diskord';
-  const box = $('channels');
-  if (!s) { box.innerHTML = `<div style="padding:12px;color:var(--muted);font-size:13px">${S.servers.length ? '' : 'No servers yet.'}</div>`; return; }
-  const chs = serverChannels(s.id), text = chs.filter(c => c.type !== 'voice'), voice = chs.filter(c => c.type === 'voice');
-  box.innerHTML = `<div class="cat"><span>Text channels</span>${canManage(s) ? '<button data-add="text" title="Create channel">+</button>' : ''}</div>` +
-    text.map(c => `<button class="ch ${c.id === S.cid ? 'active' : ''} ${isUnread(c) ? 'unread' : ''}" data-cid="${esc(c.id)}"><span class="hash">#</span><span class="nm">${esc(c.name)}</span></button>`).join('') +
-    `<div class="cat" style="margin-top:14px"><span>Voice channels</span>${canManage(s) ? '<button data-add="voice" title="Create voice channel">+</button>' : ''}</div>` +
-    voice.map(c => {
-      const room = roomId('v-' + c.id), who = callersIn(room);
-      return `<a class="ch voice ${S.myCall && S.myCall.room === room ? 'active' : ''}" data-vcid="${esc(c.id)}" href="${esc(callLink(room, s.name + ' · ' + c.name))}" target="_blank" rel="opener"><span class="hash">🔊</span><span class="nm">${esc(c.name)}</span></a>` +
-        (who.length ? `<div class="vusers">${who.map(u => `<div>${avatarHtml(u, 22)}<span style="flex:1">${esc(nameOf(u))}</span>${audioIcons(u)}</div>`).join('')}</div>` : '');
-    }).join('') + (voice.length ? '' : `<div style="padding:4px 10px;color:var(--dim);font-size:12.5px">${canManage(s) ? 'Add one with + to talk with voice.' : 'No voice channels yet.'}</div>`);
-  box.querySelectorAll('[data-cid]').forEach(b => b.onclick = () => { openChannel(b.dataset.cid); $('side').classList.remove('mobile-open'); });
-  box.querySelectorAll('[data-vcid]').forEach(b => b.onclick = () => { const c = S.channels.find(x => x.id === b.dataset.vcid); if (c) joinCall(roomId('v-' + c.id), '🔊 ' + c.name + ' / ' + s.name); });
-  box.querySelectorAll('[data-cid],[data-vcid]').forEach(b => b.oncontextmenu = e => { e.preventDefault(); if (canManage(s)) channelMenu(e, b.dataset.cid || b.dataset.vcid); });
-  box.querySelectorAll('[data-add]').forEach(b => b.onclick = () => channelModal(null, b.dataset.add));
-}
-$('sideHead').onclick = e => { const s = curServer(); if (s) serverMenu(e, s); };
 
 function renderVoiceBar() {
   const v = $('voiceBar');
@@ -936,7 +962,7 @@ function updateRpc() {
 function renderHeader() {
   updateRpc();
   const c = curChannel();
-  $('chName').textContent = c ? c.name : isHome() ? 'Friends' : (curServer() ? 'no channel' : 'Diskord');
+  $('chName').textContent = c ? c.name : isHome() ? (S.homeTab === 'nitro' ? 'Nitro' : 'Friends') : (curServer() ? 'no channel' : 'Diskord');
   $('chTitle').querySelector('.hash').textContent = c && c.dm ? '@' : '#';
   $('chTitle').querySelector('.hash').classList.toggle('hidden', !c);
   $('btnPins').classList.toggle('hidden', !c);
@@ -955,7 +981,7 @@ const nearBottom = () => { const f = $('feed'); return f.scrollHeight - f.scroll
 function renderFeed(scrollDown) {
   const f = $('feed');
   const s = curServer(), c = curChannel();
-  if (isHome() && !c) { renderFriendsPage(); renderComposer(); return; }
+  if (isHome() && !c) { if (S.homeTab === 'nitro') renderNitroPage(); else renderFriendsPage(); renderComposer(); return; }
   if (!s && !isHome()) { f.innerHTML = emptyState(); bindEmpty(); renderComposer(); return; }
   if (!c) { f.innerHTML = `<div class="empty-main"><div><div style="font-size:48px">#</div><h2>No channels yet</h2><p>${canManage(s) ? 'Create one with the + next to TEXT CHANNELS.' : 'Ask the server owner to create one.'}</p></div></div>`; renderComposer(); return; }
   const prevTop = f.scrollTop, prevH = f.scrollHeight;
@@ -988,9 +1014,10 @@ function msgHtml(m, cont) {
   const isOwnerTag = s && s.owner === m.uid, isCoTag = !isOwnerTag && isCo(s, m.uid);
   const reacts = Object.entries(m.react || {}).filter(([, us]) => Array.isArray(us) && us.length);
   const replyRef = m.reply ? `<div class="reply-ref" data-jump="${esc(m.reply.id)}">${avatarHtml(m.reply.uid, 16)}<b>${esc(nameOf(m.reply.uid))}</b><span>${esc(plain(m.reply.text || '🖼️ image').slice(0, 120))}</span></div>` : '';
-  const big = !m.poll && !m.img && !m.gif && (onlyEmoji(m.text) || /^(\s*:[a-z0-9_]+:\s*){1,3}$/.test(m.text || '') && Object.keys(serverEmojis()).length && (m.text.match(/:([a-z0-9_]+):/g) || []).every(x => serverEmojis()[x.slice(1, -1)]));
+  const big = !m.poll && !m.img && !m.gif && !m.invite && (onlyEmoji(m.text) || /^(\s*:[a-z0-9_]+:\s*){1,3}$/.test(m.text || '') && Object.keys(serverEmojis()).length && (m.text.match(/:([a-z0-9_]+):/g) || []).every(x => serverEmojis()[x.slice(1, -1)]));
   const body = `${m.text ? `<div class="txt ${big ? 'big-emoji' : ''}">${md(m.text)}${m.edited ? '<span class="edited">(edited)</span>' : ''}</div>` : ''}` +
     (m.call ? callCardHtml(m) : '') +
+    (m.invite ? inviteCardHtml(m) : '') +
     (m.gif ? gifMsgHtml(m.gif) : '') +
     (m.img ? `<img class="img" src="${esc(blob(m.img))}" alt="" data-zoom="1">` : '') +
     (m.poll ? pollHtml(m) : '') +
@@ -1086,6 +1113,7 @@ function bindFeed() {
     el.querySelectorAll('[data-react]').forEach(b => b.onclick = () => toggleReact(m, b.dataset.react));
     el.querySelectorAll('[data-vote]').forEach(b => b.onclick = () => vote(m, +b.dataset.vote));
     el.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => jumpTo(b.dataset.jump));
+    el.querySelectorAll('[data-joinsv]').forEach(b => b.onclick = () => joinServerById(b.dataset.joinsv));
     el.querySelectorAll('[data-joincall]').forEach(a => a.addEventListener('click', () => joinCall(a.dataset.joincall, a.dataset.label)));
     el.querySelectorAll('.spoiler').forEach(sp => sp.onclick = () => sp.classList.toggle('open'));
     el.querySelectorAll('[data-zoom]').forEach(im => im.onclick = () => lightbox(im.src));
@@ -1492,20 +1520,6 @@ async function setStatus(st) {
   try { await S.db.doc('profiles/' + S.myId).update({ status: st }); } catch (_) {}
 }
 
-function serverMenu(e, s) {
-  const items = [{ label: 'Invite people', icon: '🔗', run: () => inviteModal(s) }];
-  if (canManage(s)) items.push({ label: 'Server settings', icon: '⚙️', run: () => serverModal(s) }, { label: 'Custom emoji', icon: '😀', run: () => serverModal(s, 'emoji') });
-  if (isOwnerOf(s)) items.push({ label: 'Co-owners', icon: '🛡️', run: () => serverModal(s, 'team') });
-  if (canManage(s)) items.push({ label: 'Create text channel', icon: '#', run: () => channelModal(null, 'text') }, { label: 'Create voice channel', icon: '🔊', run: () => channelModal(null, 'voice') });
-  items.push({ label: 'Mark as read', icon: '✓', run: () => { for (const c of serverChannels(s.id)) if (c.last) ls.set('read.' + c.id, c.last); renderAll(); } });
-  if (s.owner !== S.myId) items.push('-', { label: 'Leave server', danger: true, run: () => confirmModal('Leave ' + s.name, 'You can join again later with an invite code.', 'Leave server', async () => { await setJoined((S.myJoined || []).filter(x => x !== s.id)); S.sid = '@me'; S.cid = null; renderAll(); }) });
-  if (isOwnerOf(s)) items.push('-', { label: 'Delete server', danger: true, run: () => confirmModal('Delete ' + s.name, 'This deletes the server and its channels for everyone. Messages can\'t be recovered.', 'Delete server', () => deleteServer(s)) });
-  menu(e, items);
-}
-function channelMenu(e, cid) {
-  const c = S.channels.find(x => x.id === cid); if (!c) return;
-  menu(e, [{ label: 'Edit channel', icon: '✏️', run: () => channelModal(c) }, '-', { label: 'Delete channel', danger: true, run: () => confirmModal('Delete #' + c.name, 'This deletes the channel and its messages for everyone.', 'Delete channel', () => deleteChannel(c)) }]);
-}
 
 const slug = n => n.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, '').slice(0, 32);
 function serverForm(s) {
@@ -1546,87 +1560,15 @@ function createServerModal() {
           const ref = await S.db.collection('servers').add(doc);
           await setJoined([...(S.myJoined || []), ref.id]);
           let pos = 0;
+          const tc = await S.db.collection('channels').add({ sid: ref.id, name: 'TEXT CHANNELS', type: 'category', pos: pos++, at: Date.now() });
+          const vc = await S.db.collection('channels').add({ sid: ref.id, name: 'VOICE CHANNELS', type: 'category', pos: pos++, at: Date.now() });
           for (const [n, t, type] of [['general', 'Talk about anything', 'text'], ['gaming', 'What are we playing?', 'text'], ['clips', 'Share your best moments', 'text'], ['memes', '', 'text'], ['Lounge', '', 'voice'], ['Gaming', '', 'voice']]) {
-            await S.db.collection('channels').add({ sid: ref.id, name: n, topic: t, type, pos: pos++, at: Date.now() });
+            await S.db.collection('channels').add({ sid: ref.id, name: n, topic: t, type, cat: type === 'voice' ? vc.id : tc.id, pos: pos++, at: Date.now() });
           }
           S.sid = ref.id; S.cid = null; ls.set('sid', ref.id); close(); pickChannel(); renderAll(); toast(`${name} is ready! 🎉`);
         } catch (e) { btn.disabled = false; writeError(e); }
       };
     });
-}
-function serverModal(s, tab) {
-  const st = { emoji: s.emoji || SERVER_EMOJI[0], color: s.color || COLORS[0], icon: s.icon || null };
-  const owner = isOwnerOf(s);
-  modal(`<div class="mh"><h2>${esc(s.name)} settings</h2></div>
-    <div class="settings-tabs"><button data-t="general">Overview</button><button data-t="emoji">Emoji</button>${owner ? '<button data-t="team">Co-owners</button>' : ''}</div>
-    <div class="mb" id="srvBody"></div>
-    <div class="mf"><button class="btn ghost" data-x>Close</button><button class="btn primary" data-ok>Save</button></div>`,
-    (o, close) => {
-      o.querySelector('[data-x]').onclick = close;
-      const body = o.querySelector('#srvBody'), ok = o.querySelector('[data-ok]');
-      const show = t => {
-        o.querySelectorAll('.settings-tabs button').forEach(b => b.classList.toggle('active', b.dataset.t === t));
-        ok.classList.toggle('hidden', t !== 'general');
-        if (t === 'general') { body.innerHTML = serverForm(s); bindServerForm(o, st); }
-        else if (t === 'emoji') {
-          const em = s.emojis || {};
-          body.innerHTML = `<p style="color:var(--muted);font-size:13.5px;margin-bottom:12px">Upload your own emoji. Everyone in ${esc(s.name)} can use them with <b>:name:</b> or from the ⭐ tab in the emoji picker. Up to 50.</p>
-            <div style="display:flex;gap:8px"><input id="emName" maxlength="24" placeholder="name (e.g. pog)" style="flex:1;padding:9px 12px;border-radius:8px;border:0;background:var(--bg0);outline:none"><button class="btn primary" id="emAdd">Upload</button></div>
-            <div class="cem-list">${Object.entries(em).map(([n, id]) => `<div><img src="${blob(id)}" alt="">:${esc(n)}:<button data-rm="${esc(n)}" title="Delete">✕</button></div>`).join('') || '<span style="color:var(--dim);font-size:13px">No custom emoji yet.</span>'}</div>`;
-          body.querySelector('#emAdd').onclick = () => {
-            const n = body.querySelector('#emName').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 24);
-            if (n.length < 2) return toast('Give the emoji a name (2+ letters).', true);
-            if (Object.keys(em).length >= 50) return toast('50 emoji max per server.', true);
-            pickFile(async f => { const id = await uploadImage(f, 2); if (!id) return; try { await S.db.doc('servers/' + s.id).update({ emojis: { ...em, [n]: id } }); s.emojis = { ...em, [n]: id }; toast(`:${n}: added`); show('emoji'); } catch (e) { writeError(e); } });
-          };
-          body.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { const next = { ...em }; delete next[b.dataset.rm]; try { await S.db.doc('servers/' + s.id).update({ emojis: next }); s.emojis = next; show('emoji'); } catch (e) { writeError(e); } });
-        } else {
-          const ids = memberIds().filter(u => u !== s.owner);
-          body.innerHTML = `<p style="color:var(--muted);font-size:13.5px;margin-bottom:12px">Co-owners can edit the server, create and delete channels, pin and delete any message and add emoji. Only people who have opened Diskord appear here.</p>
-            ${ids.map(u => `<div class="mem" style="cursor:default">${avatarHtml(u, 32)}<div class="n" style="flex:1"><b>${esc(nameOf(u))}</b><small>${isCo(s, u) ? '🛡️ Co-owner' : 'Member'}</small></div><button class="btn sm" data-co="${esc(u)}">${isCo(s, u) ? 'Remove' : 'Make co-owner'}</button></div>`).join('') || '<span style="color:var(--dim);font-size:13px">Nobody else has joined yet. Share Diskord with your friends first.</span>'}`;
-          body.querySelectorAll('[data-co]').forEach(b => b.onclick = async () => { b.disabled = true; await toggleCo(s, b.dataset.co); setTimeout(() => { s = S.servers.find(x => x.id === s.id) || s; show('team'); }, 400); });
-        }
-      };
-      ok.onclick = async () => {
-        const name = o.querySelector('#sName').value.trim().slice(0, 40); if (!name) return;
-        try { await S.db.doc('servers/' + s.id).update({ name, emoji: st.emoji, color: st.color, icon: st.icon || null }); close(); toast('Saved'); } catch (e) { writeError(e); }
-      };
-      o.querySelectorAll('.settings-tabs button').forEach(b => b.onclick = () => show(b.dataset.t));
-      show(tab || 'general');
-    });
-}
-function channelModal(c, type) {
-  type = c ? (c.type || 'text') : (type || 'text');
-  modal(`<div class="mh"><h2>${c ? 'Edit channel' : 'Create channel'}</h2><p>${c ? '' : 'in ' + esc(curServer().name)}</p></div><div class="mb">
-    ${c ? '' : `<div class="field"><label>Channel type</label><div class="chips"><button class="chip" data-type="text"># Text</button><button class="chip" data-type="voice">🔊 Voice</button></div></div>`}
-    <div class="field"><label>Channel name</label><input id="cName" maxlength="32" value="${esc(c ? c.name : '')}" placeholder="new-channel"></div>
-    <div class="field" id="topicField"><label>Topic</label><input id="cTopic" maxlength="120" value="${esc(c ? c.topic || '' : '')}" placeholder="What is this channel about?"></div></div>
-    <div class="mf"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" data-ok>${c ? 'Save' : 'Create channel'}</button></div>`,
-    (o, close) => {
-      const inp = o.querySelector('#cName');
-      const setType = t => { type = t; o.querySelectorAll('[data-type]').forEach(b => b.classList.toggle('sel', b.dataset.type === t)); o.querySelector('#topicField').classList.toggle('hidden', t === 'voice'); };
-      o.querySelectorAll('[data-type]').forEach(b => b.onclick = () => setType(b.dataset.type)); setType(type);
-      inp.oninput = () => { if (type === 'voice') return; const p = inp.selectionStart; inp.value = inp.value.toLowerCase().replace(/\s/g, '-'); inp.selectionStart = inp.selectionEnd = p; };
-      o.querySelector('[data-x]').onclick = close;
-      o.querySelector('[data-ok]').onclick = async () => {
-        const name = type === 'voice' ? inp.value.trim().slice(0, 32) : slug(inp.value); if (!name) return toast('Give the channel a name', true);
-        const topic = type === 'voice' ? '' : o.querySelector('#cTopic').value.trim().slice(0, 120);
-        try {
-          if (c) await S.db.doc('channels/' + c.id).update({ name, topic });
-          else { const pos = serverChannels(S.sid).reduce((m, x) => Math.max(m, x.pos || 0), -1) + 1; const ref = await S.db.collection('channels').add({ sid: S.sid, name, topic, type, pos, at: Date.now() }); if (type === 'text') openChannel(ref.id); }
-          close();
-        } catch (e) { writeError(e); }
-      };
-    });
-}
-async function deleteChannel(c) {
-  try {
-    const snap = await S.db.collection(`ch/${c.id}/m`).limit(1000).get();
-    for (const d of snap.docs) await S.db.doc(`ch/${c.id}/m/${d.id}`).delete();
-    await S.db.doc('channels/' + c.id).delete();
-    if (S.cid === c.id) { S.cid = null; pickChannel(); }
-    toast('#' + c.name + ' deleted');
-  } catch (e) { writeError(e); }
 }
 async function deleteServer(s) {
   toast('Deleting ' + s.name + '…');
@@ -1790,13 +1732,14 @@ function renderHomeSidebar() {
   const box = $('channels');
   const reqs = requestDms().length, pend = pendingIn().length;
   box.innerHTML = `<button class="find" id="findConv">Find or start a conversation</button>
-    <button class="ch home-link ${!S.cid ? 'active' : ''}" data-home="friends"><span class="hash">${ICON.friends}</span><span class="nm">Friends</span>${pend ? `<span class="mbadge">${pend}</span>` : ''}</button>
+    <button class="ch home-link ${!S.cid && !['requests', 'nitro'].includes(S.homeTab) ? 'active' : ''}" data-home="friends"><span class="hash">${ICON.friends}</span><span class="nm">Friends</span>${pend ? `<span class="mbadge">${pend}</span>` : ''}</button>
     <button class="ch home-link ${S.homeTab === 'requests' && !S.cid ? 'active' : ''}" data-home="requests"><span class="hash">${ICON.mail}</span><span class="nm">Message Requests</span>${reqs ? `<span class="mbadge">${reqs}</span>` : ''}</button>
+    <button class="ch home-link ${S.homeTab === 'nitro' && !S.cid ? 'active' : ''}" data-home="nitro"><span class="hash">💎</span><span class="nm">Nitro</span><span class="soon-tag">Soon</span></button>
     <div class="cat" style="margin-top:14px"><span>Direct Messages</span><button id="newDm" title="Create DM">+</button></div>
     ${visibleDms().map(d => { const u = d.members.find(x => x !== S.myId) || S.myId; const unread = isDmUnread(d);
       return `<div class="dm-row ${S.cid === 'dm_' + d.id ? 'active' : ''} ${unread ? 'unread' : ''}" data-dm="${esc(u)}">${avatarHtml(u, 32, true)}<div class="n"><b>${esc(nameOf(u))}</b>${(S.profiles[u] || {}).custom ? `<small>${esc(S.profiles[u].custom)}</small>` : ''}</div>${unread ? '<span class="dot"></span>' : ''}<button class="x" data-hide="${esc(d.id)}" title="Close DM">✕</button></div>`; }).join('') ||
       '<div style="padding:10px 10px;color:var(--dim);font-size:12.5px;line-height:1.5">No DMs yet. Add friends, then click a friend to message them.</div>'}`;
-  box.querySelectorAll('[data-home]').forEach(b => b.onclick = () => { S.homeTab = b.dataset.home === 'requests' ? 'requests' : (S.homeTab === 'requests' ? 'online' : S.homeTab || 'online'); openChannel(null); });
+  box.querySelectorAll('[data-home]').forEach(b => b.onclick = () => { const h = b.dataset.home; S.homeTab = h === 'requests' || h === 'nitro' ? h : (['requests', 'nitro'].includes(S.homeTab) ? 'online' : S.homeTab || 'online'); openChannel(null); });
   box.querySelectorAll('[data-dm]').forEach(b => b.onclick = e => { if (e.target.closest('[data-hide]')) return; openDm(b.dataset.dm); $('side').classList.remove('mobile-open'); });
   box.querySelectorAll('[data-hide]').forEach(b => b.onclick = () => { const d = S.dms.find(x => x.id === b.dataset.hide); if (d) hideDm(d); });
   $('findConv').onclick = quickSwitcher; $('newDm').onclick = quickSwitcher;
@@ -2026,6 +1969,277 @@ function profileEditor() {
     preview();
   });
   return o;
+}
+
+// ====================================================================== channels, categories, server settings, invites, Nitro / Boost
+const canSee = (c, s) => !c.private || canManage(s) || (Array.isArray(c.allow) && c.allow.includes(S.myId));
+const isBanned = (s, uid) => !!(s && Array.isArray(s.bans) && s.bans.includes(uid));
+const BANNERS = { sage: 'linear-gradient(180deg,#5e8b78,#3a5a4c)', pink: 'linear-gradient(180deg,#ff4fb0,#e0218a)', red: 'linear-gradient(180deg,#ff4040,#c81e1e)', orange: 'linear-gradient(180deg,#ff9a3c,#e8641a)', yellow: 'linear-gradient(180deg,#ffe066,#e9b923)',
+  purple: 'linear-gradient(180deg,#a66bd6,#7a3fb5)', blue: 'linear-gradient(180deg,#38bdf8,#1d72e8)', aqua: 'linear-gradient(180deg,#7ff2e0,#2cc9b5)', green: 'linear-gradient(180deg,#6aa832,#3f7518)', dark: 'linear-gradient(180deg,#5a5a5a,#2a2a2a)' };
+const bannerOf = s => BANNERS[s && s.banner] || BANNERS.blue;
+const firstText = s => serverChannels(s.id).find(c => c.type !== 'voice' && c.type !== 'category' && canSee(c, s));
+
+function renderChannels() {
+  if (isHome()) return renderHomeSidebar();
+  const s = curServer();
+  $('srvName').textContent = s ? s.name : 'Diskord';
+  const box = $('channels');
+  if (!s) { box.innerHTML = `<div style="padding:12px;color:var(--muted);font-size:13px">${S.servers.length ? '' : 'No servers yet.'}</div>`; return; }
+  const all = serverChannels(s.id).filter(c => canSee(c, s));
+  const cats = all.filter(c => c.type === 'category');
+  const loose = all.filter(c => c.type !== 'category' && (!c.cat || !cats.some(k => k.id === c.cat)));
+  const order = list => [...list.filter(c => c.type !== 'voice'), ...list.filter(c => c.type === 'voice')];
+  const row = c => {
+    if (c.type === 'voice') {
+      const room = roomId('v-' + c.id), who = callersIn(room);
+      return `<a class="ch voice ${S.myCall && S.myCall.room === room ? 'active' : ''}" data-vcid="${esc(c.id)}" href="${esc(callLink(room, s.name + ' · ' + c.name))}" target="_blank" rel="opener"><span class="hash">🔊</span><span class="nm">${esc(c.name)}</span>${c.private ? '<span class="lock">🔒</span>' : ''}</a>` +
+        (who.length ? `<div class="vusers">${who.map(u => `<div>${avatarHtml(u, 22)}<span style="flex:1">${esc(nameOf(u))}</span>${audioIcons(u)}</div>`).join('')}</div>` : '');
+    }
+    return `<button class="ch ${c.id === S.cid ? 'active' : ''} ${isUnread(c) ? 'unread' : ''}" data-cid="${esc(c.id)}"><span class="hash">${c.private ? '🔒' : '#'}</span><span class="nm">${esc(c.name)}</span>${canManage(s) ? `<span class="ch-gear" data-edit="${esc(c.id)}" title="Edit channel">⚙</span>` : ''}</button>`;
+  };
+  const collapsed = id => ls.get('cat.' + id, false);
+  const unreadIn = k => all.some(c => c.cat === k.id && isUnread(c));
+  box.innerHTML = (s.boostSoon ? '' : '') + order(loose).map(row).join('') +
+    cats.map(k => `<div class="cat cathead" data-cat="${esc(k.id)}"><span class="chev2 ${collapsed(k.id) ? 'shut' : ''}">⌄</span><span style="flex:1">${esc(k.name)}${collapsed(k.id) && unreadIn(k) ? ' •' : ''}</span>${canManage(s) ? `<button data-addin="${esc(k.id)}" title="Create channel">+</button>` : ''}</div>` +
+      (collapsed(k.id) ? order(all.filter(c => c.cat === k.id && c.id === S.cid)).map(row).join('') : order(all.filter(c => c.cat === k.id)).map(row).join(''))).join('') +
+    (all.length ? '' : `<div style="padding:10px;color:var(--dim);font-size:13px">${canManage(s) ? 'No channels yet — click the server name → Create Channel.' : 'No channels you can see yet.'}</div>`);
+  box.querySelectorAll('[data-cid]').forEach(b => b.onclick = e => { if (e.target.closest('[data-edit]')) return; openChannel(b.dataset.cid); $('side').classList.remove('mobile-open'); });
+  box.querySelectorAll('[data-edit]').forEach(b => b.onclick = e => { e.stopPropagation(); const c = S.channels.find(x => x.id === b.dataset.edit); if (c) channelModal(c); });
+  box.querySelectorAll('[data-vcid]').forEach(b => b.onclick = () => { const c = S.channels.find(x => x.id === b.dataset.vcid); if (c) joinCall(roomId('v-' + c.id), '🔊 ' + c.name + ' / ' + s.name); });
+  box.querySelectorAll('[data-cid],[data-vcid]').forEach(b => b.oncontextmenu = e => { e.preventDefault(); if (canManage(s)) channelMenu(e, b.dataset.cid || b.dataset.vcid); });
+  box.querySelectorAll('.cathead').forEach(h => {
+    h.onclick = e => { if (e.target.closest('[data-addin]')) return; ls.set('cat.' + h.dataset.cat, !collapsed(h.dataset.cat)); renderChannels(); };
+    h.oncontextmenu = e => { e.preventDefault(); if (canManage(s)) categoryMenu(e, h.dataset.cat); };
+  });
+  box.querySelectorAll('[data-addin]').forEach(b => b.onclick = e => { e.stopPropagation(); channelModal(null, 'text', b.dataset.addin); });
+}
+$('sideHead').onclick = e => { const s = curServer(); if (s) serverMenu(e, s); };
+
+function serverMenu(e, s) {
+  const items = [{ label: 'Server Boost', icon: '🚀', run: () => boostModal(s) }, '-', { label: 'Invite People', icon: '👤+', run: () => inviteModal(s) }];
+  if (canManage(s)) items.push({ label: 'Server Settings', icon: '⚙️', run: () => serverSettings(s) }, { label: 'Create Channel', icon: '＋', run: () => channelModal(null, 'text') }, { label: 'Create Category', icon: '📁', run: () => categoryModal(null) });
+  items.push('-', { label: 'Mark as Read', icon: '✓', run: () => { for (const c of serverChannels(s.id)) if (c.last) ls.set('read.' + c.id, c.last); renderAll(); } });
+  if (s.owner !== S.myId) items.push('-', { label: 'Leave Server', danger: true, run: () => confirmModal('Leave ' + s.name, 'You can join again later with an invite code.', 'Leave server', async () => { await setJoined((S.myJoined || []).filter(x => x !== s.id)); S.sid = '@me'; S.cid = null; renderAll(); }) });
+  menu(e, items);
+}
+function channelMenu(e, cid) {
+  const c = S.channels.find(x => x.id === cid); if (!c) return;
+  menu(e, [{ label: 'Edit Channel', icon: '✏️', run: () => channelModal(c) }, '-', { label: 'Delete Channel', danger: true, run: () => confirmModal('Delete ' + (c.type === 'voice' ? '🔊' : '#') + c.name, 'This deletes the channel and its messages for everyone.', 'Delete Channel', () => deleteChannel(c)) }]);
+}
+function categoryMenu(e, id) {
+  const k = S.channels.find(x => x.id === id); if (!k) return;
+  menu(e, [{ label: 'Create Channel', icon: '＋', run: () => channelModal(null, 'text', id) }, { label: 'Edit Category', icon: '✏️', run: () => categoryModal(k) }, '-',
+    { label: 'Delete Category', danger: true, run: () => confirmModal('Delete category ' + k.name, 'The channels inside are kept and moved out of the category.', 'Delete Category', () => deleteChannel(k)) }]);
+}
+function categoryModal(k) {
+  const s = curServer(); if (!s) return;
+  modal(`<div class="mh" style="text-align:left"><h2>${k ? 'Edit Category' : 'Create Category'}</h2></div><div class="mb">
+    <div class="field"><label>Category name</label><input id="kName" maxlength="32" value="${esc(k ? k.name : '')}" placeholder="New Category"></div></div>
+    <div class="mf"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" data-ok>${k ? 'Save' : 'Create Category'}</button></div>`, (o, close) => {
+    o.querySelector('[data-x]').onclick = close;
+    o.querySelector('[data-ok]').onclick = async () => {
+      const name = o.querySelector('#kName').value.trim().slice(0, 32).toUpperCase(); if (!name) return toast('Give the category a name', true);
+      try {
+        if (k) await S.db.doc('channels/' + k.id).update({ name });
+        else { const pos = serverChannels(s.id).reduce((m, x) => Math.max(m, x.pos || 0), -1) + 1; await S.db.collection('channels').add({ sid: s.id, name, type: 'category', pos, at: Date.now() }); }
+        close();
+      } catch (e) { writeError(e); }
+    };
+  });
+}
+function channelModal(c, type, catId) {
+  const s = curServer(); if (!s) return;
+  type = c ? (c.type || 'text') : (type || 'text');
+  let priv = !!(c && c.private), allow = new Set((c && c.allow) || []);
+  const cats = serverChannels(s.id).filter(x => x.type === 'category');
+  const members = serverMembers(s).filter(u => u !== S.myId && u !== s.owner && !isCo(s, u));
+  const T = [['text', '#', 'Text', 'Send messages, images, GIFs, emoji, opinions and puns'], ['voice', '🔊', 'Voice', 'Hang out together with voice, video and screen share'], ['forum', '💬', 'Forum', 'Create a space for organised discussions']];
+  modal(`<div class="cm"><div class="cm-h"><h2>${c ? 'Edit Channel' : 'Create Channel'}</h2><p>in ${esc(s.name)}</p></div>
+    ${c ? '' : `<div class="cm-l">Channel Type</div>${T.map(([k, ic, n, d]) => `<label class="cm-type ${k === 'forum' ? 'soon' : ''}" data-type="${k}"><span class="radio"></span><span class="ic">${ic}</span><span><b>${n}${k === 'forum' ? ' <i class="soon-tag">Coming soon</i>' : ''}</b><small>${d}</small></span></label>`).join('')}`}
+    <div class="cm-l">Channel Name</div><div class="cm-name"><span id="cIc">#</span><input id="cName" maxlength="32" value="${esc(c ? c.name : '')}" placeholder="new-channel"></div>
+    <div id="topicField" class="field" style="margin-top:12px"><label>Topic</label><input id="cTopic" maxlength="120" value="${esc(c ? c.topic || '' : '')}" placeholder="What is this channel about?"></div>
+    ${cats.length ? `<div class="field"><label>Category</label><select id="cCat"><option value="">No category</option>${cats.map(k => `<option value="${esc(k.id)}">${esc(k.name)}</option>`).join('')}</select></div>` : ''}
+    <div class="cm-priv"><div><b>🔒 Private Channel</b><small>Only selected members, co-owners and the owner can see this channel.</small></div><button class="toggle" id="cPriv"></button></div>
+    <div id="cAllow" class="cm-allow hidden">${members.length ? members.map(u => `<label class="cm-mem"><input type="checkbox" value="${esc(u)}">${avatarHtml(u, 24)}<span>${esc(nameOf(u))}</span></label>`).join('') : '<div style="color:var(--muted);font-size:13px">No other members yet.</div>'}</div>
+    <div class="cm-f"><button class="btn alt" data-x>Cancel</button><button class="btn primary" data-ok>${c ? 'Save Changes' : 'Create Channel'}</button></div></div>`, (o, close) => {
+    const inp = o.querySelector('#cName'), ok = o.querySelector('[data-ok]');
+    const setType = t => { if (t === 'forum') return toast('Forum channels are coming soon 💬'); type = t; o.querySelectorAll('[data-type]').forEach(b => b.classList.toggle('sel', b.dataset.type === t)); o.querySelector('#cIc').textContent = t === 'voice' ? '🔊' : '#'; o.querySelector('#topicField').classList.toggle('hidden', t === 'voice'); };
+    o.querySelectorAll('[data-type]').forEach(b => b.onclick = () => setType(b.dataset.type)); setType(type);
+    const cs = o.querySelector('#cCat'); if (cs) cs.value = c ? (c.cat || '') : (catId || '');
+    const drawPriv = () => { o.querySelector('#cPriv').classList.toggle('on', priv); o.querySelector('#cAllow').classList.toggle('hidden', !priv); };
+    o.querySelector('#cPriv').onclick = () => { priv = !priv; drawPriv(); }; drawPriv();
+    o.querySelectorAll('#cAllow input').forEach(x => { x.checked = allow.has(x.value); x.onchange = () => { x.checked ? allow.add(x.value) : allow.delete(x.value); }; });
+    const valid = () => { ok.disabled = !inp.value.trim(); };
+    inp.oninput = () => { if (type !== 'voice') { const p = inp.selectionStart; inp.value = inp.value.toLowerCase().replace(/\s/g, '-'); inp.selectionStart = inp.selectionEnd = p; } valid(); }; valid();
+    o.querySelector('[data-x]').onclick = close;
+    ok.onclick = async () => {
+      const name = type === 'voice' ? inp.value.trim().slice(0, 32) : slug(inp.value); if (!name) return toast('Give the channel a name', true);
+      const data = { name, topic: type === 'voice' ? '' : o.querySelector('#cTopic').value.trim().slice(0, 120), cat: cs ? cs.value || null : (c ? c.cat || null : catId || null), private: priv, allow: priv ? [...allow] : [] };
+      ok.disabled = true;
+      try {
+        if (c) await S.db.doc('channels/' + c.id).update(data);
+        else { const pos = serverChannels(s.id).reduce((m, x) => Math.max(m, x.pos || 0), -1) + 1; const ref = await S.db.collection('channels').add({ sid: s.id, type, pos, at: Date.now(), ...data }); if (type === 'text') openChannel(ref.id); }
+        close();
+      } catch (e) { ok.disabled = false; writeError(e); }
+    };
+    setTimeout(() => inp.focus(), 30);
+  });
+}
+async function deleteChannel(c) {
+  try {
+    if (c.type === 'category') { for (const x of serverChannels(c.sid).filter(x => x.cat === c.id)) await S.db.doc('channels/' + x.id).update({ cat: null }); }
+    else { const snap = await S.db.collection(`ch/${c.id}/m`).limit(1000).get(); for (const d of snap.docs) await S.db.doc(`ch/${c.id}/m/${d.id}`).delete().catch(() => {}); }
+    await S.db.doc('channels/' + c.id).delete();
+    if (S.cid === c.id) { S.cid = null; pickChannel(); }
+    toast((c.type === 'category' ? c.name : '#' + c.name) + ' deleted');
+  } catch (e) { writeError(e); }
+}
+
+// ---------------------------------------------------------------- invites
+function inviteModal(s) {
+  const code = 'dk-' + s.id, land = firstText(s);
+  const friends = S.friends.filter(f => f.status === 'accepted').map(f => f.members.find(m => m !== S.myId));
+  const sent = new Set();
+  modal(`<div class="inv"><div class="inv-h"><h2>Invite friends to ${esc(s.name)}</h2><p>${land ? `Recipients will land in <b># ${esc(land.name)}</b>` : 'Share the code below'}</p></div>
+    <div class="inv-s"><input id="invQ" placeholder="🔍  Search for friends"></div>
+    <div class="inv-list" id="invList"></div>
+    <div class="inv-f"><div class="inv-l">Or send a server invite code to a friend</div><div class="addbox"><input readonly value="${esc(code)}" id="invCode"><button class="btn primary sm2" id="invCopy">Copy</button></div>
+    <div class="fnote" style="margin-top:8px">Friends open Diskord → <b>+</b> → <b>Join with an invite code</b>. This code never expires.</div></div></div>`, (o, close) => {
+    const draw = () => {
+      const q = o.querySelector('#invQ').value.trim().toLowerCase();
+      const list = friends.filter(u => !q || nameOf(u).toLowerCase().includes(q) || unameOf(u).includes(q));
+      const inServer = new Set(serverMembers(s));
+      o.querySelector('#invList').innerHTML = list.length ? list.map(u => `<div class="inv-row">${avatarHtml(u, 36)}<div class="n"><b>${esc(nameOf(u))}</b><small>${esc(unameOf(u))}</small></div>
+        <button class="btn ${sent.has(u) || inServer.has(u) ? 'alt' : 'sm'} inv-b" data-u="${esc(u)}" ${sent.has(u) || inServer.has(u) ? 'disabled' : ''}>${inServer.has(u) ? 'Joined' : sent.has(u) ? 'Sent' : 'Invite'}</button></div>`).join('')
+        : `<div class="fempty" style="padding:30px">${friends.length ? 'No friends match.' : 'Add friends first (Friends → Add Friend), or share the code below.'}</div>`;
+      o.querySelectorAll('[data-u]').forEach(b => b.onclick = async () => {
+        const u = b.dataset.u; b.disabled = true; b.textContent = 'Sending…';
+        try {
+          const cid = dmCid(u), at = Date.now();
+          await S.db.collection(`ch/${cid}/m`).add({ uid: S.myId, text: '', at, invite: { sid: s.id, name: s.name.slice(0, 40) } });
+          S.db.doc('dms/' + cid.slice(3)).set({ members: [S.myId, u].sort(), last: at, lastUid: S.myId, ok: { [S.myId]: true }, hide: { [S.myId]: false, [u]: false } }, { merge: true }).catch(() => {});
+          sent.add(u); draw();
+        } catch (e) { writeError(e); b.disabled = false; b.textContent = 'Invite'; }
+      });
+    };
+    o.querySelector('#invQ').oninput = draw; draw();
+    o.querySelector('#invCopy').onclick = async () => { try { await navigator.clipboard.writeText(code); o.querySelector('#invCopy').textContent = 'Copied'; } catch (_) { o.querySelector('#invCode').select(); } };
+  });
+}
+function inviteCardHtml(m) {
+  const sv = (S.allServers || []).find(x => x.id === m.invite.sid);
+  const joined = sv && (sv.owner === S.myId || (S.myJoined || []).includes(sv.id));
+  const n = sv ? serverMembers(sv).length : 0, on = sv ? serverMembers(sv).filter(u => statusOf(u)).length : 0;
+  const ic = sv && sv.icon ? `<img src="${esc(blob(sv.icon))}" alt="">` : `<span>${esc(sv && sv.emoji || '🎮')}</span>`;
+  return `<div class="invcard"><div class="ivh">${m.uid === S.myId ? 'You sent an invite to join a server' : 'You\'ve been invited to join a server'}</div>
+    <div class="ivb"><div class="ivi" style="background:${esc(sv && sv.color || 'var(--accent)')}">${ic}</div><div class="ivt"><b>${esc(sv ? sv.name : m.invite.name || 'Server')}</b>${sv ? `<small><i class="d on"></i>${on} Online <i class="d"></i>${n} Members</small>` : '<small>This invite is invalid or the server was deleted</small>'}</div>
+    ${sv ? `<button class="btn ${joined ? 'alt' : 'go'}" data-joinsv="${esc(sv.id)}">${joined ? 'Joined' : 'Join'}</button>` : ''}</div></div>`;
+}
+async function joinServerById(id) {
+  const sv = (S.allServers || []).find(x => x.id === id);
+  if (!sv) return toast('That server no longer exists', true);
+  if (isBanned(sv, S.myId)) return toast('You are banned from ' + sv.name, true);
+  if (!(S.myJoined || []).includes(id) && sv.owner !== S.myId) { await setJoined([...(S.myJoined || []), id]); toast('Welcome to ' + sv.name + '! 🎉'); }
+  S.sid = id; S.cid = null; ls.set('sid', id); pickChannel(); renderAll();
+}
+
+// ---------------------------------------------------------------- full-screen server settings
+function serverSettings(s, tab) {
+  closeFloating();
+  const ov = document.createElement('div'); ov.className = 'ss';
+  let st = { name: s.name, icon: s.icon || null, emoji: s.emoji || '🎮', color: s.color || COLORS[0], banner: s.banner || 'blue', desc: s.desc || '' };
+  const owner = isOwnerOf(s);
+  const NAV = [['', s.name], ['profile', 'Server Profile'], ['boost', 'Boost Perks'], ['', 'Expression'], ['emoji', 'Emoji'], ['', 'People'], ['members', 'Members'], ...(owner ? [['roles', 'Co-owners']] : []), ['invites', 'Invites'], ['', 'Moderation'], ['bans', 'Bans']];
+  ov.innerHTML = `<div class="ss-nav"><div class="ss-navin">${NAV.map(([k, l]) => k ? `<button data-t="${k}">${esc(l)}</button>` : `<div class="ss-h">${esc(l)}</div>`).join('')}${owner ? '<div class="ss-sep"></div><button data-t="delete" class="danger">Delete Server 🗑</button>' : ''}</div></div>
+    <div class="ss-main"><div class="ss-body" id="ssBody"></div></div><button class="ss-x" title="Close (Esc)">✕<small>ESC</small></button>`;
+  document.body.appendChild(ov);
+  const close = () => { ov.remove(); document.removeEventListener('keydown', esc1); };
+  const esc1 = e => { if (e.key === 'Escape') close(); }; document.addEventListener('keydown', esc1);
+  ov.querySelector('.ss-x').onclick = close;
+  const body = ov.querySelector('#ssBody');
+  const live = () => (S.allServers || []).find(x => x.id === s.id) || s;
+  const show = t => {
+    ov.querySelectorAll('[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+    s = live();
+    if (t === 'profile') {
+      const members = serverMembers(s), online = members.filter(u => statusOf(u)).length;
+      const pv = () => body.querySelector('#ssPv').innerHTML = `<div class="sp-b" style="background:${BANNERS[st.banner] || BANNERS.blue}"></div><div class="sp-i" style="background:${st.icon ? 'var(--bg1)' : st.color}">${st.icon ? `<img src="${esc(blob(st.icon))}" alt="">` : `<span>${esc(st.emoji)}</span>`}</div>
+        <div class="sp-t"><b>${esc(st.name || 'Server')}</b><small><i class="d on"></i>${online} Online <i class="d"></i>${members.length} Member${members.length === 1 ? '' : 's'}</small><small>Est. ${esc(new Date(s.at || Date.now()).toLocaleDateString([], { month: 'short', year: 'numeric' }))}</small>${st.desc ? `<p>${esc(st.desc)}</p>` : ''}</div>`;
+      body.innerHTML = `<div class="ss-grid"><div><h2>Server Profile</h2><p class="ss-sub">Customise how your server appears in invites and on its profile.</p>
+        <div class="ss-f"><label>Name</label><input id="ssName" maxlength="40" value="${esc(st.name)}"></div><div class="ss-line"></div>
+        <div class="ss-f"><label>Icon</label><p class="ss-sub">We recommend an image of at least 512×512.</p><button class="btn primary" id="ssIcon">Change Server Icon</button> <button class="btn sm danger-o" id="ssIconRm">Remove Icon</button>
+          <div class="emoji-choices" style="margin-top:10px" id="ssEmo">${SERVER_EMOJI.map(e => `<button data-e="${e}">${e}</button>`).join('')}</div></div><div class="ss-line"></div>
+        <div class="ss-f"><label>Banner</label><div class="ss-ban">${Object.keys(BANNERS).map(k => `<button data-b="${k}" style="background:${BANNERS[k]}"></button>`).join('')}</div></div><div class="ss-line"></div>
+        <div class="ss-f"><label>Description</label><textarea id="ssDesc" rows="4" maxlength="300" placeholder="What is your server about?">${esc(st.desc)}</textarea></div>
+        <button class="btn primary" id="ssSave">Save Changes</button></div><div class="ss-pv" id="ssPv"></div></div>`;
+      const mark = () => { body.querySelectorAll('[data-b]').forEach(b => b.classList.toggle('sel', b.dataset.b === st.banner)); body.querySelectorAll('[data-e]').forEach(b => b.classList.toggle('sel', !st.icon && b.dataset.e === st.emoji)); body.querySelector('#ssIconRm').classList.toggle('hidden', !st.icon); pv(); };
+      body.querySelector('#ssName').oninput = e => { st.name = e.target.value; pv(); };
+      body.querySelector('#ssDesc').oninput = e => { st.desc = e.target.value; pv(); };
+      body.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { st.banner = b.dataset.b; mark(); });
+      body.querySelectorAll('[data-e]').forEach(b => b.onclick = () => { st.emoji = b.dataset.e; st.icon = null; mark(); });
+      body.querySelector('#ssIcon').onclick = () => pickFile(async f => { const id = await uploadImage(f, 8); if (id) { st.icon = id; mark(); } });
+      body.querySelector('#ssIconRm').onclick = () => { st.icon = null; mark(); };
+      body.querySelector('#ssSave').onclick = async () => {
+        const name = st.name.trim().slice(0, 40); if (!name) return toast('Give the server a name', true);
+        try { await S.db.doc('servers/' + s.id).update({ name, icon: st.icon, emoji: st.emoji, banner: st.banner, desc: st.desc.trim().slice(0, 300) }); toast('Saved ✓'); } catch (e) { writeError(e); }
+      };
+      mark();
+    } else if (t === 'boost') body.innerHTML = boostHtml(s);
+    else if (t === 'emoji') {
+      const em = s.emojis || {};
+      body.innerHTML = `<h2>Emoji</h2><p class="ss-sub">Upload your own emoji. Everyone in ${esc(s.name)} can use them with <b>:name:</b> or from the ⭐ tab in the emoji picker. Up to 50.</p>
+        <div class="addbox" style="max-width:520px"><input id="emName" maxlength="24" placeholder="name (e.g. pog)"><button class="btn primary sm2" id="emAdd">Upload Emoji</button></div>
+        <div class="cem-list" style="margin-top:14px">${Object.entries(em).map(([n, id]) => `<div><img src="${blob(id)}" alt="">:${esc(n)}:<button data-rm="${esc(n)}" title="Delete">✕</button></div>`).join('') || '<span style="color:var(--dim);font-size:13px">No custom emoji yet.</span>'}</div>`;
+      body.querySelector('#emAdd').onclick = () => {
+        const n = body.querySelector('#emName').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 24);
+        if (n.length < 2) return toast('Give the emoji a name (2+ letters).', true);
+        if (Object.keys(em).length >= 50) return toast('50 emoji max per server.', true);
+        pickFile(async f => { const id = await uploadImage(f, 2); if (!id) return; try { await S.db.doc('servers/' + s.id).update({ emojis: { ...em, [n]: id } }); toast(`:${n}: added`); setTimeout(() => show('emoji'), 300); } catch (e) { writeError(e); } });
+      };
+      body.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { const next = { ...em }; delete next[b.dataset.rm]; try { await S.db.doc('servers/' + s.id).update({ emojis: next }); setTimeout(() => show('emoji'), 300); } catch (e) { writeError(e); } });
+    } else if (t === 'members' || t === 'roles') {
+      const ids = serverMembers(s);
+      body.innerHTML = `<h2>${t === 'roles' ? 'Co-owners' : 'Members'}</h2><p class="ss-sub">${t === 'roles' ? 'Co-owners can edit the server, manage channels, emoji and messages, and ban members.' : ids.length + ' member' + (ids.length === 1 ? '' : 's')}</p>
+        ${ids.map(u => { const role = u === s.owner ? '👑 Owner' : isCo(s, u) ? '🛡️ Co-owner' : 'Member'; const can = u !== S.myId && u !== s.owner;
+          return `<div class="ss-row">${avatarHtml(u, 36, true)}<div class="n"><b>${esc(nameOf(u))}</b><small>@${esc(unameOf(u))} · ${role}</small></div>
+          ${can && owner ? `<button class="btn sm" data-co="${esc(u)}">${isCo(s, u) ? 'Remove co-owner' : 'Make co-owner'}</button>` : ''}${can && t === 'members' && canManage(s) && !(isCo(s, u) && !owner) ? `<button class="btn sm danger-o" data-ban="${esc(u)}">Ban</button>` : ''}</div>`; }).join('')}`;
+      body.querySelectorAll('[data-co]').forEach(b => b.onclick = async () => { b.disabled = true; await toggleCo(s, b.dataset.co); setTimeout(() => show(t), 400); });
+      body.querySelectorAll('[data-ban]').forEach(b => b.onclick = () => confirmModal('Ban ' + nameOf(b.dataset.ban), 'They will be removed from ' + s.name + ' and can\'t rejoin until you unban them.', 'Ban', async () => {
+        try { const bans = [...new Set([...(s.bans || []), b.dataset.ban])]; const admins = (s.admins || []).filter(x => x !== b.dataset.ban); await S.db.doc('servers/' + s.id).update(owner ? { bans, admins } : { bans }); toast(nameOf(b.dataset.ban) + ' was banned'); setTimeout(() => show(t), 400); } catch (e) { writeError(e); }
+      }));
+    } else if (t === 'bans') {
+      const bans = s.bans || [];
+      body.innerHTML = `<h2>Bans</h2><p class="ss-sub">Banned people can't see or post in this server.</p>${bans.map(u => `<div class="ss-row">${avatarHtml(u, 36)}<div class="n"><b>${esc(nameOf(u))}</b><small>@${esc(unameOf(u))}</small></div><button class="btn sm" data-unban="${esc(u)}">Revoke Ban</button></div>`).join('') || '<div class="fempty">No bans. 🎉</div>'}`;
+      needNames(bans);
+      body.querySelectorAll('[data-unban]').forEach(b => b.onclick = async () => { try { await S.db.doc('servers/' + s.id).update({ bans: bans.filter(x => x !== b.dataset.unban) }); setTimeout(() => show('bans'), 400); } catch (e) { writeError(e); } });
+    } else if (t === 'invites') {
+      body.innerHTML = `<h2>Invites</h2><p class="ss-sub">Anyone with this code can join ${esc(s.name)}.</p><div class="addbox" style="max-width:520px"><input readonly value="dk-${esc(s.id)}" id="ssCode"><button class="btn primary sm2" id="ssCopy">Copy</button></div>
+        <button class="btn primary" style="margin-top:16px" id="ssInv">👤+ Invite friends</button>`;
+      body.querySelector('#ssCopy').onclick = async () => { try { await navigator.clipboard.writeText('dk-' + s.id); body.querySelector('#ssCopy').textContent = 'Copied'; } catch (_) {} };
+      body.querySelector('#ssInv').onclick = () => { close(); inviteModal(s); };
+    } else if (t === 'delete') {
+      body.innerHTML = `<h2>Delete Server</h2><p class="ss-sub">This deletes <b>${esc(s.name)}</b>, all its channels and messages for everyone. This can't be undone.</p><div class="ss-f"><label>Type the server name to confirm</label><input id="ssDel" placeholder="${esc(s.name)}"></div><button class="btn danger" id="ssDelGo" disabled>Delete Server</button>`;
+      const i = body.querySelector('#ssDel'), g = body.querySelector('#ssDelGo');
+      i.oninput = () => { g.disabled = i.value.trim() !== s.name; };
+      g.onclick = async () => { g.disabled = true; close(); await deleteServer(s); S.sid = '@me'; S.cid = null; renderAll(); };
+    }
+  };
+  ov.querySelectorAll('[data-t]').forEach(b => b.onclick = () => show(b.dataset.t));
+  show(tab || 'profile');
+}
+
+// ---------------------------------------------------------------- Nitro + Boost (coming soon)
+function boostHtml(s) {
+  return `<div class="soonpage boost"><div class="sp-hero">🚀</div><h2>Server Boost</h2><p class="ss-sub">Boost ${esc(s ? s.name : 'your server')} to unlock perks for everyone in it.</p>
+    <div class="perks">${[['🎨', 'Animated server icon & banner'], ['😀', 'More emoji slots (up to 250)'], ['🔊', 'Better voice and stream quality'], ['📁', 'Bigger uploads for everyone'], ['🏷️', 'Custom invite link'], ['💎', 'Boost badge on your profile']].map(([i, t]) => `<div class="perk"><span>${i}</span>${t}</div>`).join('')}</div>
+    <button class="btn primary" disabled>Coming soon</button><p class="fnote" style="margin-top:10px">Boosts cost money to run, so they're not available yet. We'll tell you when they launch!</p></div>`;
+}
+function boostModal(s) { modal(`<div class="mb" style="padding:24px">${boostHtml(s)}</div><div class="mf"><button class="btn primary" data-x>Close</button></div>`, (o, close) => { o.querySelector('[data-x]').onclick = close; }); }
+function renderNitroPage() {
+  const f = $('feed');
+  f.innerHTML = `<div class="nitro"><div class="ni-hero"><div class="ni-logo">💎</div><h1>Diskord <span>Nitro</span></h1><p>Unleash more fun on Diskord — bigger uploads, HD streaming, custom profiles and more.</p><button class="btn primary big" disabled>Coming soon</button></div>
+    <div class="ni-grid">${[['🎬', 'HD video & screen share', 'Stream in 1080p 60fps to your friends.'], ['📤', '500 MB uploads', 'Send big clips, files and HD pictures.'], ['😎', 'Emoji everywhere', 'Use your custom emoji in every server.'], ['🎨', 'Profile themes & effects', 'Animated avatars, banners and profile effects.'], ['🚀', '2 Server Boosts', 'Boost your favourite servers.'], ['💬', 'Longer messages', 'Write up to 4,000 characters.']].map(([i, t, d]) => `<div class="ni-card"><span>${i}</span><b>${t}</b><small>${d}</small></div>`).join('')}</div>
+    <p class="fnote" style="text-align:center;margin-top:20px">Nitro needs paid servers to run, so it's coming later. Everything else in Diskord stays free.</p></div>`;
 }
 
 function renderAll() { renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }

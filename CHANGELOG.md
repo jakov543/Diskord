@@ -1,5 +1,14 @@
 # Diskord changelog
 
+## 6.2.0
+- 📁 **Categories** — group channels into categories, collapse them, and add channels with the **+** next to a category
+- ➕ **New Create Channel window** — pick Text / Voice / Forum (coming soon), name, category and a 🔒 **Private Channel** toggle with chosen members
+- ⚙️ **Full-screen Server Settings** — Server Profile with banner colours, description and a live preview card, plus Emoji, Members, Co-owners, Invites, Bans and Delete Server
+- 👤 **New Invite window** — search your friends and press **Invite** to send them an invite card in DMs; they press **Join** to join
+- 🔨 **Ban members** — banned people can't see or post in the server until you revoke the ban
+- 💎 **Nitro** and 🚀 **Server Boost** pages added — **coming soon**
+- New servers come with TEXT CHANNELS and VOICE CHANNELS categories
+
 ## 6.1.1
 ### 🛠️ Fixes
 - Tooltips on the server list no longer get stuck on screen. Only one shows at a time, and it disappears as soon as you move away or click

@@ -61,6 +61,7 @@ function canWrite(uid, kind, path, before, after) {
       return after.sid === before.sid && (onlyChanged(before, after, ['last', 'lastUid']) || manages(uid, before.sid));
     case 'ch': {
       const cid = id; if (isDm(cid) && !inDm(cid, uid)) return false;
+      if (!isDm(cid)) { const ch = getDoc('channels/' + cid), sv = ch && getDoc('servers/' + ch.sid); if (sv && arr(sv.bans).includes(uid)) return false; }
       if (kind === 'create') return after.uid === uid && String(after.text || '').length <= 4000;
       if (kind === 'delete') return before.uid === uid || (!isDm(cid) && managesChannel(uid, cid));
       return after.uid === before.uid && ((before.uid === uid && onlyChanged(before, after, ['text', 'edited', 'react', 'poll', 'pinned'])) || onlyChanged(before, after, ['react', 'poll']) || (onlyChanged(before, after, ['pinned']) && (isDm(cid) || managesChannel(uid, cid))));
