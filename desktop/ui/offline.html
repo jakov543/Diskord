@@ -1,0 +1,30 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self'">
+<title>Diskord — offline</title><link rel="stylesheet" href="common.css"><style>
+body { display: grid; place-items: center; }
+.box { text-align: center; max-width: 460px; padding: 30px; animation: fade .4s ease; }
+.icon { position: relative; width: 120px; height: 120px; margin: 0 auto 18px; }
+.icon .logo { width: 120px; filter: grayscale(.85) drop-shadow(0 10px 26px rgba(0,0,0,.4)); opacity: .8; animation: float 3s ease-in-out infinite; }
+.icon .x { position: absolute; right: -6px; bottom: 2px; width: 40px; height: 40px; border-radius: 50%; background: var(--bad); display: grid; place-items: center; font-size: 20px; border: 4px solid var(--bg0); }
+h1 { font-size: 26px; font-weight: 800; } p { color: var(--muted); line-height: 1.6; margin: 10px 0 20px; }
+ul { text-align: left; background: var(--bg2); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; padding: 14px 18px 14px 34px; color: var(--muted); font-size: 14px; line-height: 1.8; margin-bottom: 22px; }
+.row { display: flex; gap: 10px; justify-content: center; }
+#auto { color: #6f6889; font-size: 13px; margin-top: 14px; display: flex; gap: 8px; align-items: center; justify-content: center; }
+#auto .spin { width: 14px; height: 14px; border-width: 2px; }
+</style></head><body><div class="box">
+<div class="icon"><img class="logo" src="logo.svg" alt=""><div class="x">📡</div></div>
+<h1 id="title">You're offline</h1>
+<p id="text">Diskord can't reach the internet right now. Your messages are safe — they'll be right here when you're back.</p>
+<ul><li>Check that Wi-Fi or your cable is connected</li><li>Turn airplane mode off</li><li>Restart your router if nothing else works</li></ul>
+<div class="row"><button class="btn main" id="retry">↻ Try again</button><button class="btn alt" id="quit">Close Diskord</button></div>
+<div id="auto"><span class="spin"></span><span id="autoText">Reconnecting automatically…</span></div>
+</div><script>
+const $ = id => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+if (q.get('reason') === 'server') { $('title').textContent = 'Diskord can\'t connect'; $('text').textContent = 'You have internet, but Diskord couldn\'t load. The service may be busy — trying again shortly.'; }
+let n = 5;
+const tick = () => { if (!navigator.onLine) { $('autoText').textContent = 'Waiting for the internet…'; return; } n--; $('autoText').textContent = n > 0 ? `Trying again in ${n}s…` : 'Reconnecting…'; if (n <= 0) { n = 10; window.diskord.retry(); } };
+setInterval(tick, 1000);
+addEventListener('online', () => { $('autoText').textContent = 'Back online — reconnecting…'; setTimeout(() => window.diskord.retry(), 600); });
+$('retry').onclick = () => { $('retry').disabled = true; $('retry').innerHTML = '<span class="spin"></span> Connecting…'; window.diskord.retry(); };
+$('quit').onclick = () => window.diskord.quit();
+</script></body></html>

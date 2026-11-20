@@ -1,0 +1,15 @@
+:root { --bg0:#0b0912; --bg1:#110e1b; --bg2:#171325; --bg3:#1f1a31; --bg4:#2a2342; --text:#f3effc; --muted:#a39cbd; --a1:#ff4d7d; --a2:#5b5cf6; --grad:linear-gradient(135deg,var(--a1),var(--a2)); --ok:#2bd98a; --bad:#ff4d5e; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text); background: radial-gradient(ellipse at 15% -10%, rgba(166,77,255,.28), transparent 55%), radial-gradient(ellipse at 100% 110%, rgba(255,77,125,.2), transparent 50%), var(--bg0); overflow: hidden; user-select: none; }
+button { font: inherit; color: inherit; border: 0; cursor: pointer; background: none; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; border-radius: 12px; font-weight: 700; font-size: 15px; transition: filter .15s, transform .08s; }
+.btn:hover { filter: brightness(1.12); } .btn:active { transform: translateY(1px); }
+.btn.main { background: var(--grad); color: #fff; box-shadow: 0 10px 28px rgba(166,77,255,.35); }
+.btn.alt { background: var(--bg3); }
+.btn:disabled { opacity: .55; cursor: default; filter: none; }
+.logo { filter: drop-shadow(0 12px 32px rgba(177,77,255,.5)); }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fade { from { opacity: 0; transform: translateY(8px); } }
+.spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--bg4); border-top-color: #a64dff; animation: spin .9s linear infinite; }
