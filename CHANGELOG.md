@@ -1,5 +1,21 @@
 # Diskord changelog
 
+## 6.4.0
+- 📞 **New call screen like Discord**
+  - everyone shows as a round avatar, with a green ring when they talk and red mute / deafen badges
+  - camera and screen share switch to video tiles; click a tile to make it big, double-click for full screen
+  - new control bar: mic ▾ and camera ▾ menus to pick your **microphone, speakers and camera** and turn noise suppression on or off
+  - **😀 Reactions** that fly up on everyone's screen
+  - **🔊 Soundboard** (Airhorn, Ba Dum Tss, Ding, Applause, Boom, Siren, Sad Trombone, Crickets) that everyone in the call hears
+  - **⋯** menu: Deafen, Copy Invite Link, Full Screen, Stream Quality
+  - opening a call from Diskord joins it straight away, with a call timer
+- 🖥️ **New screen share window**
+  - **Applications / Entire Screen / Devices** tabs, and **Devices** can share a camera or capture card
+  - quality settings: **Gaming** (smoother), **Text** (sharper) or **Custom**, at 720p / 1080p / 1440p / Source and 15 / 30 / 60 FPS, free for everyone
+- 👤 **Full profile window** (**View Full Profile**): Activity, Mutual Friends, Mutual Servers, Member Since, Friends Since, a private Note, plus a ⋯ menu with Share Profile, Invite to Server, **Block** and Copy User ID
+- 💬 The DM header now shows the friend's avatar, an **Add Friend** button and a **Show User Profile** button, and search says "Search username"
+- 🎮 Rich Presence fixes: the new Diskord logo shows instead of the old one, and your status shows instead of a ❓
+
 ## 6.3.0
 - 🖼️ **Edit Image** — when you pick a profile picture, banner, server icon or emoji you can now **zoom** (slider or mouse wheel), **drag to move**, **rotate**, and press **Apply** (or **Reset** / **Cancel**)
 - 🎮 **Better Discord Rich Presence**

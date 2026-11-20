@@ -4,7 +4,9 @@ const { app, BrowserWindow, shell, session, desktopCapturer, Menu, Tray, ipcMain
 const { pathToFileURL } = require('url');
 const DiscordRPC = require('./discord');
 const DISCORD_APP_ID = '1571423751231373405';
-const RPC_LOGO = 'https://raw.githubusercontent.com/jakov543/Diskord/main/icons/icon-512.png';
+// new file name so Discord doesn't keep showing its cached copy of the old logo
+const RPC_LOGO = 'https://raw.githubusercontent.com/jakov543/Diskord/main/icons/rpc-logo-v2.png';
+const RPC_STATUS = s => ['online', 'idle', 'dnd'].includes(s) ? `https://raw.githubusercontent.com/jakov543/Diskord/main/icons/status-${s}.png` : undefined;
 let rpc = null, rpcStart = Date.now(), rpcLast = null;
 let autoUpdater = null;
 try { ({ autoUpdater } = require('electron-updater')); } catch (_) {}
@@ -82,7 +84,7 @@ function setPresence(p) {
     timestamps: { start: inCall && a.callStart ? a.callStart : rpcStart },
     assets: {
       large_image: img(a.big) || RPC_LOGO, large_text: clip(a.bigText, 100) || ('Diskord ' + app.getVersion()),
-      small_image: img(a.small) || (inCall ? RPC_LOGO : undefined), small_text: clip(a.smallText, 100) || (inCall ? (a.video ? 'In a video call' : 'In a voice call') : undefined)
+      small_image: img(a.small) || RPC_STATUS(a.status), small_text: clip(a.smallText, 100) || (inCall ? (a.video ? 'In a video call' : 'In a voice call') : undefined)
     },
     party, buttons, instance: false
   });
@@ -93,7 +95,7 @@ ipcMain.on('presence', (e, p) => {
   const join = typeof p.joinUrl === 'string' && p.joinUrl.startsWith('https://jakov543.github.io/Diskord/?invite=dk-') && p.joinUrl.length < 120 ? p.joinUrl : '';
   setPresence({ details: clip(p.details, 100), state: clip(p.state, 100), call: !!p.call, video: !!p.video, callStart: Number(p.callStart) || 0,
     party: Array.isArray(p.party) ? p.party.slice(0, 2).map(n => Math.max(0, Math.min(999, Number(n) || 0))) : null,
-    big: p.big, bigText: clip(p.bigText, 100), small: p.small, smallText: clip(p.smallText, 100), joinUrl: join, joinLabel: join ? clip(p.joinLabel, 32) : '' });
+    big: p.big, bigText: clip(p.bigText, 100), small: p.small, smallText: clip(p.smallText, 100), status: clip(p.status, 10), joinUrl: join, joinLabel: join ? clip(p.joinLabel, 32) : '' });
 });
 function toggleRpc() { state.rpcOff = !state.rpcOff; saveState(); setPresence(); createTray(); }
 ipcMain.on('quit', e => { if (fromLocal(e)) { quitting = true; app.quit(); } });
@@ -102,7 +104,7 @@ ipcMain.on('retry', e => { if (fromLocal(e) && net.isOnline()) { mode = 'retry';
 // ---------------------------------------------------------------- windows
 function wire(win) {
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (isCall(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 1100, height: 720, minWidth: 640, minHeight: 480, backgroundColor: '#0a0f1c', icon: ICON, autoHideMenuBar: true, title: 'Diskord Call' } };
+    if (isCall(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 1100, height: 720, minWidth: 640, minHeight: 480, backgroundColor: '#0a0f1c', icon: ICON, autoHideMenuBar: true, title: 'Diskord Call', webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true } } };
     if (isSignIn(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 520, height: 720, icon: ICON, autoHideMenuBar: true, title: 'Sign in' } };
     if (/^https?:/.test(url)) shell.openExternal(url);
     return { action: 'deny' };
@@ -167,6 +169,23 @@ function createTray() {
 }
 
 // ---------------------------------------------------------------- screen-share picker
+// in-call picker: the call page asks for the list, then says which one to share
+const sharePick = new Map(), shareLists = new Map();
+ipcMain.handle('screen-sources', async e => {
+  if (!fromLocal(e)) return [];
+  const sources = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 480, height: 270 }, fetchWindowIcons: true });
+  const own = new Set(BrowserWindow.getAllWindows().map(w => w.getMediaSourceId && w.getMediaSourceId()));
+  const keep = sources.filter(x => !own.has(x.id) && !/^Diskord( Call)?$/.test(x.name) && !/^Share your screen$/.test(x.name));
+  shareLists.set(e.sender.id, keep);
+  return keep.map(x => ({ id: x.id, name: x.name, type: x.id.startsWith('screen') ? 'screen' : 'window', thumb: x.thumbnail.toDataURL(), icon: x.appIcon ? x.appIcon.toDataURL() : '' }));
+});
+ipcMain.handle('share-source', (e, a) => {
+  if (!fromLocal(e) || !a || typeof a.id !== 'string') return false;
+  const src = (shareLists.get(e.sender.id) || []).find(x => x.id === a.id);
+  if (!src) return false;
+  sharePick.set(e.sender.id, { src, audio: !!a.audio, at: Date.now() });
+  return true;
+});
 let pickerBusy = false;
 async function openPicker(cb) {
   if (pickerBusy) return cb({});
@@ -266,7 +285,13 @@ app.whenReady().then(async () => {
   ses.setPermissionRequestHandler((wc, permission, cb) => cb(['media', 'display-capture', 'notifications', 'clipboard-sanitized-write', 'fullscreen'].includes(permission)));
   ses.setPermissionCheckHandler((wc, permission) => ['media', 'notifications', 'clipboard-sanitized-write', 'fullscreen'].includes(permission));
   // Screen share: let the user pick a whole screen or one app window (like Discord).
-  ses.setDisplayMediaRequestHandler((req, cb) => { openPicker(cb).catch(() => cb({})); });
+  ses.setDisplayMediaRequestHandler((req, cb) => {
+    // the call window already showed its own picker and told us what to share
+    let wc = null; try { wc = req.frame && require('electron').webContents.fromFrame(req.frame); } catch (_) {}
+    const p = wc && sharePick.get(wc.id);
+    if (p && Date.now() - p.at < 15000) { sharePick.delete(wc.id); return cb({ video: p.src, audio: p.audio && process.platform === 'win32' ? 'loopback' : undefined }); }
+    openPicker(cb).catch(() => cb({}));
+  });
   createSplash();
   setupUpdates();
   await new Promise(r => setTimeout(r, 700));

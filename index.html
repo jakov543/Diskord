@@ -264,6 +264,26 @@ i.d { display: inline-block; width: 8px; height: 8px; border-radius: 50%; backgr
 .rpc-c { display: flex; gap: 12px; } .rpc-c > div:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; } .rpc-c small { color: var(--muted); font-size: 13px; }
 .rpc-big { position: relative; width: 72px; height: 72px; flex: 0 0 72px; } .rpc-big > img:first-child { width: 72px; height: 72px; border-radius: 12px; } .rpc-sm { position: absolute; right: -4px; bottom: -4px; width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--bg0); object-fit: cover; }
 .rpc-btn { display: block; text-align: center; margin-top: 6px; padding: 6px 10px; border-radius: 6px; background: var(--bg4); font-size: 13px; font-weight: 600; }
+.fp-ov { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.72); display: grid; place-items: center; padding: 20px; animation: fade .15s ease; }
+.fp { position: relative; width: min(1040px, 100%); height: min(860px, 100%); background: var(--bg1); border-radius: 16px; display: grid; grid-template-columns: minmax(300px, 450px) 1fr; gap: 30px; padding: 40px 40px 0 40px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.fp-x { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 8px; background: var(--bg3); color: var(--muted); font-size: 16px; z-index: 2; } .fp-x:hover { color: var(--text); }
+.fp-l { border-radius: 16px 16px 0 0; overflow-y: auto; position: relative; border: 1px solid var(--line); border-bottom: 0; }
+.fp-b { height: 160px; } .fp-av { margin: -80px 0 0 24px; position: relative; } .fp-av .av { border: 7px solid var(--bg1); border-radius: 50%; box-sizing: content-box; }
+.fp-av .av .st { width: 30px; height: 30px; border-width: 6px; right: 4px; bottom: 4px; }
+.fp-in { padding: 10px 26px 30px; } .fp-n { font-size: 28px; font-weight: 800; } .fp-u { color: var(--text); opacity: .85; font-size: 15px; margin-top: 2px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.fp-badge { background: var(--bg3); border-radius: 6px; padding: 2px 6px; font-size: 12px; font-weight: 700; }
+.fp-btns { display: flex; gap: 8px; margin: 20px 0 22px; } .fp-ib { width: 40px; padding: 0; display: grid; place-items: center; font-size: 15px; }
+.fp-about { white-space: pre-wrap; line-height: 1.5; font-size: 15px; margin-bottom: 10px; }
+.fp-h { font-size: 13px; font-weight: 700; color: var(--muted); margin: 20px 0 6px; } .fp-t { font-size: 15px; }
+.fp-note { width: 100%; background: transparent; border: 0; outline: none; resize: none; font-style: italic; color: var(--text); font-size: 14px; padding: 4px 0; } .fp-note:focus { background: var(--bg0); border-radius: 6px; padding: 6px 8px; font-style: normal; }
+.fp-r { display: flex; flex-direction: column; min-height: 0; } .fp-tabs { display: flex; gap: 30px; border-bottom: 1px solid var(--line); }
+.fp-tabs button { padding: 10px 0 14px; font-weight: 700; font-size: 15.5px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; } .fp-tabs button.on { color: var(--text); border-color: var(--text); } .fp-tabs button:hover { color: var(--text); }
+.fp-list { flex: 1; overflow-y: auto; padding: 16px 0 30px; }
+.fp-act { display: flex; gap: 14px; align-items: center; background: var(--bg2); border-radius: 12px; padding: 14px; margin-bottom: 10px; } .fp-ai { width: 64px; height: 64px; border-radius: 12px; background: var(--bg3); display: grid; place-items: center; font-size: 30px; flex: 0 0 64px; }
+.fp-act b { display: block; font-size: 15.5px; } .fp-act small { color: var(--muted); font-size: 13px; }
+.fp-row { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; padding: 10px; border-radius: 10px; } .fp-row:hover { background: var(--bg2); } .fp-row b { display: block; } .fp-row small { color: var(--muted); font-size: 13px; }
+.fp-si { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; overflow: hidden; flex: 0 0 40px; } .fp-si img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 760px) { .fp { grid-template-columns: 1fr; padding: 40px 12px 0; overflow-y: auto; } .fp-r { min-height: 300px; } }
 .ch .mbadge { background: var(--dnd); color: #fff; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 1px 6px; }
 .me-bar { display: flex; align-items: center; gap: 9px; padding: 8px 10px; background: var(--bg0); flex: 0 0 auto; }
 .me-bar .who { flex: 1; min-width: 0; line-height: 1.2; }
@@ -290,9 +310,9 @@ i.d { display: inline-block; width: 8px; height: 8px; border-radius: 50%; backgr
 .main { display: flex; flex-direction: column; min-width: 0; background: var(--bg2); }
 .top { height: 52px; flex: 0 0 52px; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 16px; border-bottom: 1px solid var(--line); box-shadow: 0 1px 0 rgba(0,0,0,.15); }
 .top .title { font-weight: 800; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.top .title .hash { color: var(--dim); font-size: 22px; font-weight: 500; }
+.top .title .hash { color: var(--dim); font-size: 22px; font-weight: 500; } .top .title .hash.dmav { display: flex; margin-right: 2px; }
 .top .topic { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; border-left: 1px solid var(--line); padding-left: 12px; margin-left: 4px; }
-.top .search { width: 180px; transition: width .2s; background: var(--bg0); border: 0; border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; }
+.top #conn + .icon-btn, .top #btnCall { margin-left: auto; } .top .search { width: 180px; transition: width .2s; background: var(--bg0); border: 0; border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; }
 .top .search:focus { width: 260px; }
 .conn { font-size: 11.5px; color: var(--muted); padding: 3px 8px; border-radius: 6px; background: var(--bg3); }
 
@@ -496,6 +516,7 @@ mark { background: rgba(255,176,32,.35); color: inherit; border-radius: 3px; }
       <a class="icon-btn" id="btnCall" title="Start a voice call" target="_blank" rel="opener" href="#"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></a>
       <a class="icon-btn" id="btnVideo" title="Start a video call" target="_blank" rel="opener" href="#"><svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg></a>
       <button class="icon-btn" id="btnPins" title="Pinned messages"><svg viewBox="0 0 24 24"><path d="M16 3l5 5-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z"/></svg></button>
+      <button class="icon-btn hidden" id="btnAddF" title="Add Friend"><svg viewBox="0 0 24 24"><path d="M14 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM2 20c0-3.3 3.6-6 8-6s8 2.7 8 6zM19 8V5h-2v3h-3v2h3v3h2v-3h3V8z"/></svg></button>
       <button class="icon-btn on" id="btnMembers" title="Members"><svg viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3.3 3.1-6 7-6s7 2.7 7 6zm15 0c0-2.1-.9-4-2.3-5.3.6-.1 1.2-.2 1.8-.2 2.9 0 5.5 2.1 5.5 5.5z"/></svg></button>
       <input class="search" id="search" placeholder="Search" autocomplete="off">
     </header>
@@ -573,7 +594,7 @@ const blob = id => {
   if (String(id).startsWith('data:') || /^https?:/.test(id)) return id;
   if (!/^[A-Za-z0-9]{24}$/.test(id)) return PIX;
   return (window.diskordServer ? window.diskordServer() : '') + '/blob/' + id;
-};const callLink = (room, title, video) => `${CALL_URL}#r=${encodeURIComponent(room)}${video ? '&v=1' : ''}${S.selfMute ? '&m=1' : ''}${S.selfDeaf ? '&d=1' : ''}&n=${encodeURIComponent(nameOf(S.myId))}&t=${encodeURIComponent(title || '')}`;
+};const callLink = (room, title, video) => `${CALL_URL}#r=${encodeURIComponent(room)}${video ? '&v=1' : ''}${S.selfMute ? '&m=1' : ''}${S.selfDeaf ? '&d=1' : ''}&n=${encodeURIComponent(nameOf(S.myId))}&t=${encodeURIComponent(title || '')}${/^https:\/\//.test(avatarOf(S.myId) || '') ? '&a=' + encodeURIComponent(avatarOf(S.myId)) : ''}`;
 const roomId = s => ('fx-' + s).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 70);
 const COLORS = ['#ff3d6e', '#8b5cf6', '#22c1ee', '#2bd98a', '#ffb020', '#ff7a45', '#4f7cff', '#e94cd8'];
 const fmtTime = t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -980,7 +1001,8 @@ function updateRpc() {
       : sv ? { details: cfg.names ? '🏠 ' + sv.name : 'In a server', state: cfg.names && c ? `💬 #${c.name}` : 'Chatting', party: [Math.max(1, serverMembers(sv).filter(u => statusOf(u)).length), Math.max(1, serverMembers(sv).length)] }
       : { details: isHome() && S.homeTab === 'nitro' ? 'Looking at Nitro 💎' : 'Hanging out', state: 'Chatting with friends' };
     if (sv && cfg.names && !(c && c.dm)) { p.big = httpsImg(blob(sv.icon || '')); p.bigText = sv.name; }
-    p.small = cfg.avatar ? httpsImg(avatarOf(S.myId) || '') : '';
+    const av = httpsImg(avatarOf(S.myId) || '');
+    p.small = cfg.avatar && /\.(png|jpe?g|gif)$/i.test(av) ? av : '';
     p.smallText = (cfg.avatar ? nameOf(S.myId) + (unameOf(S.myId) ? ' (@' + unameOf(S.myId) + ')' : '') + ' · ' : '') + ({ online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb' }[S.status] || 'Online');
     p.status = S.status;
     if (cfg.join && sv && !(c && c.dm)) { p.joinUrl = WEB_URL + '?invite=dk-' + sv.id; p.joinLabel = ('Join ' + sv.name).slice(0, 32); }
@@ -1021,8 +1043,14 @@ function renderHeader() {
   updateRpc();
   const c = curChannel();
   $('chName').textContent = c ? c.name : isHome() ? (S.homeTab === 'nitro' ? 'Nitro' : 'Friends') : (curServer() ? 'no channel' : 'Diskord');
-  $('chTitle').querySelector('.hash').textContent = c && c.dm ? '@' : '#';
-  $('chTitle').querySelector('.hash').classList.toggle('hidden', !c);
+  const hs = $('chTitle').querySelector('.hash');
+  if (c && c.dm) { hs.innerHTML = avatarHtml(c.other, 26, true); hs.classList.add('dmav'); } else { hs.textContent = '#'; hs.classList.remove('dmav'); }
+  hs.classList.toggle('hidden', !c);
+  const dmF = c && c.dm ? friendOf(c.other) : null;
+  $('btnAddF').classList.toggle('hidden', !(c && c.dm && !dmF));
+  $('btnMembers').title = c && c.dm ? (ls.get('members', true) ? 'Hide User Profile' : 'Show User Profile') : 'Members';
+  $('btnMembers').innerHTML = c && c.dm ? ICON_PROFILE : ICON_MEMBERS;
+  $('search').placeholder = c && c.dm ? 'Search ' + (unameOf(c.other) || nameOf(c.other)) : curServer() && !isHome() ? 'Search ' + curServer().name : 'Search';
   $('btnPins').classList.toggle('hidden', !c);
   $('chTopic').textContent = c ? (c.topic || '') : '';
   $('chTopic').classList.toggle('hidden', !(c && c.topic));
@@ -1066,6 +1094,7 @@ function renderFeed(scrollDown) {
 }
 
 function msgHtml(m, cont) {
+  if (m.uid !== S.myId && isBlocked(m.uid)) return `<div class="msg blockedmsg"><div class="body" style="color:var(--dim);font-size:13px;padding:2px 0 2px 56px">⛔ Blocked message</div></div>`;
   const mine = m.uid === S.myId;
   const mentioned = m.text && S.myId && m.text.includes(`<@${S.myId}>`);
   const s = curServer();
@@ -1131,6 +1160,7 @@ function stopRing() { clearInterval(ringTimer); ringTimer = null; document.query
 function onRing(msg) {
   const d = msg && msg.data; if (!d || msg.sameTab || !msg.by || msg.by === S.myId || typeof d.room !== 'string') return;
   if (d.kind === 'dm' && d.to !== S.myId) return;
+  if (isBlocked(msg.by)) return;
   if (d.kind === 'channel' && !S.servers.some(x => x.id === d.sid)) return;
   if (S.status === 'dnd') { toast('📞 ' + nameOf(msg.by) + ' is calling (Do not disturb is on)'); return; }
   needNames([msg.by]); stopRing();
@@ -1371,6 +1401,97 @@ function renderMembers() {
   box.innerHTML = groups.map(([t, list], i) => `<div class="h" ${i ? 'style="margin-top:14px"' : ''}>${t} — ${list.length}</div>${list.map(row).join('')}`).join('') || '<div class="h">Members</div>';
   box.querySelectorAll('.mem').forEach(b => b.onclick = e => profileCard(e, b.dataset.uid));
 }
+const ICON_MEMBERS = '<svg viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3.3 3.1-6 7-6s7 2.7 7 6zm15 0c0-2.1-.9-4-2.3-5.3.6-.1 1.2-.2 1.8-.2 2.9 0 5.5 2.1 5.5 5.5z"/></svg>';
+const ICON_PROFILE = '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zm0 14a8 8 0 0 1-6.2-3c1.2-1.7 3.6-2.8 6.2-2.8s5 1.1 6.2 2.8A8 8 0 0 1 12 20z"/></svg>';
+$('btnAddF').onclick = () => { const c = curChannel(); if (c && c.dm) addFriendByUid(c.other); };
+// blocked people (kept on this device): their messages are hidden and they can't start DMs with you here
+const blocked = () => new Set(ls.get('blocked', []) || []);
+const isBlocked = uid => blocked().has(uid);
+function setBlocked(uid, on) { const b = blocked(); on ? b.add(uid) : b.delete(uid); ls.set('blocked', [...b]); renderAll(); }
+const fmtDate = t => new Date(t).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+const agoTxt = t => { const s = (Date.now() - t) / 1000; return s < 3600 ? Math.max(1, Math.round(s / 60)) + 'm ago' : s < 86400 ? Math.round(s / 3600) + 'h ago' : s < 86400 * 30 ? Math.round(s / 86400) + 'd ago' : Math.round(s / 86400 / 30) + 'mo ago'; };
+function fullProfile(uid, tab) {
+  closeFloating();
+  document.querySelectorAll('.fp-ov').forEach(x => x.remove());
+  const ov = document.createElement('div'); ov.className = 'fp-ov';
+  const close = () => { ov.remove(); document.removeEventListener('keydown', key); };
+  const key = e => { if (e.key === 'Escape' && !document.querySelector('.menu')) close(); }; document.addEventListener('keydown', key);
+  ov.onmousedown = e => { if (e.target === ov) close(); };
+  document.body.appendChild(ov);
+  tab = tab || 'activity';
+  S.friendsOf = S.friendsOf || {};
+  if (uid !== S.myId) S.db.collection('friendships').where('members', 'array-contains', uid).get().then(snap => {
+    S.friendsOf[uid] = snap.docs.map(d => d.data()).filter(x => x.status === 'accepted' && Array.isArray(x.members)).map(x => x.members.find(m => m !== uid));
+    if (ov.isConnected) draw();
+  }).catch(() => {});
+  const draw = () => {
+    const p = S.profiles[uid] || {}, f = friendOf(uid), me = uid === S.myId, st = statusOf(uid);
+    const a = HEX(p.themeA), b = HEX(p.themeB);
+    const theme = a ? `linear-gradient(170deg, ${a}, ${b || a})` : 'var(--bg1)';
+    const myFriends = new Set(S.friends.filter(x => x.status === 'accepted').map(x => x.members.find(m => m !== S.myId)));
+    const theirFriends = new Set((S.friendsOf || {})[uid] || []);
+    const mutualF = me ? [] : [...myFriends].filter(x => x !== uid && theirFriends.has(x));
+    const mutualS = me ? S.servers : S.servers.filter(sv => serverMembers(sv).includes(uid));
+    const call = S.inCall.get(uid) || (me && S.myCall ? S.myCall.room : null);
+    const note = (ls.get('notes', {}) || {})[uid] || '';
+    const acts = [];
+    if (call) acts.push(['📞', 'In a Diskord call', S.callLabels && S.callLabels.get(uid) || 'Voice chat', 'Now']);
+    if (st) acts.push(['💬', 'Diskord', st === 'idle' ? 'Idle' : st === 'dnd' ? 'Do Not Disturb' : 'Online', 'Now']);
+    if (p.joinedAt) acts.push(['🎉', 'Joined Diskord', fmtDate(p.joinedAt), agoTxt(p.joinedAt)]);
+    ov.innerHTML = `<div class="fp"><button class="fp-x" title="Close (Esc)">✕</button>
+      <div class="fp-l" style="background:${theme}">
+        <div class="fp-b" style="${p.banner ? `background:center/cover url('${esc(blob(p.banner))}')` : `background:${S.colors[uid] || 'var(--grad)'}`}"></div>
+        <div class="fp-av">${avatarHtml(uid, 140, true)}</div>
+        <div class="fp-in">
+          <div class="fp-n" style="${nameStyle(uid)}">${esc(nameOf(uid))}</div>
+          <div class="fp-u">${esc(unameOf(uid))}${p.pronouns ? ' • ' + esc(p.pronouns) : ''}${S.servers.some(sv => sv.owner === uid) ? ' <span class="fp-badge" title="Server owner">👑</span>' : ''}${isBlocked(uid) ? ' <span class="fp-badge" style="background:var(--dnd)">Blocked</span>' : ''}</div>
+          <div class="fp-btns">${me ? '<button class="btn primary" data-a="edit">✏️ Edit Profile</button>' : `<button class="btn primary" data-a="dm">💬 Message</button>
+            <button class="btn alt fp-ib" data-a="friend" title="${!f ? 'Add Friend' : f.status === 'pending' ? (f.from === S.myId ? 'Pending — click to cancel' : 'Accept friend request') : 'Friends'}">${!f ? '👤+' : f.status === 'pending' ? (f.from === S.myId ? '⏳' : '✅') : '👥✓'}</button>`}
+            <button class="btn alt fp-ib" data-a="more" title="More">⋯</button></div>
+          ${p.about ? `<div class="fp-about">${esc(p.about)}</div>` : ''}
+          ${p.joinedAt ? `<div class="fp-h">Member Since</div><div class="fp-t">${esc(fmtDate(p.joinedAt))}</div>` : ''}
+          ${f && f.status === 'accepted' && f.at ? `<div class="fp-h">Friends Since</div><div class="fp-t">${esc(fmtDate(f.at))}</div>` : ''}
+          ${me ? '' : `<div class="fp-h">Note (only visible to you)</div><textarea class="fp-note" id="fpNote" maxlength="256" rows="2" placeholder="Click to add a note">${esc(note)}</textarea>`}
+        </div></div>
+      <div class="fp-r"><div class="fp-tabs">
+        <button data-tab="activity" class="${tab === 'activity' ? 'on' : ''}">Activity</button>
+        ${me ? '' : `<button data-tab="friends" class="${tab === 'friends' ? 'on' : ''}">${mutualF.length} Mutual Friend${mutualF.length === 1 ? '' : 's'}</button>`}
+        <button data-tab="servers" class="${tab === 'servers' ? 'on' : ''}">${mutualS.length} ${me ? 'Server' : 'Mutual Server'}${mutualS.length === 1 ? '' : 's'}</button></div>
+        <div class="fp-list">${tab === 'activity' ? `<div class="fp-h" style="margin-top:0">Recent activity</div>${acts.length ? acts.map(([i, t, d, w]) => `<div class="fp-act"><div class="fp-ai">${i}</div><div><b>${esc(t)}</b><small>${esc(d)} · ${esc(w)}</small></div></div>`).join('') : '<div class="fempty">Nothing to show yet.</div>'}`
+          : tab === 'friends' ? (mutualF.length ? mutualF.map(u => `<button class="fp-row" data-u="${esc(u)}">${avatarHtml(u, 40, true)}<div><b>${esc(nameOf(u))}</b><small>${esc(unameOf(u))}</small></div></button>`).join('') : '<div class="fempty">No mutual friends.</div>')
+          : (mutualS.length ? mutualS.map(sv => `<button class="fp-row" data-s="${esc(sv.id)}"><div class="fp-si" style="background:${esc(sv.color || 'var(--accent)')}">${sv.icon ? `<img src="${esc(blob(sv.icon))}" alt="">` : esc(sv.emoji || '🎮')}</div><div><b>${esc(sv.name)}</b><small>${sv.owner === uid ? '👑 Owner' : isCo(sv, uid) ? '🛡️ Co-owner' : 'Member'}</small></div></button>`).join('') : '<div class="fempty">No mutual servers.</div>')}</div></div></div>`;
+    ov.querySelector('.fp-x').onclick = close;
+    ov.querySelectorAll('[data-tab]').forEach(t => t.onclick = () => { tab = t.dataset.tab; draw(); });
+    ov.querySelectorAll('[data-u]').forEach(r => r.onclick = () => fullProfile(r.dataset.u));
+    ov.querySelectorAll('[data-s]').forEach(r => r.onclick = () => { close(); S.sid = r.dataset.s; S.cid = null; ls.set('sid', S.sid); pickChannel(); renderAll(); });
+    const nt = ov.querySelector('#fpNote'); if (nt) nt.onchange = nt.onblur = () => { const n = ls.get('notes', {}) || {}; if (nt.value.trim()) n[uid] = nt.value.trim().slice(0, 256); else delete n[uid]; ls.set('notes', n); };
+    ov.querySelectorAll('[data-a]').forEach(btn => btn.onclick = e => {
+      const k = btn.dataset.a;
+      if (k === 'edit') { close(); profileEditor(); }
+      if (k === 'dm') { close(); openDm(uid); }
+      if (k === 'friend') { const f = friendOf(uid); if (!f) addFriendByUid(uid); else if (f.status === 'pending' && f.from !== S.myId) acceptFriend(f); else confirmModal('Remove ' + nameOf(uid), f.status === 'pending' ? 'Cancel your friend request?' : 'Remove ' + nameOf(uid) + ' from your friends?', f.status === 'pending' ? 'Cancel request' : 'Remove Friend', () => removeFriend(f)); setTimeout(draw, 700); }
+      if (k === 'more') {
+        const inv = S.servers.filter(sv => canManage(sv) || true).filter(sv => !serverMembers(sv).includes(uid));
+        const items = [{ label: 'Share Profile', icon: '🔗', run: () => navigator.clipboard.writeText('@' + unameOf(uid)).then(() => toast('Username copied — friends add them with @' + unameOf(uid))).catch(() => {}) }];
+        if (!me && inv.length) items.push({ label: 'Invite to Server ›', icon: '📨', run: () => setTimeout(() => menu({ currentTarget: btn, clientX: e.clientX, clientY: e.clientY }, inv.slice(0, 12).map(sv => ({ label: sv.name, icon: sv.emoji || '🎮', run: () => sendServerInvite(sv, uid) }))), 30) });
+        if (!me) items.push('-', isBlocked(uid) ? { label: 'Unblock', icon: '✅', run: () => { setBlocked(uid, false); toast(nameOf(uid) + ' unblocked'); draw(); } }
+          : { label: 'Block', icon: '⛔', danger: true, run: () => confirmModal('Block ' + nameOf(uid) + '?', 'Their messages will be hidden for you and their calls won\'t ring. They won\'t be told. (Blocking is saved on this device.)', 'Block', () => { setBlocked(uid, true); toast(nameOf(uid) + ' blocked'); draw(); }) });
+        items.push('-', { label: 'Copy User ID', icon: '🆔', run: () => navigator.clipboard.writeText(uid).then(() => toast('User ID copied')).catch(() => {}) });
+        menu({ currentTarget: btn, clientX: e.clientX, clientY: e.clientY }, items);
+      }
+    });
+  };
+  draw();
+}
+async function sendServerInvite(s, u) {
+  try {
+    const cid = dmCid(u), at = Date.now();
+    await S.db.collection(`ch/${cid}/m`).add({ uid: S.myId, text: '', at, invite: { sid: s.id, name: s.name.slice(0, 40) } });
+    S.db.doc('dms/' + cid.slice(3)).set({ members: [S.myId, u].sort(), last: at, lastUid: S.myId, ok: { [S.myId]: true }, hide: { [S.myId]: false, [u]: false } }, { merge: true }).catch(() => {});
+    toast('Invite to ' + s.name + ' sent to ' + nameOf(u) + ' 📨');
+  } catch (e) { writeError(e); }
+}
+
 $('btnMembers').onclick = () => { ls.set('members', !ls.get('members', true)); renderHeader(); };
 $('btnMobile').onclick = () => $('side').classList.toggle('mobile-open');
 window.addEventListener('resize', renderHeader);
@@ -1594,7 +1715,9 @@ function editImage(file, kind) {
           const [W, H] = cfg.out, k = W / cfg.w, c = document.createElement('canvas'); c.width = W; c.height = H;
           const g = c.getContext('2d'); g.imageSmoothingQuality = 'high';
           g.translate(W / 2 + x * k, H / 2 + y * k); g.rotate(rot * Math.PI / 180); g.scale(scale() * k, scale() * k); g.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
-          c.toBlob(b => { document.removeEventListener('keydown', key); finish(b ? new File([b], 'diskord.webp', { type: 'image/webp' }) : null); }, 'image/webp', 0.92);
+          const png = kind === 'emoji', type = png ? 'image/png' : 'image/jpeg';
+          if (!png) { g.globalCompositeOperation = 'destination-over'; g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
+          c.toBlob(b => { document.removeEventListener('keydown', key); finish(b ? new File([b], png ? 'diskord.png' : 'diskord.jpg', { type }) : null); }, type, 0.92);
         };
         draw();
       });
@@ -1948,8 +2071,9 @@ function renderDmSide(uid) {
     <div class="dsc"><div class="dsn" style="${nameStyle(uid)}">${esc(nameOf(uid))}</div><div class="dsu">${unameOf(uid) ? '@' + esc(unameOf(uid)) : ''}${p.pronouns ? ' • ' + esc(p.pronouns) : ''}</div>
     ${p.about ? `<div class="dsh">About me</div><div class="dst">${esc(p.about)}</div>` : ''}
     ${p.joinedAt ? `<div class="dsh">Member since</div><div class="dst">${esc(new Date(p.joinedAt).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }))}</div>` : ''}
-    ${!f ? `<button class="btn primary" style="width:100%;margin-top:14px" id="dsAdd">Add Friend</button>` : f.status === 'pending' && f.from !== S.myId ? `<button class="btn go" style="width:100%;margin-top:14px" id="dsAcc">Accept friend request</button>` : f.status === 'pending' ? '<div class="dst" style="margin-top:14px">Friend request sent</div>' : ''}</div></div>`;
+    ${!f ? `<button class="btn primary" style="width:100%;margin-top:14px" id="dsAdd">Add Friend</button>` : f.status === 'pending' && f.from !== S.myId ? `<button class="btn go" style="width:100%;margin-top:14px" id="dsAcc">Accept friend request</button>` : f.status === 'pending' ? '<div class="dst" style="margin-top:14px">Friend request sent</div>' : ''}<button class="btn alt" style="width:100%;margin-top:10px" id="dsFull">View Full Profile</button></div></div>`;
   const a = $('dsAdd'); if (a) a.onclick = () => addFriendByUid(uid);
+  const vf = $('dsFull'); if (vf) vf.onclick = () => fullProfile(uid);
   const ac = $('dsAcc'); if (ac) ac.onclick = () => acceptFriend(f);
 }
 function nameStyle(uid) {
@@ -1978,6 +2102,7 @@ function profileCard(e, uid) {
       ${!me && p.joinedAt ? `<div class="pc-box"><div class="pc-h">Member since</div><div class="pc-t">${esc(new Date(p.joinedAt).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }))}</div></div>` : ''}
       ${me ? `<div class="pc-menu">
         <button data-pm="edit">✏️<span>Edit Profile</span></button>
+        <button data-pm="full">👤<span>View Full Profile</span></button>
         <button data-pm="status"><span class="st-dot ${statusOf(uid) || 'off'}"></span><span>${stLabel[S.status] || 'Online'}</span><i>›</i></button>
         <button data-pm="user">🪪<span>Copy username @${esc(unameOf(uid))}</span><i>›</i></button>
         <button data-pm="net">🌐<span>Diskord network</span><i>›</i></button>
@@ -1985,6 +2110,7 @@ function profileCard(e, uid) {
       </div><div class="pc-menu"><button data-pm="logout" class="danger">🚪<span>Log out</span></button></div>`
       : `<div class="pc-actions">
         <button class="btn primary" data-pm="dm">💬 Message</button>
+        <button class="btn alt" data-pm="full" title="View Full Profile">👤</button>
         <a class="btn go" id="pcCall" target="_blank" rel="opener" href="#" title="Voice call">📞</a>
         <a class="btn alt" id="pcVideo" target="_blank" rel="opener" href="#" title="Video call">🎥</a>
       </div>
@@ -2007,6 +2133,7 @@ function profileCard(e, uid) {
     if (k === 'rpc') rpcModal();
     if (k === 'logout') confirmModal('Log out', 'Log out of Diskord on this device?', 'Log out', () => window.diskordLogout && window.diskordLogout());
     if (k === 'dm') openDm(uid);
+    if (k === 'full') fullProfile(uid);
     if (k === 'add') addFriendByUid(uid);
     if (k === 'acc') acceptFriend(f);
     if (k === 'unf') removeFriend(f);

@@ -88,7 +88,7 @@ class DiscordRPC {
       if (msg.evt === 'ERROR' && msg.cmd === 'SET_ACTIVITY' && this.activity && !this.activity._plain) {
         // Discord refused the full activity (bad image etc.) - fall back to a plain one
         const a = this.activity;
-        this.activity = { _plain: true, type: 0, details: a.details, state: a.state, timestamps: a.timestamps, assets: { large_image: (a.assets && a.assets.large_image_fallback) || 'https://raw.githubusercontent.com/jakov543/Diskord/main/icons/icon-512.png', large_text: 'Diskord' }, buttons: (a.buttons || []).slice(-1), instance: false };
+        this.activity = { _plain: true, type: 0, details: a.details, state: a.state, timestamps: a.timestamps, assets: { large_image: (a.assets && a.assets.large_image_fallback) || 'https://raw.githubusercontent.com/jakov543/Diskord/main/icons/rpc-logo-v2.png', large_text: 'Diskord' }, buttons: (a.buttons || []).slice(-1), instance: false };
         this._push();
       }
     }
