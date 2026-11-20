@@ -1,5 +1,10 @@
 # Diskord changelog
 
+## 2.1.1
+### 🛠️ Fixes
+- Sign up / Log in now say exactly what went wrong instead of just "Error" (for example when Email/Password login isn't switched on in Firebase, or the database rules are missing)
+- Every error now shows its error code, so it's easy to fix
+
 ## 2.1.0
 ### ✨ New
 - 🔥 **Real GIFs**: search millions of GIFs from Tenor, with Trending and quick picks (lol, gg, hype, dance, sad, cat…)

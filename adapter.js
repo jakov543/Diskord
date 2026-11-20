@@ -64,9 +64,24 @@ const ERR = {
   'auth/too-many-requests': 'Too many tries. Wait a minute and try again.',
   'auth/network-request-failed': 'No internet connection. Check your Wi-Fi and try again.',
   'auth/operation-not-allowed': 'Email sign-in is turned off. In Firebase: Authentication → Sign-in method → enable Email/Password.',
-  'auth/user-disabled': 'This account has been disabled.'
+  'auth/user-disabled': 'This account has been disabled.',
+  'auth/configuration-not-found': 'Login isn\'t switched on in Firebase yet. Owner: Firebase console → Authentication → Get started → Sign-in method → turn on Email/Password.',
+  'auth/admin-restricted-operation': 'New sign-ups are turned off. Owner: Firebase console → Authentication → Settings → User actions → allow "Enable create (sign-up)".',
+  'auth/missing-email': 'Type your email.',
+  'auth/invalid-api-key': 'Diskord\'s Firebase key is wrong — the owner needs to check firebase-config.js.',
+  'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'Diskord\'s Firebase key is wrong — the owner needs to check firebase-config.js.',
+  'auth/app-not-authorized': 'This app isn\'t allowed to use the Firebase project. Owner: Authentication → Settings → Authorized domains.',
+  'auth/unauthorized-domain': 'This website isn\'t allowed yet. Owner: Firebase → Authentication → Settings → Authorized domains → add this site.',
+  'auth/internal-error': 'Firebase had a problem. Check that Authentication is set up (Get started) and Email/Password is on, then try again.',
+  'permission-denied': 'Account made, but the database blocked it. Owner: Firestore Database → Rules → paste firestore.rules → Publish.'
 };
-const niceErr = e => ERR[e && e.code] || (e && e.message ? e.message.replace(/^Firebase:\s*/, '').replace(/\s*\(auth\/[^)]+\)\.?/, '') : 'Something went wrong.');
+const niceErr = e => {
+  const code = e && (e.code || ((String(e.message || '').match(/\((auth\/[^)]+)\)/) || [])[1]));
+  if (code && ERR[code]) return ERR[code];
+  let m = e && e.message ? String(e.message).replace(/^Firebase:\s*/, '').replace(/\s*\(auth\/[^)]+\)\.?/, '').trim() : '';
+  if (!m || m === 'Error') m = 'Something went wrong.';
+  return code ? `${m} (${code})` : m;
+};
 
 function showAuth(tab) {
   if (!document.getElementById('authCss')) { const st = document.createElement('style'); st.id = 'authCss'; st.textContent = AUTH_CSS; document.head.appendChild(st); }
@@ -118,7 +133,7 @@ function draw(tab) {
         await fs.doc('users/' + cred.user.uid).set({ name, color: COLORS[Math.floor(Math.random() * COLORS.length)], created: Date.now() }, { merge: true });
         start(cred.user);
       } else if (tab === 'reset') { await auth.sendPasswordResetEmail(email); msg('Check your inbox (and spam) for the reset link.', true); go.disabled = false; go.textContent = label; return; }
-    } catch (er) { msg(niceErr(er)); go.disabled = false; go.textContent = label; }
+    } catch (er) { console.warn('Diskord auth error', er && er.code, er && er.message); msg(niceErr(er)); go.disabled = false; go.textContent = label; }
   };
   setTimeout(() => { const f = c.querySelector('input'); if (f) f.focus(); }, 30);
 }
