@@ -85,6 +85,12 @@ class DiscordRPC {
       this.buffer = this.buffer.subarray(8 + len);
       if (op === 2) { this.sock.destroy(); return; }
       if (msg.evt === 'READY') { this.ready = true; this._push(); }
+      if (msg.evt === 'ERROR' && msg.cmd === 'SET_ACTIVITY' && this.activity && !this.activity._plain) {
+        // Discord refused the full activity (bad image etc.) - fall back to a plain one
+        const a = this.activity;
+        this.activity = { _plain: true, type: 0, details: a.details, state: a.state, timestamps: a.timestamps, assets: { large_image: (a.assets && a.assets.large_image_fallback) || 'https://raw.githubusercontent.com/jakov543/Diskord/main/icons/icon-512.png', large_text: 'Diskord' }, buttons: (a.buttons || []).slice(-1), instance: false };
+        this._push();
+      }
     }
   }
 
@@ -92,7 +98,7 @@ class DiscordRPC {
     if (!this.sock) return;
     this._send(1, {
       cmd: 'SET_ACTIVITY',
-      args: { pid: process.pid, activity: this.activity },
+      args: { pid: process.pid, activity: this.activity ? Object.fromEntries(Object.entries(this.activity).filter(([k]) => k !== '_plain')) : null },
       nonce: crypto.randomUUID()
     });
   }

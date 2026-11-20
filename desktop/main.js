@@ -64,24 +64,36 @@ ipcMain.handle('upload', async (e, a) => {
 });
 // ---------------------------------------------------------------- Discord Rich Presence
 const clip = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
+const img = v => typeof v === 'string' && /^https:\/\/[^\s"']+$/.test(v) && v.length < 256 ? v : undefined;
 function setPresence(p) {
   rpcLast = p || rpcLast || {};
   if (!rpc) return;
-  if (state.rpcOff) return rpc.clear();
   const a = rpcLast;
+  if (state.rpcOff || a.off) return rpc.clear();
   const inCall = !!a.call;
+  const party = Array.isArray(a.party) && a.party[0] > 0 && a.party[1] >= a.party[0] ? { id: 'diskord-' + (inCall ? 'call' : 'srv'), size: [a.party[0], a.party[1]] } : undefined;
+  const buttons = [];
+  if (a.joinUrl) buttons.push({ label: a.joinLabel || 'Join server', url: a.joinUrl });
+  buttons.push({ label: 'Get Diskord', url: 'https://github.com/jakov543/Diskord/releases/latest' });
   rpc.setActivity({
+    type: 0,
     details: clip(a.details, 100) || 'Using Diskord',
     state: clip(a.state, 100) || 'Chatting with friends',
     timestamps: { start: inCall && a.callStart ? a.callStart : rpcStart },
-    assets: { large_image: RPC_LOGO, large_text: 'Diskord ' + app.getVersion(), small_image: inCall ? 'https://raw.githubusercontent.com/jakov543/Diskord/main/icons/icon-192.png' : undefined, small_text: inCall ? (a.video ? 'In a video call' : 'In a voice call') : undefined },
-    buttons: [{ label: 'Get Diskord', url: 'https://github.com/jakov543/Diskord/releases/latest' }],
-    instance: false
+    assets: {
+      large_image: img(a.big) || RPC_LOGO, large_text: clip(a.bigText, 100) || ('Diskord ' + app.getVersion()),
+      small_image: img(a.small) || (inCall ? RPC_LOGO : undefined), small_text: clip(a.smallText, 100) || (inCall ? (a.video ? 'In a video call' : 'In a voice call') : undefined)
+    },
+    party, buttons, instance: false
   });
 }
 ipcMain.on('presence', (e, p) => {
   if (!fromLocal(e) || !p || typeof p !== 'object') return;
-  setPresence({ details: clip(p.details, 100), state: clip(p.state, 100), call: !!p.call, video: !!p.video, callStart: Number(p.callStart) || 0 });
+  if (p.off) return setPresence({ off: true });
+  const join = typeof p.joinUrl === 'string' && p.joinUrl.startsWith('https://jakov543.github.io/Diskord/?invite=dk-') && p.joinUrl.length < 120 ? p.joinUrl : '';
+  setPresence({ details: clip(p.details, 100), state: clip(p.state, 100), call: !!p.call, video: !!p.video, callStart: Number(p.callStart) || 0,
+    party: Array.isArray(p.party) ? p.party.slice(0, 2).map(n => Math.max(0, Math.min(999, Number(n) || 0))) : null,
+    big: p.big, bigText: clip(p.bigText, 100), small: p.small, smallText: clip(p.smallText, 100), joinUrl: join, joinLabel: join ? clip(p.joinLabel, 32) : '' });
 });
 function toggleRpc() { state.rpcOff = !state.rpcOff; saveState(); setPresence(); createTray(); }
 ipcMain.on('quit', e => { if (fromLocal(e)) { quitting = true; app.quit(); } });

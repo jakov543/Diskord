@@ -253,6 +253,17 @@ i.d { display: inline-block; width: 8px; height: 8px; border-radius: 50%; backgr
 .ni-logo { font-size: 64px; } .ni-hero h1 { font-size: 40px; font-weight: 800; } .ni-hero h1 span { background: var(--grad); -webkit-background-clip: text; color: transparent; } .ni-hero p { color: var(--muted); max-width: 480px; margin: 10px auto 20px; line-height: 1.5; }
 .btn.big { padding: 14px 30px; font-size: 16px; } .btn:disabled { opacity: .6; cursor: default; }
 .ni-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 20px; } .ni-card { background: var(--bg1); border: 1px solid var(--line); border-radius: 12px; padding: 16px; } .ni-card span { font-size: 26px; } .ni-card b { display: block; margin: 8px 0 4px; } .ni-card small { color: var(--muted); font-size: 13px; }
+.modal:has(.ei) { width: min(540px, 94vw); overflow: hidden; } .ei { padding: 22px; } .ei-h { display: flex; align-items: center; margin-bottom: 18px; } .ei-h h2 { flex: 1; font-size: 21px; } .ei-x { font-size: 20px; color: var(--muted); } .ei-x:hover { color: var(--text); }
+.ei-stage { position: relative; height: min(380px, 52vh); background: var(--bg0); border-radius: 10px; overflow: hidden; cursor: grab; touch-action: none; user-select: none; }
+.ei-stage.grab { cursor: grabbing; } .ei-stage img { position: absolute; left: 50%; top: 50%; max-width: none; pointer-events: none; transform-origin: center; }
+.ei-frame { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 0 9999px rgba(0,0,0,.62); border: 2px solid rgba(255,255,255,.9); border-radius: 6px; pointer-events: none; } .ei-frame.round { border-radius: 50%; }
+.ei-ctl { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 22px 0 6px; position: relative; } .ei-s { font-size: 12px; opacity: .7; } .ei-b { font-size: 22px; opacity: .9; }
+.ei-ctl input[type=range] { width: 180px; accent-color: #fff; } .ei-rot { position: absolute; right: 0; font-size: 22px; color: var(--muted); } .ei-rot:hover { color: var(--text); }
+.ei-f { display: flex; align-items: center; gap: 10px; margin-top: 18px; } .ei-reset { color: var(--accent); font-weight: 600; } .ei-reset:hover { text-decoration: underline; } .ei-f .btn { min-width: 100px; padding: 11px 18px; }
+.rpc-pv { background: var(--bg0); border-radius: 10px; padding: 14px; margin-top: 4px; } .rpc-h { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.rpc-c { display: flex; gap: 12px; } .rpc-c > div:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; } .rpc-c small { color: var(--muted); font-size: 13px; }
+.rpc-big { position: relative; width: 72px; height: 72px; flex: 0 0 72px; } .rpc-big > img:first-child { width: 72px; height: 72px; border-radius: 12px; } .rpc-sm { position: absolute; right: -4px; bottom: -4px; width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--bg0); object-fit: cover; }
+.rpc-btn { display: block; text-align: center; margin-top: 6px; padding: 6px 10px; border-radius: 6px; background: var(--bg4); font-size: 13px; font-weight: 600; }
 .ch .mbadge { background: var(--dnd); color: #fff; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 1px 6px; }
 .me-bar { display: flex; align-items: center; gap: 9px; padding: 8px 10px; background: var(--bg0); flex: 0 0 auto; }
 .me-bar .who { flex: 1; min-width: 0; line-height: 1.2; }
@@ -687,6 +698,7 @@ function subscribeCore() {
   S.db.collection('servers').orderBy('at').onSnapshot(snap => {
     S.allServers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     filterServers();
+    if (!coreLoaded.servers && /[?&]invite=/.test(location.search)) setTimeout(handleInviteLink, 2500);
     coreLoaded.servers = true;
     if (S.sid !== '@me' && !S.servers.find(s => s.id === S.sid)) S.sid = S.servers[0] ? S.servers[0].id : '@me';
     pickChannel(); renderAll();
@@ -949,15 +961,61 @@ function renderMe() {
 
 // ====================================================================== render: main
 // Discord Rich Presence (desktop app only)
+const RPC_DEF = { on: true, names: true, avatar: true, join: false };
+const rpcCfg = () => ({ ...RPC_DEF, ...(ls.get('rpcCfg', {}) || {}) });
+const httpsImg = v => typeof v === 'string' && /^https:\/\/[^\s"']+$/.test(v) && v.length < 256 ? v : '';
+const WEB_URL = 'https://jakov543.github.io/Diskord/';
 let rpcKey = '';
 function updateRpc() {
   if (!window.diskord || typeof window.diskord.presence !== 'function') return;
-  const sv = curServer(), c = curChannel();
-  const p = S.myCall
-    ? { details: S.myCall.video ? '🎥 In a video call' : '📞 In a voice call', state: (S.myCall.label || 'Diskord call').slice(0, 100), call: true, video: !!S.myCall.video, callStart: S.myCall.at }
-    : { details: c && c.dm ? 'In Direct Messages' : sv ? `In ${sv.name}` : 'Using Diskord', state: c ? (c.dm ? 'Chatting with a friend' : `Chatting in #${c.name}`) : 'Chatting with friends' };
+  const cfg = rpcCfg(), sv = curServer(), c = curChannel();
+  let p;
+  if (!cfg.on || S.status === 'invisible') p = { off: true };
+  else {
+    const dmName = c && c.dm ? nameOf(c.other) : '';
+    p = S.myCall
+      ? { details: S.myCall.video ? '🎥 In a video call' : '🔊 In a voice call', state: cfg.names ? (S.myCall.label || 'Diskord call').slice(0, 100) : 'With friends', call: true, video: !!S.myCall.video, callStart: S.myCall.at,
+          party: [Math.max(1, callersIn(S.myCall.room).length), 25] }
+      : c && c.dm ? { details: 'In Direct Messages', state: cfg.names && dmName ? 'Chatting with ' + dmName : 'Chatting with a friend' }
+      : sv ? { details: cfg.names ? '🏠 ' + sv.name : 'In a server', state: cfg.names && c ? `💬 #${c.name}` : 'Chatting', party: [Math.max(1, serverMembers(sv).filter(u => statusOf(u)).length), Math.max(1, serverMembers(sv).length)] }
+      : { details: isHome() && S.homeTab === 'nitro' ? 'Looking at Nitro 💎' : 'Hanging out', state: 'Chatting with friends' };
+    if (sv && cfg.names && !(c && c.dm)) { p.big = httpsImg(blob(sv.icon || '')); p.bigText = sv.name; }
+    p.small = cfg.avatar ? httpsImg(avatarOf(S.myId) || '') : '';
+    p.smallText = (cfg.avatar ? nameOf(S.myId) + (unameOf(S.myId) ? ' (@' + unameOf(S.myId) + ')' : '') + ' · ' : '') + ({ online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb' }[S.status] || 'Online');
+    p.status = S.status;
+    if (cfg.join && sv && !(c && c.dm)) { p.joinUrl = WEB_URL + '?invite=dk-' + sv.id; p.joinLabel = ('Join ' + sv.name).slice(0, 32); }
+  }
   const k = JSON.stringify(p); if (k === rpcKey) return; rpcKey = k;
   try { window.diskord.presence(p); } catch (_) {}
+}
+function rpcModal() {
+  let cfg = rpcCfg();
+  const rows = [['on', 'Show my activity on Discord', 'Your Discord profile shows that you are using Diskord.'], ['names', 'Show server, channel and friend names', 'Turn off to only show "In a server" / "In a call".'], ['avatar', 'Show my Diskord avatar and status', 'Your Diskord picture appears in the corner of the Diskord logo.'], ['join', 'Show a "Join server" button', 'Anyone who sees your Discord profile can click it to join the server you are in. Off by default.']];
+  modal(`<div class="mh" style="text-align:left"><h2>Discord Rich Presence</h2><p>Show what you are doing in Diskord on your Discord profile. Discord must be open on this PC.</p></div>
+    <div class="mb">${rows.map(([k, t, d]) => `<div class="cm-priv" style="margin:0 0 16px"><div><b>${t}</b><small>${d}</small></div><button class="toggle" data-k="${k}"></button></div>`).join('')}
+    <div class="rpc-pv" id="rpcPv"></div></div><div class="mf"><button class="btn primary" data-x>Done</button></div>`, (o, close) => {
+    const draw = () => {
+      o.querySelectorAll('[data-k]').forEach(b => { b.classList.toggle('on', !!cfg[b.dataset.k]); if (b.dataset.k !== 'on') b.parentElement.style.opacity = cfg.on ? 1 : .45; });
+      rpcKey = ''; updateRpc();
+      const sv = curServer(), av = avatarOf(S.myId);
+      o.querySelector('#rpcPv').innerHTML = !cfg.on ? '<div class="fnote">Nothing is shown on Discord.</div>' : `<div class="rpc-h">Playing</div><div class="rpc-c"><div class="rpc-big"><img src="logo.svg" alt="">${cfg.avatar && av ? `<img class="rpc-sm" src="${esc(av)}" alt="">` : ''}</div>
+        <div><b>Diskord</b><small>${esc(S.myCall ? (S.myCall.video ? '🎥 In a video call' : '🔊 In a voice call') : sv ? (cfg.names ? '🏠 ' + sv.name : 'In a server') : 'Hanging out')}</small><small>${esc(S.myCall ? (cfg.names ? S.myCall.label || '' : 'With friends') : sv ? (cfg.names && curChannel() ? '💬 #' + curChannel().name : 'Chatting') : 'Chatting with friends')}</small><small>⏱ 00:12 elapsed</small>
+        ${cfg.join && sv ? `<span class="rpc-btn">Join ${esc(sv.name)}</span>` : ''}<span class="rpc-btn">Get Diskord</span></div></div>`;
+    };
+    o.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { cfg[b.dataset.k] = !cfg[b.dataset.k]; ls.set('rpcCfg', cfg); draw(); });
+    o.querySelector('[data-x]').onclick = close; draw();
+  });
+}
+// open ?invite=dk-… links (from the "Join server" button on Discord)
+function handleInviteLink() {
+  let code = ''; try { code = new URLSearchParams(location.search).get('invite') || ''; } catch (_) {}
+  const id = code.replace(/^.*?dk-/, '').replace(/[^A-Za-z0-9]/g, '');
+  if (!id || handleInviteLink.done) return; handleInviteLink.done = true;
+  try { history.replaceState(null, '', location.pathname); } catch (_) {}
+  const sv = (S.allServers || []).find(x => x.id === id);
+  if (!sv) return toast('That invite is invalid or the server was deleted.', true);
+  if (sv.owner === S.myId || (S.myJoined || []).includes(id)) return joinServerById(id);
+  confirmModal('Join ' + sv.name + '?', 'You were invited to join ' + sv.name + ' on Diskord.', 'Join server', () => joinServerById(id));
 }
 function renderHeader() {
   updateRpc();
@@ -1500,6 +1558,51 @@ async function uploadImage(file, maxMB) {
   if (file.size > (maxMB || 8) * 1024 * 1024) { toast(`Images can be at most ${maxMB || 8} MB.`, true); return null; }
   try { toast('Uploading…'); const up = await S.assets.upload(file); return up.id; } catch (e) { toast((e && e.message) || 'Upload failed — try again.', true); return null; }
 }
+// ---------------------------------------------------------------- Edit Image (zoom / move / rotate before upload)
+const CROP = { avatar: { w: 300, h: 300, round: true, out: [512, 512] }, icon: { w: 300, h: 300, round: true, out: [512, 512] }, emoji: { w: 260, h: 260, round: false, out: [128, 128] }, banner: { w: 440, h: 176, round: false, out: [1200, 480] } };
+function editImage(file, kind) {
+  return new Promise(resolve => {
+    if (!file || !/^image\/(png|jpeg|webp|gif)$/.test(file.type)) { toast('Pick an image file (PNG, JPG, GIF, WebP).', true); return resolve(null); }
+    if (file.type === 'image/gif') return resolve(file); // keep GIFs animated
+    const cfg = CROP[kind] || CROP.avatar, url = URL.createObjectURL(file), img = new Image();
+    img.onerror = () => { URL.revokeObjectURL(url); toast('Could not open that image.', true); resolve(null); };
+    img.onload = () => {
+      let zoom = 1, rot = 0, x = 0, y = 0, done = false;
+      const o = modal(`<div class="ei"><div class="ei-h"><h2>Edit Image</h2><button class="ei-x" data-x title="Close">✕</button></div>
+        <div class="ei-stage" id="eiSt"><img id="eiImg" src="${url}" alt="" draggable="false"><div class="ei-frame ${cfg.round ? 'round' : ''}" style="width:${cfg.w}px;height:${cfg.h}px"></div></div>
+        <div class="ei-ctl"><span class="ei-s">🖼</span><input type="range" id="eiZoom" min="1" max="4" step="0.01" value="1"><span class="ei-b">🖼</span><button class="ei-rot" id="eiRot" title="Rotate">⟳</button></div>
+        <div class="ei-f"><button class="ei-reset" id="eiReset">Reset</button><span style="flex:1"></span><button class="btn alt" data-x>Cancel</button><button class="btn primary" id="eiOk">Apply</button></div></div>`, (ov, close) => {
+        const finish = v => { if (done) return; done = true; URL.revokeObjectURL(url); close(); resolve(v); };
+        ov.onmousedown = null; // don't close by clicking outside while dragging
+        const st = ov.querySelector('#eiSt'), im = ov.querySelector('#eiImg'), zr = ov.querySelector('#eiZoom');
+        const dims = () => rot % 180 ? [img.naturalHeight, img.naturalWidth] : [img.naturalWidth, img.naturalHeight];
+        const scale = () => { const [ew, eh] = dims(); return Math.max(cfg.w / ew, cfg.h / eh) * zoom; };
+        const clamp = () => { const [ew, eh] = dims(), s = scale(), mx = Math.max(0, (ew * s - cfg.w) / 2), my = Math.max(0, (eh * s - cfg.h) / 2); x = Math.min(mx, Math.max(-mx, x)); y = Math.min(my, Math.max(-my, y)); };
+        const draw = () => { clamp(); im.style.width = img.naturalWidth + 'px'; im.style.height = img.naturalHeight + 'px'; im.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${rot}deg) scale(${scale()})`; zr.value = zoom; };
+        const setZoom = z => { const old = zoom; zoom = Math.min(4, Math.max(1, z)); x *= zoom / old; y *= zoom / old; draw(); };
+        let drag = null;
+        st.onpointerdown = e => { drag = { px: e.clientX, py: e.clientY, x, y }; st.setPointerCapture(e.pointerId); st.classList.add('grab'); };
+        st.onpointermove = e => { if (!drag) return; x = drag.x + e.clientX - drag.px; y = drag.y + e.clientY - drag.py; draw(); };
+        st.onpointerup = st.onpointercancel = () => { drag = null; st.classList.remove('grab'); };
+        st.onwheel = e => { e.preventDefault(); setZoom(zoom * (e.deltaY < 0 ? 1.08 : 1 / 1.08)); };
+        zr.oninput = () => setZoom(+zr.value);
+        ov.querySelector('#eiRot').onclick = () => { rot = (rot + 90) % 360; draw(); };
+        ov.querySelector('#eiReset').onclick = () => { zoom = 1; rot = 0; x = 0; y = 0; draw(); };
+        ov.querySelectorAll('[data-x]').forEach(b => b.onclick = () => finish(null));
+        const key = e => { if (e.key === 'Escape') { document.removeEventListener('keydown', key); finish(null); } }; document.addEventListener('keydown', key);
+        ov.querySelector('#eiOk').onclick = () => {
+          const [W, H] = cfg.out, k = W / cfg.w, c = document.createElement('canvas'); c.width = W; c.height = H;
+          const g = c.getContext('2d'); g.imageSmoothingQuality = 'high';
+          g.translate(W / 2 + x * k, H / 2 + y * k); g.rotate(rot * Math.PI / 180); g.scale(scale() * k, scale() * k); g.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+          c.toBlob(b => { document.removeEventListener('keydown', key); finish(b ? new File([b], 'diskord.webp', { type: 'image/webp' }) : null); }, 'image/webp', 0.92);
+        };
+        draw();
+      });
+    };
+    img.src = url;
+  });
+}
+const pickImage = (kind, maxMB, cb) => pickFile(async f => { const e = await editImage(f, kind); if (!e) return; const id = await uploadImage(e, maxMB); if (id) cb(id); });
 function pickFile(cb) {
   const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/png,image/jpeg,image/gif,image/webp';
   i.onchange = () => { if (i.files[0]) cb(i.files[0]); }; i.click();
@@ -1539,7 +1642,7 @@ function bindServerForm(o, st) {
   };
   o.querySelectorAll('[data-e]').forEach(b => b.onclick = () => { st.emoji = b.dataset.e; draw(); });
   o.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { st.color = b.dataset.c; draw(); });
-  o.querySelector('#sUp').onclick = () => pickFile(async f => { const id = await uploadImage(f, 8); if (id) { st.icon = id; draw(); toast('Icon ready — press Save'); } });
+  o.querySelector('#sUp').onclick = () => pickImage('icon', 8, id => { st.icon = id; draw(); toast('Icon ready — press Save'); });
   o.querySelector('#sRm').onclick = () => { st.icon = null; draw(); };
   draw();
 }
@@ -1606,8 +1709,8 @@ function openSettings(tab) {
         };
         const saveImg = async (k, v) => { imgs[k] = v; drawImgs(); try { await S.db.doc('profiles/' + S.myId).set({ ...(S.profiles[S.myId] || {}), [k]: v, joinedAt: p.joinedAt || Date.now() }); toast(v ? 'Saved ✨' : 'Removed'); } catch (e) { writeError(e); } };
         if (b.querySelector('#pAvUp')) {
-          b.querySelector('#pAvUp').onclick = () => pickFile(async f => { const id = await uploadImage(f, 8); if (id) saveImg('avatar', id); });
-          b.querySelector('#pBnUp').onclick = () => pickFile(async f => { const id = await uploadImage(f, 10); if (id) saveImg('banner', id); });
+          b.querySelector('#pAvUp').onclick = () => pickImage('avatar', 8, id => saveImg('avatar', id));
+          b.querySelector('#pBnUp').onclick = () => pickImage('banner', 10, id => saveImg('banner', id));
           b.querySelector('#pAvRm').onclick = () => saveImg('avatar', null);
           b.querySelector('#pBnRm').onclick = () => saveImg('banner', null);
           drawImgs();
@@ -1878,6 +1981,7 @@ function profileCard(e, uid) {
         <button data-pm="status"><span class="st-dot ${statusOf(uid) || 'off'}"></span><span>${stLabel[S.status] || 'Online'}</span><i>›</i></button>
         <button data-pm="user">🪪<span>Copy username @${esc(unameOf(uid))}</span><i>›</i></button>
         <button data-pm="net">🌐<span>Diskord network</span><i>›</i></button>
+        ${window.diskord && window.diskord.presence ? '<button data-pm="rpc">🎮<span>Discord Rich Presence</span><i>›</i></button>' : ''}
       </div><div class="pc-menu"><button data-pm="logout" class="danger">🚪<span>Log out</span></button></div>`
       : `<div class="pc-actions">
         <button class="btn primary" data-pm="dm">💬 Message</button>
@@ -1900,6 +2004,7 @@ function profileCard(e, uid) {
     if (k === 'edit') profileEditor();
     if (k === 'user') { navigator.clipboard.writeText(unameOf(uid)).then(() => toast('Username copied — friends add you with @' + unameOf(uid))).catch(() => {}); }
     if (k === 'net') networkModal();
+    if (k === 'rpc') rpcModal();
     if (k === 'logout') confirmModal('Log out', 'Log out of Diskord on this device?', 'Log out', () => window.diskordLogout && window.diskordLogout());
     if (k === 'dm') openDm(uid);
     if (k === 'add') addFriendByUid(uid);
@@ -1950,8 +2055,8 @@ function profileEditor() {
     ov.querySelectorAll('#peColor [data-c]').forEach(x => x.onclick = () => { d.color = x.dataset.c; d.grad = null; preview(); });
     ov.querySelectorAll('#peGrad [data-g]').forEach(x => x.onclick = () => { d.grad = x.dataset.g ? x.dataset.g.split(',') : null; preview(); });
     ov.querySelectorAll('#peTheme [data-t]').forEach(x => x.onclick = () => { const [a, b] = x.dataset.t.split(','); d.themeA = a || null; d.themeB = b || null; preview(); });
-    q('peAv').onclick = () => pickFile(async f => { const id = await uploadImage(f, 8); if (id) { d.avatar = id; preview(); } });
-    q('peBn').onclick = () => pickFile(async f => { const id = await uploadImage(f, 10); if (id) { d.banner = id; preview(); } });
+    q('peAv').onclick = () => pickImage('avatar', 8, id => { d.avatar = id; preview(); });
+    q('peBn').onclick = () => pickImage('banner', 10, id => { d.banner = id; preview(); });
     q('peAvRm').onclick = () => { d.avatar = null; preview(); };
     q('peBnRm').onclick = () => { d.banner = null; preview(); };
     ov.querySelector('[data-x]').onclick = close;
@@ -2177,7 +2282,7 @@ function serverSettings(s, tab) {
       body.querySelector('#ssDesc').oninput = e => { st.desc = e.target.value; pv(); };
       body.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { st.banner = b.dataset.b; mark(); });
       body.querySelectorAll('[data-e]').forEach(b => b.onclick = () => { st.emoji = b.dataset.e; st.icon = null; mark(); });
-      body.querySelector('#ssIcon').onclick = () => pickFile(async f => { const id = await uploadImage(f, 8); if (id) { st.icon = id; mark(); } });
+      body.querySelector('#ssIcon').onclick = () => pickImage('icon', 8, id => { st.icon = id; mark(); });
       body.querySelector('#ssIconRm').onclick = () => { st.icon = null; mark(); };
       body.querySelector('#ssSave').onclick = async () => {
         const name = st.name.trim().slice(0, 40); if (!name) return toast('Give the server a name', true);
@@ -2194,7 +2299,7 @@ function serverSettings(s, tab) {
         const n = body.querySelector('#emName').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 24);
         if (n.length < 2) return toast('Give the emoji a name (2+ letters).', true);
         if (Object.keys(em).length >= 50) return toast('50 emoji max per server.', true);
-        pickFile(async f => { const id = await uploadImage(f, 2); if (!id) return; try { await S.db.doc('servers/' + s.id).update({ emojis: { ...em, [n]: id } }); toast(`:${n}: added`); setTimeout(() => show('emoji'), 300); } catch (e) { writeError(e); } });
+        pickImage('emoji', 2, async id => { try { await S.db.doc('servers/' + s.id).update({ emojis: { ...em, [n]: id } }); toast(`:${n}: added`); setTimeout(() => show('emoji'), 300); } catch (e) { writeError(e); } });
       };
       body.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { const next = { ...em }; delete next[b.dataset.rm]; try { await S.db.doc('servers/' + s.id).update({ emojis: next }); setTimeout(() => show('emoji'), 300); } catch (e) { writeError(e); } });
     } else if (t === 'members' || t === 'roles') {

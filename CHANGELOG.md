@@ -1,5 +1,14 @@
 # Diskord changelog
 
+## 6.3.0
+- 🖼️ **Edit Image** — when you pick a profile picture, banner, server icon or emoji you can now **zoom** (slider or mouse wheel), **drag to move**, **rotate**, and press **Apply** (or **Reset** / **Cancel**)
+- 🎮 **Better Discord Rich Presence**
+  - shows the server you're in with its icon, the channel, and how many people are online
+  - in calls it shows how many people are in the call
+  - your Diskord avatar and status in the corner
+  - new **Discord Rich Presence** settings (click your profile → 🎮) with a live preview: hide names, hide your avatar, or add a **Join server** button
+  - hides itself when you're Invisible
+
 ## 6.2.0
 - 📁 **Categories** — group channels into categories, collapse them, and add channels with the **+** next to a category
 - ➕ **New Create Channel window** — pick Text / Voice / Forum (coming soon), name, category and a 🔒 **Private Channel** toggle with chosen members
