@@ -117,11 +117,14 @@ a.btn.go { color: #062814; } a.btn.primary { color: #fff; }
 .cem-list img { width: 24px; height: 24px; object-fit: contain; }
 .cem-list button { color: var(--dnd); }
 .gifbtn { font-size: 11px !important; font-weight: 800; width: auto !important; padding: 0 7px; border: 2px solid currentColor; height: 22px !important; margin: 7px 4px; border-radius: 5px; }
-.gif-pop { width: 420px; }
+.gif-pop { width: 460px; }
 .gif-top { display: flex; gap: 8px; } .gif-top input { margin-bottom: 0 !important; }
 .btn.sm2 { padding: 0 12px; font-size: 13px; white-space: nowrap; }
 .gif-tabs { padding: 0; margin: 6px 0; }
-.gif-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; height: 300px; overflow-y: auto; align-content: start; grid-auto-rows: 112px; }
+.gif-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 8px; }
+.gif-chips button { flex: 0 0 auto; padding: 5px 10px; border-radius: 999px; background: var(--bg3); font-size: 12.5px; font-weight: 700; color: var(--muted); text-transform: capitalize; }
+.gif-chips button.on, .gif-chips button:hover { background: var(--accent); color: #fff; }
+.gif-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; height: 300px; overflow-y: auto; align-content: start; grid-auto-rows: 112px; height: 330px; }
 .gcell { position: relative; border-radius: 8px; overflow: hidden; cursor: pointer; background: var(--bg0); height: 112px; }
 .gcell img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s; }
 .gcell:hover img { transform: scale(1.05); }
@@ -1142,8 +1145,23 @@ function place(el, anchor) {
 }
 // ============================================================ GIFs
 const GIF_NAMES = { gg: 'gg', lol: 'lol', w: 'W', l: 'L', hype: 'hype', brb: 'brb', gn: 'good night', ez: 'ez', pog: 'pog', ty: 'thank you' };
-const gifSrc = g => g && g.b ? (GIF_BUILTIN[g.b] || '') : g && g.a ? blob(g.a) : '';
-const gifKey = g => g.b ? 'b:' + g.b : 'a:' + g.a;
+// ---- Tenor (real GIFs). Uses the Firebase project's API key once the Tenor API is enabled on that Google Cloud project.
+const TENOR_OK = u => typeof u === 'string' && /^https:\/\/media\d*\.tenor\.com\//.test(u);
+const tenorKey = () => (window.DISKORD_FIREBASE && (window.DISKORD_FIREBASE.tenorKey || window.DISKORD_FIREBASE.apiKey)) || '';
+const tenorCache = new Map();
+async function tenor(path, params) {
+  const key = tenorKey(); if (!key) throw new Error('nokey');
+  const q = new URLSearchParams({ key, client_key: 'diskord', media_filter: 'gif,tinygif', contentfilter: 'medium', limit: '40', locale: navigator.language || 'en', ...params });
+  const url = `https://tenor.googleapis.com/v2/${path}?${q}`;
+  if (tenorCache.has(url)) return tenorCache.get(url);
+  const r = await fetch(url); if (!r.ok) throw new Error('tenor ' + r.status);
+  const j = await r.json();
+  const list = (j.results || []).map(x => ({ u: x.media_formats && x.media_formats.gif && x.media_formats.gif.url, p: x.media_formats && x.media_formats.tinygif && x.media_formats.tinygif.url, n: (x.content_description || x.title || 'GIF').slice(0, 60) })).filter(g => TENOR_OK(g.u) && TENOR_OK(g.p));
+  tenorCache.set(url, list); return list;
+}
+const gifSrc = g => g && g.u ? (TENOR_OK(g.u) ? g.u : '') : g && g.b ? (GIF_BUILTIN[g.b] || '') : g && g.a ? blob(g.a) : '';
+const gifThumb = g => g && g.p && TENOR_OK(g.p) ? g.p : gifSrc(g);
+const gifKey = g => g.u ? 'u:' + g.u : g.b ? 'b:' + g.b : 'a:' + g.a;
 function gifMsgHtml(g) { const src = gifSrc(g); return src ? `<img class="gif" src="${esc(src)}" alt="${esc(g.n || 'GIF')}" title="${esc(g.n || 'GIF')}" loading="lazy" data-zoom="1">` : ''; }
 async function sendGif(g) {
   const c = curChannel(); if (!c || !S.myId) return;
@@ -1158,33 +1176,55 @@ function toggleFav(g) {
   S.favGifs = has ? S.favGifs.filter(x => gifKey(x) !== k) : [g, ...S.favGifs].slice(0, 60);
   ls.set('favGifs', S.favGifs); return !has;
 }
+const GIF_CHIPS = ['trending', 'lol', 'gg', 'hype', 'dance', 'sad', 'cat', 'fail', 'yes', 'no', 'wow', 'love', 'angry', 'bruh', 'thank you', 'good night', 'hello', 'clap'];
 function gifPopover(anchor) {
   closeFloating();
   const el = document.createElement('div'); el.className = 'emoji-pop gif-pop';
-  let tab = S.favGifs.length ? 'fav' : 'all';
-  el.innerHTML = `<div class="gif-top"><input placeholder="Search GIFs…"><button class="btn primary sm2" id="gUp">+ Upload</button></div>
-    <div class="settings-tabs gif-tabs"><button data-t="all">All</button><button data-t="fav">⭐ Favorites</button><button data-t="mine">Mine</button></div>
-    <div class="gif-grid"></div><div class="emoji-foot"><span>💡</span><span>Upload any GIF and everyone can use it · ⭐ to favorite</span></div>`;
+  let tab = 'tenor', chip = 'trending', seq = 0;
+  el.innerHTML = `<div class="gif-top"><input placeholder="Search Tenor GIFs…"><button class="btn primary sm2" id="gUp" title="Upload your own GIF">+ Upload</button></div>
+    <div class="settings-tabs gif-tabs"><button data-t="tenor">🔥 GIFs</button><button data-t="fav">⭐ Favorites</button><button data-t="all">Diskord</button><button data-t="mine">Mine</button></div>
+    <div class="gif-chips"></div>
+    <div class="gif-grid"></div><div class="emoji-foot" id="gFoot"><span>🔎</span><span>Powered by Tenor · ⭐ to favorite · + Upload your own</span></div>`;
   place(el, anchor);
-  const grid = el.querySelector('.gif-grid'), inp = el.querySelector('input');
+  const grid = el.querySelector('.gif-grid'), inp = el.querySelector('input'), chips = el.querySelector('.gif-chips');
   const all = () => [...Object.keys(GIF_BUILTIN).map(b => ({ b, n: GIF_NAMES[b] || b, by: null })), ...S.gifs.map(x => ({ a: x.a, n: x.n || 'gif', by: x.by, id: x.id }))];
-  const draw = () => {
-    const q = inp.value.trim().toLowerCase();
-    let list = tab === 'fav' ? S.favGifs : tab === 'mine' ? all().filter(g => g.by === S.myId) : all();
-    if (q) list = list.filter(g => (g.n || '').toLowerCase().includes(q));
-    el.querySelectorAll('[data-t]').forEach(b => b.classList.toggle('active', b.dataset.t === tab));
-    grid.innerHTML = list.length ? list.map((g, i) => `<div class="gcell" data-i="${i}"><img src="${esc(gifSrc(g))}" alt="" loading="lazy"><span>${esc(g.n || '')}</span>
-      <button class="gfav ${S.favGifs.some(x => gifKey(x) === gifKey(g)) ? 'on' : ''}" title="Favorite">★</button>${g.id && (g.by === S.myId || isOwnerOf(curServer()) || S.isSuper) ? '<button class="gdel" title="Delete from library">✕</button>' : ''}</div>`).join('')
+  const cells = list => {
+    grid.innerHTML = list.length ? list.map((g, i) => `<div class="gcell" data-i="${i}"><img src="${esc(gifThumb(g))}" alt="" loading="lazy"><span>${esc(g.n || '')}</span>
+      <button class="gfav ${S.favGifs.some(x => gifKey(x) === gifKey(g)) ? 'on' : ''}" title="Favorite">★</button>${g.id && (g.by === S.myId || S.isSuper) ? '<button class="gdel" title="Delete from library">✕</button>' : ''}</div>`).join('')
       : `<div class="gif-empty">${tab === 'fav' ? 'No favorites yet — tap ★ on a GIF.' : tab === 'mine' ? 'You haven\'t uploaded any GIFs yet.' : 'Nothing found.'}</div>`;
     grid.querySelectorAll('.gcell').forEach(c => {
-      const g = list[+c.dataset.i], clean = g.b ? { b: g.b, n: g.n } : { a: g.a, n: g.n };
+      const g = list[+c.dataset.i], clean = g.u ? { u: g.u, p: g.p, n: g.n } : g.b ? { b: g.b, n: g.n } : { a: g.a, n: g.n };
       c.onclick = e => { if (e.target.closest('button')) return; closeFloating(); sendGif(clean); };
-      c.querySelector('.gfav').onclick = () => { toggleFav(clean); draw(); };
+      c.querySelector('.gfav').onclick = () => { toggleFav(clean); c.querySelector('.gfav').classList.toggle('on'); };
       const d = c.querySelector('.gdel'); if (d) d.onclick = async () => { try { await S.db.doc('gifs/' + g.id).delete(); toast('GIF removed from library'); } catch (er) { writeError(er); } };
     });
   };
+  const draw = async () => {
+    const q = inp.value.trim().toLowerCase(), my = ++seq;
+    el.querySelectorAll('[data-t]').forEach(b => b.classList.toggle('active', b.dataset.t === tab));
+    chips.classList.toggle('hidden', tab !== 'tenor');
+    chips.innerHTML = GIF_CHIPS.map(c => `<button class="${!q && c === chip ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}</button>`).join('');
+    chips.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { chip = b.dataset.c; inp.value = ''; draw(); });
+    if (tab === 'tenor') {
+      grid.innerHTML = '<div class="gif-empty"><div class="spin" style="margin:0 auto"></div></div>';
+      try {
+        const term = q || chip;
+        const list = term === 'trending' ? await tenor('featured', {}) : await tenor('search', { q: term });
+        if (my === seq) cells(list);
+      } catch (e) {
+        if (my !== seq) return;
+        const local = all().filter(g => !q || (g.n || '').toLowerCase().includes(q));
+        cells(local);
+        grid.insertAdjacentHTML('afterbegin', `<div class="gif-empty" style="padding:10px;grid-column:1/-1">${e.message === 'nokey' || /40[03]/.test(e.message) ? 'Tenor GIFs aren\'t switched on yet — showing Diskord GIFs.' : 'Can\'t reach Tenor right now — showing Diskord GIFs.'}</div>`);
+      }
+      return;
+    }
+    let list = tab === 'fav' ? S.favGifs : tab === 'mine' ? all().filter(g => g.by === S.myId) : all();
+    if (q) list = list.filter(g => (g.n || '').toLowerCase().includes(q));
+    cells(list);
+  };
   el.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { tab = b.dataset.t; draw(); });
-  inp.oninput = draw;
+  let t = null; inp.oninput = () => { clearTimeout(t); t = setTimeout(draw, tab === 'tenor' ? 350 : 0); };
   el.querySelector('#gUp').onclick = () => {
     if (!S.assets) return toast('Uploads are not available here.', true);
     pickFile(async f => {
@@ -1194,7 +1234,7 @@ function gifPopover(anchor) {
       catch (e) { writeError(e); }
     });
   };
-  el._redraw = draw; draw(); inp.focus();
+  el._redraw = () => { if (tab !== 'tenor') draw(); }; draw(); inp.focus();
 }
 function emojiPopover(anchor, onPick) {
   closeFloating();

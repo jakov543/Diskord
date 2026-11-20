@@ -1,13 +1,13 @@
 {
   "name": "diskord",
   "productName": "Diskord",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Diskord desktop app - chat, voice calls and video calls",
   "author": "jakov543",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis"
+    "dist": "electron-builder --win nsis --x64 --publish never"
   },
   "devDependencies": {
     "electron": "33.2.1",
@@ -27,7 +27,8 @@
       "ui/**",
       "app/**",
       "build/icon.png",
-      "package.json"
+      "package.json",
+      "CHANGELOG.md"
     ],
     "win": {
       "target": "nsis",
@@ -48,6 +49,15 @@
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": false
     },
-    "publish": null
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "jakov543",
+        "repo": "Diskord"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "6.3.9"
   }
 }

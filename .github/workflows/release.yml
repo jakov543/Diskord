@@ -2,7 +2,7 @@ name: Build Diskord installer
 on:
   push:
     branches: [main]
-    paths-ignore: ['README.md', 'firestore.rules']
+    paths-ignore: ['README.md', 'firestore.rules', 'CHANGELOG.md']
   workflow_dispatch:
 permissions:
   contents: write
@@ -24,6 +24,7 @@ jobs:
         run: |
           mkdir -p desktop/app/icons desktop/app/vendor
           cp index.html call.html adapter.js firebase-config.js logo.svg manifest.webmanifest desktop/app/
+          cp CHANGELOG.md desktop/CHANGELOG.md
           cp icons/*.png desktop/app/icons/
           cd desktop/app/vendor
           npm pack firebase@10.14.1 peerjs@1.5.4 --silent
@@ -46,6 +47,21 @@ jobs:
         id: v
         shell: bash
         run: echo "version=$(node -p "require('./desktop/package.json').version")" >> $GITHUB_OUTPUT
+      - name: Release notes from CHANGELOG.md
+        if: steps.cfg.outputs.ok == 'true'
+        shell: bash
+        run: |
+          V="${{ steps.v.outputs.version }}"
+          awk -v v="$V" '/^## /{p=($2==v)} p && !/^## /' CHANGELOG.md > notes.md
+          {
+            echo "## What's new in Diskord $V"; echo; cat notes.md; echo
+            echo "---"; echo "### ⬇️ Install (Windows 10 / 11)"
+            echo "1. Download **Diskord-Setup-$V.exe** below and run it."
+            echo "2. If Windows SmartScreen says *Windows protected your PC*, click **More info → Run anyway** (the app isn't code-signed)."
+            echo "3. Open Diskord, then **Sign up** or **Log in**."
+            echo; echo "Already have Diskord? It updates itself — or use **Check for updates** in the tray menu."
+          } > body.md
+          cat body.md
       - name: Publish release
         if: steps.cfg.outputs.ok == 'true'
         uses: softprops/action-gh-release@v2
@@ -53,13 +69,8 @@ jobs:
           tag_name: v${{ steps.v.outputs.version }}
           name: Diskord ${{ steps.v.outputs.version }}
           make_latest: true
-          body: |
-            ## Diskord for Windows 10 / 11
-            1. Download **Diskord-Setup-${{ steps.v.outputs.version }}.exe** below.
-            2. Run it. If Windows SmartScreen says "Windows protected your PC", click **More info → Run anyway** (the app isn't code-signed).
-            3. Open Diskord, then **Sign up** (email + password) or **Log in**.
-
-            **New in 2.0:** Diskord has its own accounts now — Sign up / Log in with email + password, password reset, change your display name. Works offline with your recent messages, and has a branded installer.
-
-            Calls open in their own Diskord window with mic, camera and screen share.
-          files: desktop/dist/Diskord-Setup-*.exe
+          body_path: body.md
+          files: |
+            desktop/dist/Diskord-Setup-*.exe
+            desktop/dist/Diskord-Setup-*.exe.blockmap
+            desktop/dist/latest.yml
