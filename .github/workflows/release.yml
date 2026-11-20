@@ -1,0 +1,36 @@
+name: Build Diskord installer
+on:
+  push:
+    branches: [main]
+    paths: ['desktop/**', '.github/workflows/release.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Install
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+      - name: Build installer
+        working-directory: desktop
+        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
+        run: npm run dist
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Diskord ${{ github.run_number == 1 && '1.0' || format('1.0.{0}', github.run_number) }}
+          make_latest: true
+          body: |
+            ## Diskord for Windows 10 / 11
+            1. Download **Diskord-Setup-1.0.0.exe** below.
+            2. Run it. If Windows SmartScreen says "Windows protected your PC", click **More info → Run anyway** (the app isn't code-signed).
+            3. Open Diskord from the desktop or Start menu and sign in to claude.ai.
+
+            Calls open in their own Diskord window with mic, camera and screen share.
+          files: desktop/dist/Diskord-Setup-*.exe

@@ -4,7 +4,8 @@
 
 Diskord (formerly **Flixcord**) is a Discord-style app for you and your friends: servers, channels, GIFs and emoji, plus **voice calls, video calls and screen sharing**.
 
-**🌐 App:** https://jakov543.github.io/Diskord/ (open it in Chrome or Edge and click **Install app**)
+**⬇ Windows app:** https://github.com/jakov543/Diskord/releases/latest (download `Diskord-Setup-….exe`)
+**🌐 Web app:** https://jakov543.github.io/Diskord/ (open it in Chrome or Edge and click **Install app**)
 **💬 Chat:** https://claude.ai/artifact/JmfsXjNXdnXfMiNrJP5a3t (the owner invites friends by email as *Editor*)
 
 ## Install as an app
