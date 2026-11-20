@@ -1,5 +1,20 @@
 # Diskord changelog
 
+## 6.5.0
+- 💎 **Diskord Nitro** is here: **2,99 € / month** or **29,99 € / year**
+  - 💎 badge next to your name
+  - GIF avatar and banner
+  - custom emoji from all your servers, in any server
+  - 50 MB uploads
+- 🚀 **Server Boost** is here: **1,99 € / month** or **19,99 € / year**
+  - 🚀 next to the server name
+  - 250 emoji slots
+  - GIF server icon
+- 💳 Pay with **PayPal**. Aircash is coming soon.
+  - After you pay, press **I've paid**. The owner checks the payment and your perks turn on right away.
+  - It does not renew by itself.
+- 🎞️ GIF search now uses **KLIPY**, because Google shut down Tenor GIFs on 30 June 2026
+
 ## 6.4.0
 - 📞 **New call screen like Discord**
   - everyone shows as a round avatar, with a green ring when they talk and red mute / deafen badges

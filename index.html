@@ -284,6 +284,20 @@ i.d { display: inline-block; width: 8px; height: 8px; border-radius: 50%; backgr
 .fp-row { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; padding: 10px; border-radius: 10px; } .fp-row:hover { background: var(--bg2); } .fp-row b { display: block; } .fp-row small { color: var(--muted); font-size: 13px; }
 .fp-si { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; overflow: hidden; flex: 0 0 40px; } .fp-si img { width: 100%; height: 100%; object-fit: cover; }
 @media (max-width: 760px) { .fp { grid-template-columns: 1fr; padding: 40px 12px 0; overflow-y: auto; } .fp-r { min-height: 300px; } }
+.nbadge { font-size: .85em; }
+.ni-on { margin: 0 0 14px; font-size: 15px; } .soonpage .ni-on { margin-top: -6px; }
+.pay { padding: 22px; } .pay-m b .save { font-size: 11px; background: var(--ok); color: #04130b; padding: 2px 6px; border-radius: 6px; vertical-align: middle; font-style: normal; } .ni-year { color: var(--muted); font-size: 13.5px; margin-top: 10px; } .pay-h { display: flex; gap: 14px; align-items: center; } .pay-ic { width: 54px; height: 54px; border-radius: 14px; background: var(--grad); display: grid; place-items: center; font-size: 28px; }
+.pay-h h2 { font-size: 19px; } .pay-h p { color: var(--muted); font-size: 14px; }
+.pay-warn { background: rgba(242,63,67,.15); color: #ffb3b5; border-radius: 8px; padding: 10px 12px; margin-top: 14px; font-size: 13.5px; }
+.pay-l { font-weight: 700; font-size: 14px; margin: 18px 0 8px; }
+.pay-m { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .pay-m button { background: var(--bg1); border: 2px solid var(--line); border-radius: 10px; padding: 12px; text-align: left; } .pay-m button.sel { border-color: var(--accent); background: var(--bg3); }
+.pay-m button:disabled { opacity: .5; cursor: default; } .pay-m b { display: block; font-size: 18px; font-weight: 800; } .pay-m small { color: var(--muted); font-size: 12.5px; }
+.pp { color: #2a7fff; font-style: italic; } .pp span { color: #4cc3ff; } .ac { color: #ffd400; }
+.pay-steps { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; } .step { display: flex; gap: 12px; font-size: 14px; line-height: 1.5; } .step > i { flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--bg3); display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 13px; } .step > div { flex: 1; }
+.pp-btn { display: block; margin-top: 8px; background: #ffc439; color: #111; font-weight: 800; text-align: center; padding: 11px; border-radius: 22px; text-decoration: none; } .pp-btn:hover { filter: brightness(1.05); }
+.ordcard { margin-top: 6px; max-width: 460px; background: var(--bg1); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 14px; }
+.ordcard .oh { font-size: 11.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; } .ordcard b { display: block; font-size: 15.5px; } .ordcard small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.ordcard code { background: var(--bg3); padding: 1px 5px; border-radius: 4px; } .ob2 { display: flex; gap: 8px; margin-top: 10px; }
 .ch .mbadge { background: var(--dnd); color: #fff; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 1px 6px; }
 .me-bar { display: flex; align-items: center; gap: 9px; padding: 8px 10px; background: var(--bg0); flex: 0 0 auto; }
 .me-bar .who { flex: 1; min-width: 0; line-height: 1.2; }
@@ -667,7 +681,7 @@ function md(text) {
   return s;
 }
 const plain = t => String(t).replace(/\|\|[^|]*\|\|/g, '▒▒▒').replace(/[*_~`]/g, '');
-const serverEmojis = () => { const sv = S.servers.find(x => x.id === S.sid); return (sv && sv.emojis) || {}; };
+const serverEmojis = () => { const sv = S.servers.find(x => x.id === S.sid); const own = (sv && sv.emojis) || {}; if (!S.myId || !hasNitro(S.myId)) return own; const all = {}; for (const x of S.servers) Object.assign(all, x.emojis || {}); return Object.assign(all, own); };
 const onlyEmoji = t => t && t.length <= 24 && /^(\p{Extended_Pictographic}|\p{Emoji_Component}|‍|️|\s)+$/u.test(t) && /\p{Extended_Pictographic}/u.test(t);
 
 // ====================================================================== boot
@@ -715,6 +729,7 @@ let coreLoaded = { servers: false, channels: false };
 function subscribeCore() {
   const fail = e => { if (e && e.code === 'revoked') toast('Your access to Diskord changed.', true); };
   S.db.doc('joined/' + S.myId).onSnapshot(sn => { S.myJoined = (sn.exists && Array.isArray(sn.data().servers)) ? sn.data().servers : []; filterServers(); pickChannel(); renderAll(); }, () => {});
+  S.db.collection('perks').onSnapshot(snap => { S.perks = {}; snap.docs.forEach(d => { S.perks[d.id] = d.data(); }); renderAll(); }, () => {});
   S.db.collection('joined').onSnapshot(snap => { S.joinedBy = {}; snap.docs.forEach(d => { S.joinedBy[d.id] = Array.isArray(d.data().servers) ? d.data().servers : []; }); renderMembers(); }, () => {});
   S.db.collection('servers').orderBy('at').onSnapshot(snap => {
     S.allServers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -1101,10 +1116,11 @@ function msgHtml(m, cont) {
   const isOwnerTag = s && s.owner === m.uid, isCoTag = !isOwnerTag && isCo(s, m.uid);
   const reacts = Object.entries(m.react || {}).filter(([, us]) => Array.isArray(us) && us.length);
   const replyRef = m.reply ? `<div class="reply-ref" data-jump="${esc(m.reply.id)}">${avatarHtml(m.reply.uid, 16)}<b>${esc(nameOf(m.reply.uid))}</b><span>${esc(plain(m.reply.text || '🖼️ image').slice(0, 120))}</span></div>` : '';
-  const big = !m.poll && !m.img && !m.gif && !m.invite && (onlyEmoji(m.text) || /^(\s*:[a-z0-9_]+:\s*){1,3}$/.test(m.text || '') && Object.keys(serverEmojis()).length && (m.text.match(/:([a-z0-9_]+):/g) || []).every(x => serverEmojis()[x.slice(1, -1)]));
+  const big = !m.poll && !m.img && !m.gif && !m.invite && !m.order && (onlyEmoji(m.text) || /^(\s*:[a-z0-9_]+:\s*){1,3}$/.test(m.text || '') && Object.keys(serverEmojis()).length && (m.text.match(/:([a-z0-9_]+):/g) || []).every(x => serverEmojis()[x.slice(1, -1)]));
   const body = `${m.text ? `<div class="txt ${big ? 'big-emoji' : ''}">${md(m.text)}${m.edited ? '<span class="edited">(edited)</span>' : ''}</div>` : ''}` +
     (m.call ? callCardHtml(m) : '') +
     (m.invite ? inviteCardHtml(m) : '') +
+    (m.order ? orderCardHtml(m) : '') +
     (m.gif ? gifMsgHtml(m.gif) : '') +
     (m.img ? `<img class="img" src="${esc(blob(m.img))}" alt="" data-zoom="1">` : '') +
     (m.poll ? pollHtml(m) : '') +
@@ -1202,6 +1218,7 @@ function bindFeed() {
     el.querySelectorAll('[data-vote]').forEach(b => b.onclick = () => vote(m, +b.dataset.vote));
     el.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => jumpTo(b.dataset.jump));
     el.querySelectorAll('[data-joinsv]').forEach(b => b.onclick = () => joinServerById(b.dataset.joinsv));
+    if (m.order) bindOrderCards(el, curChannel());
     el.querySelectorAll('[data-joincall]').forEach(a => a.addEventListener('click', () => joinCall(a.dataset.joincall, a.dataset.label)));
     el.querySelectorAll('.spoiler').forEach(sp => sp.onclick = () => sp.classList.toggle('open'));
     el.querySelectorAll('[data-zoom]').forEach(im => im.onclick = () => lightbox(im.src));
@@ -1388,7 +1405,7 @@ function renderMembers() {
   const box = $('members'), sv = curServer();
   const ids = memberIds();
   const row = id => { const p = S.profiles[id] || {}; const on = !!statusOf(id); const inv = S.inCall.has(id) || (id === S.myId && S.myCall);
-    return `<button class="mem ${on ? '' : 'off'}" data-uid="${esc(id)}">${avatarHtml(id, 32, true)}<div class="n"><b style="${on ? nameStyle(id) : ''}">${esc(nameOf(id))}${sv && sv.owner === id ? ' <span class="crown" title="Server owner">👑</span>' : isCo(sv, id) ? ' <span class="crown" title="Co-owner">🛡️</span>' : ''}</b>${inv ? '<small style="color:var(--ok)">📞 In a call</small>' : p.custom ? `<small>${esc(p.custom)}</small>` : ''}</div></button>`; };
+    return `<button class="mem ${on ? '' : 'off'}" data-uid="${esc(id)}">${avatarHtml(id, 32, true)}<div class="n"><b style="${on ? nameStyle(id) : ''}">${esc(nameOf(id))}${sv && sv.owner === id ? ' <span class="crown" title="Server owner">👑</span>' : isCo(sv, id) ? ' <span class="crown" title="Co-owner">🛡️</span>' : ''}${nitroBadge(id)}</b>${inv ? '<small style="color:var(--ok)">📞 In a call</small>' : p.custom ? `<small>${esc(p.custom)}</small>` : ''}</div></button>`; };
   const groups = [];
   const used = new Set();
   if (sv) {
@@ -1443,7 +1460,7 @@ function fullProfile(uid, tab) {
         <div class="fp-b" style="${p.banner ? `background:center/cover url('${esc(blob(p.banner))}')` : `background:${S.colors[uid] || 'var(--grad)'}`}"></div>
         <div class="fp-av">${avatarHtml(uid, 140, true)}</div>
         <div class="fp-in">
-          <div class="fp-n" style="${nameStyle(uid)}">${esc(nameOf(uid))}</div>
+          <div class="fp-n"><span style="${nameStyle(uid)}">${esc(nameOf(uid))}</span>${nitroBadge(uid)}</div>
           <div class="fp-u">${esc(unameOf(uid))}${p.pronouns ? ' • ' + esc(p.pronouns) : ''}${S.servers.some(sv => sv.owner === uid) ? ' <span class="fp-badge" title="Server owner">👑</span>' : ''}${isBlocked(uid) ? ' <span class="fp-badge" style="background:var(--dnd)">Blocked</span>' : ''}</div>
           <div class="fp-btns">${me ? '<button class="btn primary" data-a="edit">✏️ Edit Profile</button>' : `<button class="btn primary" data-a="dm">💬 Message</button>
             <button class="btn alt fp-ib" data-a="friend" title="${!f ? 'Add Friend' : f.status === 'pending' ? (f.from === S.myId ? 'Pending — click to cancel' : 'Accept friend request') : 'Friends'}">${!f ? '👤+' : f.status === 'pending' ? (f.from === S.myId ? '⏳' : '✅') : '👥✓'}</button>`}
@@ -1476,6 +1493,7 @@ function fullProfile(uid, tab) {
         if (!me && inv.length) items.push({ label: 'Invite to Server ›', icon: '📨', run: () => setTimeout(() => menu({ currentTarget: btn, clientX: e.clientX, clientY: e.clientY }, inv.slice(0, 12).map(sv => ({ label: sv.name, icon: sv.emoji || '🎮', run: () => sendServerInvite(sv, uid) }))), 30) });
         if (!me) items.push('-', isBlocked(uid) ? { label: 'Unblock', icon: '✅', run: () => { setBlocked(uid, false); toast(nameOf(uid) + ' unblocked'); draw(); } }
           : { label: 'Block', icon: '⛔', danger: true, run: () => confirmModal('Block ' + nameOf(uid) + '?', 'Their messages will be hidden for you and their calls won\'t ring. They won\'t be told. (Blocking is saved on this device.)', 'Block', () => { setBlocked(uid, true); toast(nameOf(uid) + ' blocked'); draw(); }) });
+        if (isAppOwner(S.myId)) items.push('-', { label: 'Give Nitro — 1 month', icon: '💎', run: async () => { await grantPerk('nitro', uid, null, 30); draw(); } }, { label: 'Give Nitro — 1 year', icon: '💎', run: async () => { await grantPerk('nitro', uid, null, 365); draw(); } }, ...(hasNitro(uid) ? [{ label: 'Remove Nitro', icon: '✖', danger: true, run: async () => { await removePerk('nitro', uid); draw(); } }] : []));
         items.push('-', { label: 'Copy User ID', icon: '🆔', run: () => navigator.clipboard.writeText(uid).then(() => toast('User ID copied')).catch(() => {}) });
         menu({ currentTarget: btn, clientX: e.clientX, clientY: e.clientY }, items);
       }
@@ -1530,22 +1548,27 @@ function place(el, anchor) {
 }
 // ============================================================ GIFs
 const GIF_NAMES = { gg: 'gg', lol: 'lol', w: 'W', l: 'L', hype: 'hype', brb: 'brb', gn: 'good night', ez: 'ez', pog: 'pog', ty: 'thank you' };
-// ---- Tenor (real GIFs). Uses the Firebase project's API key once the Tenor API is enabled on that Google Cloud project.
+// ---- KLIPY (real GIFs — Google shut the Tenor API down on 30 June 2026). Free key from partner.klipy.com → window.DISKORD_KLIPY
 const TENOR_OK = u => typeof u === 'string' && /^https:\/\/media\d*\.tenor\.com\//.test(u);
-const tenorKey = () => window.DISKORD_TENOR || '';
+const KLIPY_OK = u => typeof u === 'string' && /^https:\/\/([a-z0-9-]+\.)*klipy\.com\/[^\s"'<>]+$/i.test(u) && u.length < 400;
+const WEB_GIF_OK = u => TENOR_OK(u) || KLIPY_OK(u);
+const tenorKey = () => String(window.DISKORD_KLIPY || '').replace(/[^A-Za-z0-9_-]/g, '');
+const gifCustomer = () => { let id = ls.get('gifCid', ''); if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); ls.set('gifCid', id); } return id; };
 const tenorCache = new Map();
 async function tenor(path, params) {
   const key = tenorKey(); if (!key) throw new Error('nokey');
-  const q = new URLSearchParams({ key, client_key: 'diskord', media_filter: 'gif,tinygif', contentfilter: 'medium', limit: '40', locale: navigator.language || 'en', ...params });
-  const url = `https://tenor.googleapis.com/v2/${path}?${q}`;
+  const q = new URLSearchParams({ page: '1', per_page: '40', customer_id: gifCustomer(), locale: (navigator.language || 'en').slice(0, 2), content_filter: 'medium', format_filter: 'gif', ...params });
+  const url = `https://api.klipy.com/api/v1/${key}/gifs/${path === 'featured' ? 'trending' : 'search'}?${q}`;
   if (tenorCache.has(url)) return tenorCache.get(url);
-  const r = await fetch(url); if (!r.ok) throw new Error('tenor ' + r.status);
+  const r = await fetch(url); if (!r.ok) throw new Error('klipy ' + r.status);
   const j = await r.json();
-  const list = (j.results || []).map(x => ({ u: x.media_formats && x.media_formats.gif && x.media_formats.gif.url, p: x.media_formats && x.media_formats.tinygif && x.media_formats.tinygif.url, n: (x.content_description || x.title || 'GIF').slice(0, 60) })).filter(g => TENOR_OK(g.u) && TENOR_OK(g.p));
+  const items = (j && j.data && Array.isArray(j.data.data)) ? j.data.data : [];
+  const pick = (f, ...sizes) => { for (const z of sizes) { const u = f && f[z] && f[z].gif && f[z].gif.url; if (KLIPY_OK(u)) return u; } return ''; };
+  const list = items.filter(x => x && x.file && x.type !== 'ad').map(x => ({ u: pick(x.file, 'md', 'hd', 'sm'), p: pick(x.file, 'sm', 'xs', 'md'), n: String(x.title || 'GIF').slice(0, 60) })).filter(g => g.u && g.p);
   tenorCache.set(url, list); return list;
 }
-const gifSrc = g => g && g.u ? (TENOR_OK(g.u) ? g.u : '') : g && g.b ? (GIF_BUILTIN[g.b] || '') : g && g.a ? blob(g.a) : '';
-const gifThumb = g => g && g.p && TENOR_OK(g.p) ? g.p : gifSrc(g);
+const gifSrc = g => g && g.u ? (WEB_GIF_OK(g.u) ? g.u : '') : g && g.b ? (GIF_BUILTIN[g.b] || '') : g && g.a ? blob(g.a) : '';
+const gifThumb = g => g && g.p && WEB_GIF_OK(g.p) ? g.p : gifSrc(g);
 const gifKey = g => g.u ? 'u:' + g.u : g.b ? 'b:' + g.b : 'a:' + g.a;
 function gifMsgHtml(g) { const src = gifSrc(g); return src ? `<img class="gif" src="${esc(src)}" alt="${esc(g.n || 'GIF')}" title="${esc(g.n || 'GIF')}" loading="lazy" data-zoom="1">` : ''; }
 async function sendGif(g) {
@@ -1566,10 +1589,10 @@ function gifPopover(anchor) {
   closeFloating();
   const el = document.createElement('div'); el.className = 'emoji-pop gif-pop';
   let tab = tenorKey() ? 'tenor' : 'all', chip = 'trending', seq = 0;
-  el.innerHTML = `<div class="gif-top"><input placeholder="Search Tenor GIFs…"><button class="btn primary sm2" id="gUp" title="Upload your own GIF">+ Upload</button></div>
+  el.innerHTML = `<div class="gif-top"><input placeholder="Search KLIPY GIFs…"><button class="btn primary sm2" id="gUp" title="Upload your own GIF">+ Upload</button></div>
     <div class="settings-tabs gif-tabs"><button data-t="tenor">🔥 GIFs</button><button data-t="fav">⭐ Favorites</button><button data-t="all">Diskord</button><button data-t="mine">Mine</button></div>
     <div class="gif-chips"></div>
-    <div class="gif-grid"></div><div class="emoji-foot" id="gFoot"><span>🔎</span><span>Powered by Tenor · ⭐ to favorite · + Upload your own</span></div>`;
+    <div class="gif-grid"></div><div class="emoji-foot" id="gFoot"><span>🔎</span><span>Powered by KLIPY · ⭐ to favorite · + Upload your own</span></div>`;
   place(el, anchor);
   const grid = el.querySelector('.gif-grid'), inp = el.querySelector('input'), chips = el.querySelector('.gif-chips');
   const all = () => [...Object.keys(GIF_BUILTIN).map(b => ({ b, n: GIF_NAMES[b] || b, by: null })), ...S.gifs.map(x => ({ a: x.a, n: x.n || 'gif', by: x.by, id: x.id }))];
@@ -1600,7 +1623,7 @@ function gifPopover(anchor) {
         if (my !== seq) return;
         const local = all().filter(g => !q || (g.n || '').toLowerCase().includes(q));
         cells(local);
-        grid.insertAdjacentHTML('afterbegin', `<div class="gif-empty" style="padding:10px;grid-column:1/-1">${e.message === 'nokey' || /40[03]/.test(e.message) ? 'GIF search needs a Tenor key — showing Diskord GIFs. Upload your own with + Upload.' : 'Can\'t reach Tenor right now — showing Diskord GIFs.'}</div>`);
+        grid.insertAdjacentHTML('afterbegin', `<div class="gif-empty" style="padding:10px;grid-column:1/-1">${e.message === 'nokey' || /40[03]/.test(e.message) ? 'GIF search isn\'t switched on yet — showing Diskord GIFs. Upload your own with + Upload.' : 'Can\'t reach KLIPY right now — showing Diskord GIFs.'}</div>`);
       }
       return;
     }
@@ -1676,7 +1699,8 @@ async function toggleCo(s, uid) {
 async function uploadImage(file, maxMB) {
   if (!S.assets) { toast('Image uploads are not available here.', true); return null; }
   if (!file || !file.type.startsWith('image/')) { toast('Pick an image file (PNG, JPG, GIF, WebP).', true); return null; }
-  if (file.size > (maxMB || 8) * 1024 * 1024) { toast(`Images can be at most ${maxMB || 8} MB.`, true); return null; }
+  if (S.myId && hasNitro(S.myId)) maxMB = Math.max(maxMB || 8, 50);
+  if (file.size > (maxMB || 8) * 1024 * 1024) { toast(`Images can be at most ${maxMB || 8} MB.` + (hasNitro(S.myId) ? '' : ' Nitro 💎 allows 50 MB.'), true); return null; }
   try { toast('Uploading…'); const up = await S.assets.upload(file); return up.id; } catch (e) { toast((e && e.message) || 'Upload failed — try again.', true); return null; }
 }
 // ---------------------------------------------------------------- Edit Image (zoom / move / rotate before upload)
@@ -1684,7 +1708,11 @@ const CROP = { avatar: { w: 300, h: 300, round: true, out: [512, 512] }, icon: {
 function editImage(file, kind) {
   return new Promise(resolve => {
     if (!file || !/^image\/(png|jpeg|webp|gif)$/.test(file.type)) { toast('Pick an image file (PNG, JPG, GIF, WebP).', true); return resolve(null); }
-    if (file.type === 'image/gif') return resolve(file); // keep GIFs animated
+    if (file.type === 'image/gif') { // keep GIFs animated — a Nitro / Boost perk for avatars, banners and server icons
+      if ((kind === 'avatar' || kind === 'banner') && !hasNitro(S.myId)) { toast('Animated avatars and banners need Nitro 💎', true); return resolve(null); }
+      if (kind === 'icon' && !(S.sid && isBoosted(S.sid))) { toast('Animated server icons need a Server Boost 🚀', true); return resolve(null); }
+      return resolve(file);
+    }
     const cfg = CROP[kind] || CROP.avatar, url = URL.createObjectURL(file), img = new Image();
     img.onerror = () => { URL.revokeObjectURL(url); toast('Could not open that image.', true); resolve(null); };
     img.onload = () => {
@@ -1960,7 +1988,7 @@ function renderHomeSidebar() {
   box.innerHTML = `<button class="find" id="findConv">Find or start a conversation</button>
     <button class="ch home-link ${!S.cid && !['requests', 'nitro'].includes(S.homeTab) ? 'active' : ''}" data-home="friends"><span class="hash">${ICON.friends}</span><span class="nm">Friends</span>${pend ? `<span class="mbadge">${pend}</span>` : ''}</button>
     <button class="ch home-link ${S.homeTab === 'requests' && !S.cid ? 'active' : ''}" data-home="requests"><span class="hash">${ICON.mail}</span><span class="nm">Message Requests</span>${reqs ? `<span class="mbadge">${reqs}</span>` : ''}</button>
-    <button class="ch home-link ${S.homeTab === 'nitro' && !S.cid ? 'active' : ''}" data-home="nitro"><span class="hash">💎</span><span class="nm">Nitro</span><span class="soon-tag">Soon</span></button>
+    <button class="ch home-link ${S.homeTab === 'nitro' && !S.cid ? 'active' : ''}" data-home="nitro"><span class="hash">💎</span><span class="nm">Nitro</span>${hasNitro(S.myId) ? '' : '<span class="soon-tag">New</span>'}</button>
     <div class="cat" style="margin-top:14px"><span>Direct Messages</span><button id="newDm" title="Create DM">+</button></div>
     ${visibleDms().map(d => { const u = d.members.find(x => x !== S.myId) || S.myId; const unread = isDmUnread(d);
       return `<div class="dm-row ${S.cid === 'dm_' + d.id ? 'active' : ''} ${unread ? 'unread' : ''}" data-dm="${esc(u)}">${avatarHtml(u, 32, true)}<div class="n"><b>${esc(nameOf(u))}</b>${(S.profiles[u] || {}).custom ? `<small>${esc(S.profiles[u].custom)}</small>` : ''}</div>${unread ? '<span class="dot"></span>' : ''}<button class="x" data-hide="${esc(d.id)}" title="Close DM">✕</button></div>`; }).join('') ||
@@ -2214,7 +2242,7 @@ const firstText = s => serverChannels(s.id).find(c => c.type !== 'voice' && c.ty
 function renderChannels() {
   if (isHome()) return renderHomeSidebar();
   const s = curServer();
-  $('srvName').textContent = s ? s.name : 'Diskord';
+  $('srvName').innerHTML = s ? esc(s.name) + (isBoosted(s.id) ? ' <span title="Boosted server">🚀</span>' : '') : 'Diskord';
   const box = $('channels');
   if (!s) { box.innerHTML = `<div style="padding:12px;color:var(--muted);font-size:13px">${S.servers.length ? '' : 'No servers yet.'}</div>`; return; }
   const all = serverChannels(s.id).filter(c => canSee(c, s));
@@ -2416,16 +2444,16 @@ function serverSettings(s, tab) {
         try { await S.db.doc('servers/' + s.id).update({ name, icon: st.icon, emoji: st.emoji, banner: st.banner, desc: st.desc.trim().slice(0, 300) }); toast('Saved ✓'); } catch (e) { writeError(e); }
       };
       mark();
-    } else if (t === 'boost') body.innerHTML = boostHtml(s);
+    } else if (t === 'boost') { body.innerHTML = boostHtml(s); bindBoost(body, () => show('boost')); }
     else if (t === 'emoji') {
       const em = s.emojis || {};
-      body.innerHTML = `<h2>Emoji</h2><p class="ss-sub">Upload your own emoji. Everyone in ${esc(s.name)} can use them with <b>:name:</b> or from the ⭐ tab in the emoji picker. Up to 50.</p>
+      body.innerHTML = `<h2>Emoji</h2><p class="ss-sub">Upload your own emoji. Everyone in ${esc(s.name)} can use them with <b>:name:</b> or from the ⭐ tab in the emoji picker. Up to ${isBoosted(s.id) ? '250 (boosted 🚀)' : '50 — Boost for 250'}.</p>
         <div class="addbox" style="max-width:520px"><input id="emName" maxlength="24" placeholder="name (e.g. pog)"><button class="btn primary sm2" id="emAdd">Upload Emoji</button></div>
         <div class="cem-list" style="margin-top:14px">${Object.entries(em).map(([n, id]) => `<div><img src="${blob(id)}" alt="">:${esc(n)}:<button data-rm="${esc(n)}" title="Delete">✕</button></div>`).join('') || '<span style="color:var(--dim);font-size:13px">No custom emoji yet.</span>'}</div>`;
       body.querySelector('#emAdd').onclick = () => {
         const n = body.querySelector('#emName').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 24);
         if (n.length < 2) return toast('Give the emoji a name (2+ letters).', true);
-        if (Object.keys(em).length >= 50) return toast('50 emoji max per server.', true);
+        const emMax = isBoosted(s.id) ? 250 : 50; if (Object.keys(em).length >= emMax) return toast(emMax + ' emoji max per server.' + (emMax === 50 ? ' Boost 🚀 to get 250.' : ''), true);
         pickImage('emoji', 2, async id => { try { await S.db.doc('servers/' + s.id).update({ emojis: { ...em, [n]: id } }); toast(`:${n}: added`); setTimeout(() => show('emoji'), 300); } catch (e) { writeError(e); } });
       };
       body.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => { const next = { ...em }; delete next[b.dataset.rm]; try { await S.db.doc('servers/' + s.id).update({ emojis: next }); setTimeout(() => show('emoji'), 300); } catch (e) { writeError(e); } });
@@ -2463,15 +2491,128 @@ function serverSettings(s, tab) {
 // ---------------------------------------------------------------- Nitro + Boost (coming soon)
 function boostHtml(s) {
   return `<div class="soonpage boost"><div class="sp-hero">🚀</div><h2>Server Boost</h2><p class="ss-sub">Boost ${esc(s ? s.name : 'your server')} to unlock perks for everyone in it.</p>
-    <div class="perks">${[['🎨', 'Animated server icon & banner'], ['😀', 'More emoji slots (up to 250)'], ['🔊', 'Better voice and stream quality'], ['📁', 'Bigger uploads for everyone'], ['🏷️', 'Custom invite link'], ['💎', 'Boost badge on your profile']].map(([i, t]) => `<div class="perk"><span>${i}</span>${t}</div>`).join('')}</div>
-    <button class="btn primary" disabled>Coming soon</button><p class="fnote" style="margin-top:10px">Boosts cost money to run, so they're not available yet. We'll tell you when they launch!</p></div>`;
+    <div class="perks">${[['🚀', 'Boosted badge next to the server name'], ['😀', '250 emoji slots instead of 50'], ['🎞️', 'Animated (GIF) server icon'], ['❤️', 'Helps keep Diskord running']].map(([i, t]) => `<div class="perk"><span>${i}</span>${t}</div>`).join('')}</div>
+    ${s && isBoosted(s.id) ? `<div class="ni-on">🚀 Boosted until <b>${esc(untilTxt(perk('s_' + s.id).boostUntil))}</b></div>` : ''}
+    <button class="btn primary" data-boostbuy="${esc(s ? s.id : '')}" ${s ? '' : 'disabled'}>${s && isBoosted(s.id) ? 'Add more time' : 'Boost this server'} — from ${eur(PLANS.boost.month.price)} / month</button>
+    ${s && isAppOwner(S.myId) ? `<button class="btn alt" style="margin-left:6px" data-boostgive="${esc(s.id)}">Give Boost (owner)</button>` : ''}
+    <p class="fnote" style="margin-top:10px">Pay with PayPal (Aircash coming soon). Monthly (${eur(PLANS.boost.month.price)}) or yearly (${eur(PLANS.boost.year.price)}) — it does not renew by itself.</p></div>`;
 }
-function boostModal(s) { modal(`<div class="mb" style="padding:24px">${boostHtml(s)}</div><div class="mf"><button class="btn primary" data-x>Close</button></div>`, (o, close) => { o.querySelector('[data-x]').onclick = close; }); }
+function bindBoost(el, done) { el.querySelectorAll('[data-boostbuy]').forEach(b => b.onclick = () => { done && done(); payModal('boost', b.dataset.boostbuy); }); el.querySelectorAll('[data-boostgive]').forEach(b => b.onclick = async () => { await grantPerk('boost', S.myId, b.dataset.boostgive); done && done(); }); }
+function boostModal(s) { modal(`<div class="mb" style="padding:24px">${boostHtml(s)}</div><div class="mf"><button class="btn alt" data-x>Close</button></div>`, (o, close) => { o.querySelector('[data-x]').onclick = close; bindBoost(o, close); }); }
 function renderNitroPage() {
   const f = $('feed');
-  f.innerHTML = `<div class="nitro"><div class="ni-hero"><div class="ni-logo">💎</div><h1>Diskord <span>Nitro</span></h1><p>Unleash more fun on Diskord — bigger uploads, HD streaming, custom profiles and more.</p><button class="btn primary big" disabled>Coming soon</button></div>
-    <div class="ni-grid">${[['🎬', 'HD video & screen share', 'Stream in 1080p 60fps to your friends.'], ['📤', '500 MB uploads', 'Send big clips, files and HD pictures.'], ['😎', 'Emoji everywhere', 'Use your custom emoji in every server.'], ['🎨', 'Profile themes & effects', 'Animated avatars, banners and profile effects.'], ['🚀', '2 Server Boosts', 'Boost your favourite servers.'], ['💬', 'Longer messages', 'Write up to 4,000 characters.']].map(([i, t, d]) => `<div class="ni-card"><span>${i}</span><b>${t}</b><small>${d}</small></div>`).join('')}</div>
-    <p class="fnote" style="text-align:center;margin-top:20px">Nitro needs paid servers to run, so it's coming later. Everything else in Diskord stays free.</p></div>`;
+  f.innerHTML = `<div class="nitro"><div class="ni-hero"><div class="ni-logo">💎</div><h1>Diskord <span>Nitro</span></h1><p>Unleash more fun on Diskord — bigger uploads, HD streaming, custom profiles and more.</p>${hasNitro(S.myId) ? `<div class="ni-on">💎 You have Nitro until <b>${esc(untilTxt(perk('u_' + S.myId).nitroUntil))}</b></div><button class="btn primary big" id="niBuy">Add more time</button>` : `<button class="btn primary big" id="niBuy">Get Nitro — ${eur(PLANS.nitro.month.price)} / month</button><div class="ni-year">or ${eur(PLANS.nitro.year.price)} / year — save ${Math.round((1 - PLANS.nitro.year.price / (PLANS.nitro.month.price * 12)) * 100)}%</div>`}</div>
+    <div class="ni-grid">${[['💎', 'Nitro badge', 'A 💎 next to your name everywhere.'], ['🎞️', 'Animated avatar & banner', 'Use GIFs for your profile picture and banner.'], ['😎', 'Emoji everywhere', 'Use custom emoji from all your servers in any server.'], ['📤', '50 MB uploads', 'Send bigger pictures and GIFs.'], ['💬', 'Support Diskord', 'Help pay for keeping Diskord running.'], ['🎬', 'HD streaming', 'Already free for everyone — 1440p 60fps.']].map(([i, t, d]) => `<div class="ni-card"><span>${i}</span><b>${t}</b><small>${d}</small></div>`).join('')}</div>
+    <p class="fnote" style="text-align:center;margin-top:20px">Pay with PayPal (Aircash coming soon). Monthly or yearly — it does not renew by itself. Everything else in Diskord stays free.</p></div>`;
+  const nb = $('niBuy'); if (nb) nb.onclick = () => payModal('nitro');
+}
+
+// ====================================================================== Nitro + Boost payments (PayPal / Aircash, confirmed by hand by the Diskord owner)
+const PAY = { paypal: 'JakovRajcevic', aircash: String(window.DISKORD_AIRCASH || ''), days: 30 };
+const PLANS = { nitro: { month: { price: 2.99, days: 30 }, year: { price: 29.99, days: 365 } }, boost: { month: { price: 1.99, days: 30 }, year: { price: 19.99, days: 365 } } };
+const ownerIds = () => (window.diskordOwnerIds ? window.diskordOwnerIds() : []);
+const isAppOwner = uid => !!uid && ownerIds().includes(uid);
+const perk = id => (S.perks || {})[id] || {};
+const hasNitro = uid => (perk('u_' + uid).nitroUntil || 0) > Date.now();
+const isBoosted = sid => (perk('s_' + sid).boostUntil || 0) > Date.now();
+const nitroBadge = uid => hasNitro(uid) ? ' <span class="nbadge" title="Diskord Nitro">💎</span>' : '';
+const eur = n => n.toFixed(2).replace('.', ',') + ' €';
+const untilTxt = t => new Date(t).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+function payModal(kind, sid) {
+  const sv = sid ? (S.allServers || []).find(x => x.id === sid) : null;
+  let plan = 'month';
+  const price = () => PLANS[kind][plan].price;
+  const item = kind === 'boost' ? `Server Boost for ${sv ? sv.name : 'server'}` : 'Diskord Nitro';
+  let cur = {};
+  const codeBase = `${kind === 'boost' ? 'BOOST' : 'NITRO'}-${(unameOf(S.myId) || S.myId.slice(0, 8)).toUpperCase()}${kind === 'boost' && sv ? '-' + sv.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 12).toUpperCase() : ''}`;
+  const owner = ownerIds()[0];
+  let method = 'paypal';
+  modal(`<div class="pay"><div class="pay-h"><div class="pay-ic">${kind === 'boost' ? '🚀' : '💎'}</div><div><h2>${esc(item)}</h2><p id="payPer"></p></div></div>
+    ${owner ? '' : '<div class="pay-warn">Payments are not switched on yet. Try again later.</div>'}
+    <div class="pay-l">Plan</div>
+    <div class="pay-m pay-plan"><button data-plan="month"><b>Monthly</b><small>${eur(PLANS[kind].month.price)} / month</small></button>
+      <button data-plan="year"><b>Yearly <span class="save">Save ${Math.round((1 - PLANS[kind].year.price / (PLANS[kind].month.price * 12)) * 100)}%</span></b><small>${eur(PLANS[kind].year.price)} / year</small></button></div>
+    <div class="pay-l">Payment method</div>
+    <div class="pay-m"><button data-m="paypal"><b class="pp">Pay<span>Pal</span></b><small>Card or PayPal balance</small></button>
+      <button data-m="aircash" ${PAY.aircash ? '' : 'disabled'}><b class="ac">Aircash</b><small>${PAY.aircash ? 'Pay from the Aircash app' : 'Coming soon'}</small></button></div>
+    <div class="pay-steps" id="paySteps"></div>
+    <div class="fnote" style="margin-top:12px" id="payNote"></div>
+    <div class="cm-f"><button class="btn alt" data-x>Cancel</button><button class="btn primary" id="payDone" ${owner ? '' : 'disabled'}>I've paid</button></div></div>`, (o, close) => {
+    const draw = () => {
+      o.querySelectorAll('[data-m]').forEach(b => b.classList.toggle('sel', b.dataset.m === method));
+      o.querySelectorAll('[data-plan]').forEach(b => b.classList.toggle('sel', b.dataset.plan === plan));
+      const P = PLANS[kind][plan], price = P.price, code = codeBase + (plan === 'year' ? '-YEAR' : '');
+      o.querySelector('#payPer').textContent = plan === 'year' ? `${eur(price)} for 1 year` : `${eur(price)} for 1 month`;
+      o.querySelector('#payNote').textContent = `Payments go to the Diskord owner and are checked by hand, usually within a few hours. Your ${kind === 'boost' ? 'boost' : 'Nitro'} turns on as soon as it's confirmed and lasts ${plan === 'year' ? '1 year' : '1 month'}. It does not renew by itself.`;
+      cur = { price, days: P.days, code };
+      const link = method === 'paypal' ? `https://paypal.me/${PAY.paypal}/${price.toFixed(2)}EUR` : '';
+      o.querySelector('#paySteps').innerHTML = method === 'paypal'
+        ? `<div class="step"><i>1</i><div>Open PayPal and send <b>${eur(price)}</b> to <b>${esc(PAY.paypal)}</b>.<a class="btn pp-btn" href="${esc(link)}" target="_blank" rel="noopener">Pay ${eur(price)} with PayPal</a></div></div>
+           <div class="step"><i>2</i><div>Choose <b>"Paying for an item or service"</b> and write this in the note:<div class="addbox" style="margin-top:6px"><input readonly value="${esc(code)}"><button class="btn primary sm2" data-copy>Copy</button></div></div></div>
+           <div class="step"><i>3</i><div>Come back here and press <b>I've paid</b>.</div></div>`
+        : `<div class="step"><i>1</i><div>Open the <b>Aircash</b> app and send <b>${eur(price)}</b> to <b>${esc(PAY.aircash)}</b>.</div></div>
+           <div class="step"><i>2</i><div>Write this in the message:<div class="addbox" style="margin-top:6px"><input readonly value="${esc(code)}"><button class="btn primary sm2" data-copy>Copy</button></div></div></div>
+           <div class="step"><i>3</i><div>Come back here and press <b>I've paid</b>.</div></div>`;
+      const cp = o.querySelector('[data-copy]'); if (cp) cp.onclick = () => navigator.clipboard.writeText(cur.code).then(() => { cp.textContent = 'Copied'; }).catch(() => {});
+    };
+    o.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { if (!b.disabled) { method = b.dataset.m; draw(); } });
+    o.querySelectorAll('[data-plan]').forEach(b => b.onclick = () => { plan = b.dataset.plan; draw(); });
+    o.querySelector('[data-x]').onclick = close; draw();
+    o.querySelector('#payDone').onclick = async () => {
+      if (!owner) return;
+      if (owner === S.myId) { close(); return toast('You are the owner — give yourself perks from your profile ⋯ menu.'); }
+      const b = o.querySelector('#payDone'); b.disabled = true; b.textContent = 'Sending…';
+      try {
+        const cid = dmCid(owner), at = Date.now();
+        await S.db.collection(`ch/${cid}/m`).add({ uid: S.myId, text: '', at, order: { kind, plan, days: cur.days, sid: sv ? sv.id : null, sname: sv ? sv.name.slice(0, 40) : null, method, amount: cur.price, code: cur.code } });
+        S.db.doc('dms/' + cid.slice(3)).set({ members: [S.myId, owner].sort(), last: at, lastUid: S.myId, ok: { [S.myId]: true }, hide: { [S.myId]: false, [owner]: false } }, { merge: true }).catch(() => {});
+        close();
+        modal(`<div class="mh"><h2>Thanks! 🎉</h2><p>Your payment was sent for checking. You'll get a message when your ${kind === 'boost' ? 'boost' : 'Nitro'} is on.</p></div><div class="mf"><button class="btn primary" data-x>OK</button></div>`, (o2, c2) => { o2.querySelector('[data-x]').onclick = c2; });
+      } catch (e) { b.disabled = false; b.textContent = "I've paid"; writeError(e); }
+    };
+  });
+}
+async function grantPerk(kind, buyer, sid, days) {
+  if (!isAppOwner(S.myId)) return;
+  const now = Date.now(), add = (days || PAY.days) * 864e5;
+  try {
+    if (kind === 'boost') {
+      const cur = perk('s_' + sid); const until = Math.max(now, cur.boostUntil || 0) + add;
+      await S.db.doc('perks/s_' + sid).set({ boostUntil: until, boosters: [...new Set([...(cur.boosters || []), buyer])].slice(-50), at: now });
+      toast('🚀 Boost on until ' + untilTxt(until)); return until;
+    }
+    const cur = perk('u_' + buyer); const until = Math.max(now, cur.nitroUntil || 0) + add;
+    await S.db.doc('perks/u_' + buyer).set({ nitroUntil: until, at: now });
+    toast('💎 Nitro on for ' + nameOf(buyer) + ' until ' + untilTxt(until)); return until;
+  } catch (e) { writeError(e); }
+}
+async function removePerk(kind, id) { if (!isAppOwner(S.myId)) return; try { await S.db.doc('perks/' + (kind === 'boost' ? 's_' : 'u_') + id).set({ nitroUntil: 0, boostUntil: 0, at: Date.now() }); toast('Removed'); } catch (e) { writeError(e); } }
+function orderCardHtml(m) {
+  const o = m.order, buyer = m.uid, boost = o.kind === 'boost';
+  const active = boost ? isBoosted(o.sid) : hasNitro(buyer);
+  const until = boost ? perk('s_' + o.sid).boostUntil : perk('u_' + buyer).nitroUntil;
+  const done = (m.react && m.react['✅'] && m.react['✅'].length) || false;
+  const owner = isAppOwner(S.myId) && buyer !== S.myId;
+  return `<div class="ordcard"><div class="oh">${boost ? '🚀 Server Boost' : '💎 Nitro'} order</div>
+    <div class="ob"><div><b>${esc(boost ? 'Boost for ' + (o.sname || 'server') : 'Diskord Nitro')} · ${o.days === 365 ? 'Yearly' : 'Monthly'}</b><small>${eur(+o.amount || 0)} · ${o.method === 'aircash' ? 'Aircash' : 'PayPal'} · note: <code>${esc(o.code || '')}</code></small>
+    <small>${active ? `✅ Active until ${esc(untilTxt(until))}` : done ? '✅ Confirmed' : owner ? 'Check that the money arrived with this note, then confirm.' : '⏳ Waiting for confirmation'}</small></div></div>
+    ${owner ? `<div class="ob2"><button class="btn go" data-give="${esc(m.id)}">${active ? 'Add ' + (o.days === 365 ? '1 more year' : '1 more month') : 'Confirm & give ' + (boost ? 'Boost' : 'Nitro')}</button><button class="btn alt" data-decline="${esc(m.id)}">Not received</button></div>` : ''}</div>`;
+}
+function bindOrderCards(el, c) {
+  el.querySelectorAll('[data-give]').forEach(b => b.onclick = async () => {
+    const m = (S.msgs || []).find(x => x.id === b.dataset.give) || null; if (!m || !m.order) return;
+    b.disabled = true;
+    const until = await grantPerk(m.order.kind, m.uid, m.order.sid, m.order.days === 365 ? 365 : 30);
+    if (!until) { b.disabled = false; return; }
+    try {
+      const cid = c.id;
+      await S.db.doc(`ch/${cid}/m/${m.id}`).update({ react: { ...(m.react || {}), '✅': [...new Set([...((m.react || {})['✅'] || []), S.myId])] } }).catch(() => {});
+      await S.db.collection(`ch/${cid}/m`).add({ uid: S.myId, text: `✅ Payment received, thank you! Your ${m.order.kind === 'boost' ? 'Server Boost for ' + (m.order.sname || 'your server') : 'Diskord Nitro 💎'} is on until ${untilTxt(until)}.`, at: Date.now() });
+    } catch (e) { writeError(e); }
+  });
+  el.querySelectorAll('[data-decline]').forEach(b => b.onclick = () => confirmModal('Payment not received?', 'This sends a message saying you could not find the payment.', 'Send', async () => {
+    try { await S.db.collection(`ch/${c.id}/m`).add({ uid: S.myId, text: "❌ I couldn't find your payment yet. Check that you sent the right amount with the note, then message me here.", at: Date.now() }); } catch (e) { writeError(e); }
+  }));
 }
 
 function renderAll() { renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }

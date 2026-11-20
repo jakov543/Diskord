@@ -19,7 +19,7 @@ const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
 const deepMerge = (a, b) => { const out = isObj(a) ? { ...a } : {}; for (const [k, v] of Object.entries(b)) out[k] = isObj(v) && isObj(out[k]) ? deepMerge(out[k], v) : v; return out; };
 const clone = v => v == null ? v : JSON.parse(JSON.stringify(v));
 const colOf = p => p.slice(0, p.lastIndexOf('/'));
-const DOC_RE = /^(users|profiles|gifs|servers|channels|friendships|dms|usernames|joined)\/[A-Za-z0-9_.-]{1,140}$|^ch\/[A-Za-z0-9_-]{1,140}\/m\/[A-Za-z0-9_-]{1,40}$/;
+const DOC_RE = /^(users|profiles|gifs|servers|channels|friendships|dms|usernames|joined|perks)\/[A-Za-z0-9_.-]{1,140}$|^ch\/[A-Za-z0-9_-]{1,140}\/m\/[A-Za-z0-9_-]{1,40}$/;
 const err = (code, message) => Object.assign(new Error(message), { code });
 
 let ready, resolveReady; ready = new Promise(r => { resolveReady = r; });
@@ -35,6 +35,11 @@ async function deriveKey(username, password) {
 }
 
 // ------------------------------------------------------------ rules (every app checks these, so nobody can fake owners, edit others' messages, …)
+// The Diskord owner (can give Nitro / Boost): by username, plus optional raw ids from diskord-config.js
+const OWNER_NAMES = ['frost'];
+const OWNER_KEYS = Array.isArray(window.DISKORD_OWNERS) ? window.DISKORD_OWNERS.filter(x => /^[0-9a-f]{64}$/.test(x)) : [];
+const appOwners = () => [...new Set([...OWNER_KEYS, ...OWNER_NAMES.map(n => (resolved.get('usernames/' + n) || {}).uid).filter(x => /^[0-9a-f]{64}$/.test(x || ''))])];
+window.diskordOwnerIds = appOwners;
 const isDm = cid => String(cid).startsWith('dm_');
 const dmPair = cid => String(cid).slice(3).split('_');
 const inDm = (cid, uid) => { const p = dmPair(cid); return p.length === 2 && (p[0] === uid || p[1] === uid); };
@@ -66,6 +71,8 @@ function canWrite(uid, kind, path, before, after) {
       if (kind === 'delete') return before.uid === uid || (!isDm(cid) && managesChannel(uid, cid));
       return after.uid === before.uid && ((before.uid === uid && onlyChanged(before, after, ['text', 'edited', 'react', 'poll', 'pinned'])) || onlyChanged(before, after, ['react', 'poll']) || (onlyChanged(before, after, ['pinned']) && (isDm(cid) || managesChannel(uid, cid))));
     }
+    // Nitro / Boost: only the Diskord owner (window.DISKORD_OWNERS, checked by every app) can give them
+    case 'perks': return appOwners().includes(uid) && /^(u|s)_[A-Za-z0-9]{1,80}$/.test(id) && kind !== 'delete';
     case 'friendships':
       if (kind === 'create') { const m = arr(after.members); return after.from === uid && m.includes(uid) && m.length === 2 && id === m.join('_') && after.status === 'pending'; }
       if (kind === 'delete') return arr(before.members).includes(uid);
@@ -185,6 +192,7 @@ function recompute(path) {
   else { resolved.delete(path); if (colIndex.has(c)) colIndex.get(c).delete(path); }
   fire(path);
   // owner / co-owner changes can make other changes valid or invalid → re-check everything (debounced)
+  if (OWNER_NAMES.some(n => path === 'usernames/' + n)) { for (const p of versions.keys()) if (p.startsWith('perks/')) recompute(p); }
   if (path.startsWith('servers/') || path.startsWith('channels/')) { clearTimeout(fullTimer); fullTimer = setTimeout(() => { for (const p of versions.keys()) if (!p.startsWith('servers/')) recompute(p); }, 250); }
 }
 const fireQ = new Set(); let fireT = null;
@@ -329,6 +337,7 @@ function makeApi(info) {
   const db = { doc: docRef, collection: p => colRef(p) };
   const name = id => (resolved.get('users/' + id) || {});
   const usersSub = want('c:users', colFilter('users'));
+  OWNER_NAMES.forEach(n => want('d:usernames/' + n, docFilter('usernames/' + n))); // know who the owner is
   const user = {
     async id() { return me; },
     async me() { await usersSub.ready; const u = name(me); return { id: me, name: u.name || info.name || 'You', color: u.color || '#38bdf8', username: u.username || info.username || '', avatarUrl: '', isOwner: false, canEdit: false, isMe: true }; },
