@@ -13,7 +13,7 @@ async function claimUsername(uid, name, old) {
   await fs.runTransaction(async t => {
     const s = await t.get(ref);
     if (s.exists && s.data().uid !== uid) throw { message: `@${name} is taken — try another username.` };
-    t.set(ref, { uid, at: Date.now() });
+    if (!s.exists) t.set(ref, { uid, at: Date.now() });
     t.set(fs.doc('users/' + uid), { username: name }, { merge: true });
   });
   if (old && old !== name) fs.doc('usernames/' + old).delete().catch(() => {});

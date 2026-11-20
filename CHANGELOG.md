@@ -1,5 +1,11 @@
 # Diskord changelog
 
+## 3.0.1
+### 🛠️ Fixes
+- "You don't have permission" when using Friends, DMs or usernames: if your Firebase rules are older than the app, Diskord now shows a yellow bar with **Copy new rules** and **Open Firebase rules** buttons, so the fix takes 30 seconds
+- Saving your username again no longer fails
+- Clear help when the microphone or camera is blocked by Windows privacy settings
+
 ## 3.0.0
 ### ✨ New
 - 💬 **Direct Messages**: the Diskord button at the top of the server list opens your DMs

@@ -195,6 +195,9 @@ a.btn.go { color: #062814; } a.btn.primary { color: #fff; }
 .vc-ib { width: 32px; height: 32px; border-radius: 6px; display: grid; place-items: center; color: var(--muted); } .vc-ib:hover { background: var(--bg3); color: var(--text); } .vc-ib svg { width: 19px; height: 19px; } .vc-ib.bad:hover { color: var(--dnd); }
 .vc-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
 .vc-b { height: 34px; border-radius: 8px; background: var(--bg3); display: grid; place-items: center; color: var(--text); } .vc-b:hover { background: var(--bg4); } .vc-b svg { width: 19px; height: 19px; } .vc-b.bad { color: var(--dnd); }
+.rulesbar { position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 160; max-width: min(980px, 94vw); background: #3a2a00; border: 1px solid #ffb020; color: #ffe2a8; padding: 10px 14px; border-radius: 10px; font-size: 13.5px; line-height: 1.6; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.rulesbar button, .rulesbar a { background: #ffb020; color: #2a1a00; border-radius: 6px; padding: 2px 9px; font-weight: 800; font-size: 12.5px; text-decoration: none; margin: 0 2px; }
+.rulesbar #rbX { background: none; color: #ffe2a8; }
 .ch .mbadge { background: var(--dnd); color: #fff; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 1px 6px; }
 .me-bar { display: flex; align-items: center; gap: 9px; padding: 8px 10px; background: var(--bg0); flex: 0 0 auto; }
 .me-bar .who { flex: 1; min-width: 0; line-height: 1.2; }
@@ -688,7 +691,7 @@ function openChannel(cid) {
       if (S.msgs.length > before && before > 0) notifyNew(snap);
       renderFeed(stick || before === 0); renderChannels(); renderRail();
       if (S.panel) renderPanel();
-    }, e => { clearTimeout(t); S.loadingMsgs = false; showConn('Could not load messages'); renderFeed(); });
+    }, e => { clearTimeout(t); S.loadingMsgs = false; showConn(e && e.code === 'permission-denied' ? 'Blocked by database rules' : 'Could not load messages'); if (e && e.code === 'permission-denied') rulesProblem(String(cid).startsWith('dm_') ? 'direct messages' : 'this channel'); renderFeed(); });
   }
   pushPresence();
   renderAll();
@@ -1189,7 +1192,7 @@ async function send() {
 function writeError(e) {
   const code = e && e.code;
   if (code === 'quota_exceeded' || code === 'resource-exhausted') toast('Diskord hit today\'s free limit. Try again later.', true);
-  else if (code === 'permission-denied') toast('You don\'t have permission to do that.', true);
+  else if (code === 'permission-denied') { toast(S.isSuper ? 'Firebase blocked that — update your database rules (see the yellow bar).' : 'You don\'t have permission to do that.', true); if (S.isSuper) rulesProblem('that action'); }
   else if (code === 'unavailable') toast('You\'re offline — it will send when you\'re back online.', true);
   else if (code === 'resource_exhausted') toast('Slow down a little!', true);
   else toast('Could not send — check your connection.', true);
@@ -1675,19 +1678,37 @@ const pendingOut = () => S.friends.filter(f => f.status === 'pending' && f.from 
 const unameOf = uid => S.usernames[uid] || '';
 const isDmUnread = d => d.last && d.lastUid !== S.myId && d.last > readAt('dm_' + d.id) && 'dm_' + d.id !== S.cid;
 
+let rulesWarned = false;
+const RULES_URL = 'https://raw.githubusercontent.com/jakov543/Diskord/main/firestore.rules';
+function rulesProblem(where) {
+  if (rulesWarned) return; rulesWarned = true;
+  const pid = (window.DISKORD_FIREBASE && window.DISKORD_FIREBASE.projectId) || '';
+  const bar = document.createElement('div'); bar.className = 'rulesbar';
+  bar.innerHTML = S.isSuper
+    ? `<b>⚠️ Firebase is blocking ${esc(where)}.</b> Your database rules are older than this version of Diskord. <button id="rbCopy">1. Copy new rules</button> <a id="rbOpen" href="https://console.firebase.google.com/project/${encodeURIComponent(pid)}/firestore/rules" target="_blank" rel="noopener">2. Open Firebase rules</a> → select all, paste, <b>Publish</b>, then restart Diskord. <button id="rbX">✕</button>`
+    : `<b>⚠️ Some features are blocked</b> (${esc(where)}). Ask the Diskord owner to update the Firebase rules. <button id="rbX">✕</button>`;
+  document.body.appendChild(bar);
+  bar.querySelector('#rbX').onclick = () => bar.remove();
+  const cp = bar.querySelector('#rbCopy');
+  if (cp) cp.onclick = async () => {
+    try { const r = await fetch(RULES_URL + '?t=' + Date.now()); const t = await r.text(); await navigator.clipboard.writeText(t); cp.textContent = '✓ Copied'; }
+    catch (_) { toast('Could not copy — open github.com/jakov543/Diskord/blob/main/firestore.rules', true); }
+  };
+}
+const permErr = where => e => { if (e && e.code === 'permission-denied') rulesProblem(where); };
 function subscribeHome() {
   S.db.collection('friendships').where('members', 'array-contains', S.myId).onSnapshot(snap => {
     S.friends = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     needNames(S.friends.flatMap(f => f.members));
     renderRail(); if (isHome()) { renderChannels(); renderFeed(false); }
-  }, () => {});
+  }, permErr('friends'));
   S.db.collection('dms').where('members', 'array-contains', S.myId).onSnapshot(snap => {
     const before = new Map(S.dms.map(d => [d.id, d.last || 0]));
     S.dms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     needNames(S.dms.flatMap(d => d.members));
     for (const d of S.dms) if (d.last && d.lastUid !== S.myId && before.has(d.id) && d.last > before.get(d.id) && 'dm_' + d.id !== S.cid) dmPing(d);
     renderRail(); if (isHome()) { renderChannels(); if (!S.cid) renderFeed(false); }
-  }, () => {});
+  }, permErr('direct messages'));
 }
 function dmPing(d) {
   const who = d.lastUid;

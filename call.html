@@ -130,7 +130,7 @@ function audioCtx() { if (!ac) ac = new (window.AudioContext || window.webkitAud
 async function getMic() {
   try { mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
   catch (_) {
-    $('lobbyNote').textContent = 'No microphone allowed — you can still listen. Allow the mic in your browser and reload to talk.';
+    $('lobbyNote').innerHTML = '🎙️ <b>No microphone access</b> — you can still listen. On Windows: Settings → Privacy &amp; security → <b>Microphone</b> → turn on <b>Microphone access</b> and <b>Let desktop apps access your microphone</b>. In a browser, click the 🔒 in the address bar → allow Microphone. Then rejoin.';
     const dst = audioCtx().createMediaStreamDestination(); mic = dst.stream;
   }
   meterFor(mic, v => { $('meter').style.width = Math.min(100, v * 280) + '%'; });
@@ -275,7 +275,7 @@ $('bCam').onclick = async () => {
   if (camTrack) { camTrack.stop(); camTrack = null; me.cam = false; }
   else {
     try { const s = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } }); camTrack = s.getVideoTracks()[0]; me.cam = true; }
-    catch (_) { return toast('Camera is blocked or missing'); }
+    catch (e) { return toast(e && e.name === 'NotFoundError' ? 'No camera found' : 'Camera blocked — Windows Settings → Privacy & security → Camera → allow desktop apps'); }
   }
   $('bCam').classList.toggle('on', me.cam); $('bCam').dataset.tip = me.cam ? 'Turn off camera' : 'Turn on camera'; setVideoTrack();
 };

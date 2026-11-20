@@ -1,4 +1,5 @@
 rules_version = '2';
+// Diskord rules version 3 (friends, DMs, usernames). Keep this line: the app checks it.
 // Diskord security rules: paste this in Firebase console → Firestore Database → Rules → Publish.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -64,7 +65,7 @@ service cloud.firestore {
     match /usernames/{name} {
       allow read: if signedIn();
       allow create: if signedIn() && request.resource.data.uid == me() && name.matches('^[a-z0-9._]{2,24}$');
-      allow update: if false;
+      allow update: if signedIn() && resource.data.uid == me() && request.resource.data.uid == me();
       allow delete: if signedIn() && resource.data.uid == me();
     }
     match /friendships/{fid} {
