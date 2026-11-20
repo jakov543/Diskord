@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diskord</title>
+<meta name="description" content="Diskord — chat, voice calls and video calls with your crew.">
+<meta name="theme-color" content="#0b0912">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg0:#0b0912; --bg1:#110e1b; --bg2:#171325; --bg3:#1f1a31; --bg4:#2a2342; --text:#f3effc; --muted:#a39cbd; --a1:#ff4d7d; --a2:#5b5cf6; --grad:linear-gradient(135deg,var(--a1),var(--a2)); --ok:#2bd98a; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: radial-gradient(ellipse at 15% -10%, rgba(166,77,255,.25), transparent 55%), radial-gradient(ellipse at 100% 110%, rgba(255,77,125,.18), transparent 50%), var(--bg0); color: var(--text); min-height: 100vh; }
+button, input, a { font: inherit; color: inherit; }
+nav { display: flex; align-items: center; gap: 12px; padding: 18px 28px; max-width: 1100px; margin: 0 auto; }
+nav img { width: 38px; } nav b { font-size: 20px; font-weight: 800; }
+nav .sp { flex: 1; }
+.pill { padding: 9px 16px; border-radius: 10px; background: var(--bg3); border: 0; cursor: pointer; font-weight: 700; font-size: 14px; text-decoration: none; }
+.pill:hover { background: var(--bg4); }
+.hero { max-width: 1100px; margin: 0 auto; padding: 50px 28px 30px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; }
+h1 { font-size: clamp(36px, 5vw, 58px); line-height: 1.05; font-weight: 800; letter-spacing: -1.5px; }
+h1 span { background: var(--grad); -webkit-background-clip: text; color: transparent; }
+.lead { color: var(--muted); font-size: 17px; line-height: 1.6; margin: 18px 0 28px; max-width: 520px; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; }
+.big { display: inline-flex; align-items: center; gap: 10px; padding: 15px 22px; border-radius: 14px; border: 0; cursor: pointer; font-weight: 800; font-size: 16px; text-decoration: none; transition: transform .1s, filter .15s; }
+.big:hover { filter: brightness(1.1); } .big:active { transform: translateY(1px); }
+.big.main { background: var(--grad); color: #fff; box-shadow: 0 12px 30px rgba(166,77,255,.35); }
+.big.alt { background: var(--bg3); }
+.big.green { background: var(--ok); color: #062814; }
+.panel { background: var(--bg2); border: 1px solid rgba(255,255,255,.06); border-radius: 20px; padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,.4); }
+.panel h3 { font-size: 18px; margin-bottom: 4px; } .panel p { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+.row { display: flex; gap: 10px; margin-bottom: 10px; }
+.row > * { flex: 1; justify-content: center; }
+.field { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; background: var(--bg0); outline: none; font-size: 15px; margin-bottom: 10px; }
+.field:focus { box-shadow: 0 0 0 2px #a64dff; }
+.or { text-align: center; color: var(--muted); font-size: 12px; margin: 14px 0 10px; text-transform: uppercase; letter-spacing: 1px; }
+.feats { max-width: 1100px; margin: 20px auto 60px; padding: 0 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.feat { background: var(--bg1); border: 1px solid rgba(255,255,255,.05); border-radius: 16px; padding: 18px; }
+.feat i { font-style: normal; font-size: 26px; } .feat b { display: block; margin: 8px 0 4px; } .feat span { color: var(--muted); font-size: 14px; line-height: 1.5; }
+.install { display: none; } .install.show { display: inline-flex; }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--bg1); border: 1px solid rgba(255,255,255,.1); padding: 11px 16px; border-radius: 10px; font-weight: 600; opacity: 0; transition: .25s; pointer-events: none; }
+.toast.show { opacity: 1; }
+footer { text-align: center; color: var(--muted); font-size: 13px; padding: 0 20px 40px; }
+@media (max-width: 820px) { .hero { grid-template-columns: 1fr; padding-top: 20px; } }
+</style>
+</head>
+<body>
+<nav><img src="logo.svg" alt=""><b>Diskord</b><span class="sp"></span><button class="pill install" id="installBtn">⬇ Install app</button></nav>
+<section class="hero">
+  <div>
+    <h1>Hang out with your crew on <span>Diskord</span></h1>
+    <p class="lead">Servers, channels, GIFs and custom emoji — plus voice calls, video calls and screen sharing. Install it as an app on PC or phone.</p>
+    <div class="cta">
+      <a class="big main" id="openChat" href="https://claude.ai/artifact/JmfsXjNXdnXfMiNrJP5a3t" target="_blank" rel="noopener">💬 Open Diskord chat</a>
+      <button class="big alt install" id="installBtn2">⬇ Install app</button>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Start a call</h3>
+    <p>Make a call and send the invite link to your friends.</p>
+    <input class="field" id="name" maxlength="32" placeholder="Your name">
+    <div class="row"><button class="big green" id="voice">📞 Voice call</button><button class="big main" id="video">🎥 Video call</button></div>
+    <div class="or">or join with a link / code</div>
+    <input class="field" id="code" placeholder="Paste invite link or call code">
+    <button class="big alt" id="join" style="width:100%;justify-content:center">Join call</button>
+  </div>
+</section>
+<section class="feats">
+  <div class="feat"><i>📞</i><b>Voice & video calls</b><span>Mute, deafen, camera, screen share and a glow around whoever is talking.</span></div>
+  <div class="feat"><i>🔊</i><b>Voice channels</b><span>Jump in and out of voice channels in your servers, and see who's there.</span></div>
+  <div class="feat"><i>🎞️</i><b>GIFs & emoji</b><span>A built-in GIF pack, a shared GIF library, 1,300+ emoji and your own server emoji.</span></div>
+  <div class="feat"><i>🛡️</i><b>Owners & co-owners</b><span>Make friends co-owners to help you run channels, messages and emoji.</span></div>
+</section>
+<footer>Calls are peer-to-peer: audio and video go straight between people, and nothing is recorded.</footer>
+<div class="toast" id="toast"></div>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const toast = m => { $('toast').textContent = m; $('toast').classList.add('show'); setTimeout(() => $('toast').classList.remove('show'), 2600); };
+try { $('name').value = localStorage.getItem('flixcall.name') || ''; } catch (_) {}
+$('name').oninput = () => { try { localStorage.setItem('flixcall.name', $('name').value.trim()); } catch (_) {} };
+const room = () => 'fx-app-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+const go = (r, video) => { location.href = `call.html#r=${encodeURIComponent(r)}${video ? '&v=1' : ''}&n=${encodeURIComponent($('name').value.trim())}`; };
+$('voice').onclick = () => go(room(), false);
+$('video').onclick = () => go(room(), true);
+$('join').onclick = () => {
+  const v = $('code').value.trim(); if (!v) return toast('Paste an invite link or a call code');
+  const m = v.match(/#(.*)$/);
+  if (m) { const p = new URLSearchParams(m[1]); if (p.get('r')) return go(p.get('r'), p.get('v') === '1'); }
+  if (/^[a-zA-Z0-9_-]{4,80}$/.test(v)) return go(v, false);
+  toast('That does not look like a Diskord call link');
+};
+if (location.hash === '#call') $('voice').click();
+if (location.hash === '#video') $('video').click();
+// install
+let promptEvt = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptEvt = e; document.querySelectorAll('.install').forEach(b => b.classList.add('show')); });
+document.querySelectorAll('.install').forEach(b => b.onclick = async () => { if (!promptEvt) return; promptEvt.prompt(); const r = await promptEvt.userChoice; if (r.outcome === 'accepted') toast('Diskord installed 🎉'); promptEvt = null; document.querySelectorAll('.install').forEach(x => x.classList.remove('show')); });
+addEventListener('appinstalled', () => toast('Diskord installed 🎉'));
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>

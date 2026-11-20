@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diskord Call</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b0912">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root { --bg0:#0b0912; --bg1:#110e1b; --bg2:#171325; --bg3:#1f1a31; --bg4:#2a2342; --text:#f3effc; --muted:#a39cbd; --a1:#ff3d6e; --a2:#8b5cf6; --grad:linear-gradient(135deg,var(--a1),var(--a2)); --ok:#2bd98a; --bad:#ff4d5e; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: radial-gradient(ellipse at 20% 0%, rgba(139,92,246,.18), transparent 55%), radial-gradient(ellipse at 90% 100%, rgba(255,61,110,.14), transparent 50%), var(--bg0); color: var(--text); overflow: hidden; }
+button, input { font: inherit; color: inherit; }
+button { background: none; border: 0; cursor: pointer; }
+.hidden { display: none !important; }
+header { height: 60px; display: flex; align-items: center; gap: 12px; padding: 0 20px; }
+header img { width: 30px; height: 30px; }
+header b { font-weight: 800; font-size: 17px; }
+header .room { color: var(--muted); font-size: 13.5px; }
+header .live { margin-left: auto; font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+header .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 4px rgba(43,217,138,.18); }
+
+/* lobby */
+.lobby { position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; }
+.card { width: min(440px, 100%); background: var(--bg2); border: 1px solid rgba(255,255,255,.06); border-radius: 18px; padding: 28px; text-align: center; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+.card .logo { width: 70px; height: 70px; margin: 0 auto 12px; filter: drop-shadow(0 10px 26px rgba(177,77,255,.45)); }
+.card h1 { font-size: 23px; font-weight: 800; }
+.card p { color: var(--muted); font-size: 14px; margin: 6px 0 18px; line-height: 1.5; }
+.card input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 0; background: var(--bg0); outline: none; margin-bottom: 12px; font-size: 15px; }
+.card input:focus { box-shadow: 0 0 0 2px #b14dff; }
+.meter { height: 6px; border-radius: 3px; background: var(--bg4); overflow: hidden; margin: 4px 0 16px; }
+.meter i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .08s; }
+.big { width: 100%; padding: 13px; border-radius: 10px; background: var(--grad); color: #fff; font-weight: 800; font-size: 15.5px; }
+.big:disabled { opacity: .5; }
+.small { color: var(--muted); font-size: 12px; margin-top: 12px; }
+
+/* stage */
+.stage { position: fixed; top: 60px; left: 0; right: 0; bottom: 92px; padding: 10px 20px; display: grid; gap: 14px; align-content: center; justify-content: center; }
+.tile { position: relative; background: var(--bg2); border-radius: 16px; overflow: hidden; aspect-ratio: 16/10; display: grid; place-items: center; border: 2px solid transparent; transition: border-color .15s; }
+.tile.speaking { border-color: var(--ok); box-shadow: 0 0 0 3px rgba(43,217,138,.22); }
+.tile video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
+.tile video.mirror { transform: scaleX(-1); }
+.tile video.contain { object-fit: contain; }
+.tile .face { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; font-size: 38px; font-weight: 800; color: #fff; z-index: 1; }
+.tile .tag { position: absolute; left: 10px; bottom: 10px; z-index: 2; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); padding: 5px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; gap: 6px; align-items: center; }
+.tile .tag .m { color: var(--bad); }
+.tile.camoff video { visibility: hidden; }
+.tile:not(.camoff) .face { display: none; }
+
+.bar { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 10px; background: var(--bg1); border: 1px solid rgba(255,255,255,.06); padding: 10px; border-radius: 18px; box-shadow: 0 16px 40px rgba(0,0,0,.45); }
+.cb { width: 54px; height: 54px; border-radius: 14px; background: var(--bg3); display: grid; place-items: center; position: relative; transition: background .15s, transform .08s; }
+.cb:hover { background: var(--bg4); }
+.cb:active { transform: translateY(1px); }
+.cb svg { width: 24px; height: 24px; fill: currentColor; }
+.cb.off { background: #fff; color: #111; }
+.cb.on { background: rgba(43,217,138,.2); color: var(--ok); }
+.cb.leave { background: var(--bad); width: 72px; }
+.cb.leave:hover { filter: brightness(1.1); }
+.cb[data-tip]:hover::after { content: attr(data-tip); position: absolute; bottom: 64px; left: 50%; transform: translateX(-50%); background: #000; padding: 6px 9px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: var(--bg1); border: 1px solid rgba(255,255,255,.08); padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 13.5px; opacity: 0; transition: .25s; pointer-events: none; z-index: 9; }
+.toast.show { opacity: 1; }
+.ended { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg0); z-index: 20; }
+</style>
+</head>
+<body>
+<header><img src="logo.svg" alt=""><b>Diskord</b><span class="room" id="roomLabel"></span><span class="live hidden" id="live"><i></i><span id="count"></span></span></header>
+
+<div class="lobby" id="lobby"><div class="card">
+  <img class="logo" src="logo.svg" alt="">
+  <h1 id="lobbyTitle">Join the call</h1>
+  <p id="lobbyText">Check your mic, then join. Everyone with this link can join the call.</p>
+  <input id="name" maxlength="32" placeholder="Your name">
+  <div class="meter"><i id="meter"></i></div>
+  <button class="big" id="join">Join call</button>
+  <div class="small" id="lobbyNote">Voice and video go directly between the people in the call (peer to peer).</div>
+</div></div>
+
+<div class="stage hidden" id="stage"></div>
+<div class="bar hidden" id="bar">
+  <button class="cb" id="bMic" data-tip="Mute"><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11z"/></svg></button>
+  <button class="cb" id="bDeaf" data-tip="Deafen"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9v7a2 2 0 0 0 2 2h3v-8H5v-1a7 7 0 0 1 14 0v1h-3v8h3a2 2 0 0 0 2-2v-7a9 9 0 0 0-9-9z"/></svg></button>
+  <button class="cb" id="bCam" data-tip="Turn on camera"><svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg></button>
+  <button class="cb" id="bScreen" data-tip="Share screen"><svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h6v2H8v2h8v-2h-2v-2h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 12H4V6h16z"/></svg></button>
+  <button class="cb" id="bLink" data-tip="Copy invite link"><svg viewBox="0 0 24 24"><path d="M10.6 13.4a1 1 0 0 1 0-1.4l3.4-3.4a1 1 0 1 1 1.4 1.4L12 13.4a1 1 0 0 1-1.4 0zM7 17a3 3 0 0 1-2.1-5.1l2.8-2.8 1.4 1.4-2.8 2.8a1 1 0 0 0 1.4 1.4l2.8-2.8 1.4 1.4-2.8 2.8A3 3 0 0 1 7 17zm9.3-3.1-1.4-1.4 2.8-2.8a1 1 0 0 0-1.4-1.4l-2.8 2.8-1.4-1.4 2.8-2.8a3 3 0 0 1 4.2 4.2z"/></svg></button>
+  <button class="cb leave" id="bLeave" data-tip="Leave call"><svg viewBox="0 0 24 24"><path d="M12 9c-1.6 0-3.1.3-4.6.7v3.1a1 1 0 0 1-.6.9 11 11 0 0 0-2.6 1.8 1 1 0 0 1-1.4 0L.3 13a1 1 0 0 1 0-1.4C3.3 8.7 7.4 7 12 7s8.7 1.7 11.7 4.6a1 1 0 0 1 0 1.4l-2.5 2.5a1 1 0 0 1-1.4 0 11 11 0 0 0-2.6-1.8 1 1 0 0 1-.6-.9V9.7C15.1 9.3 13.6 9 12 9z"/></svg></button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let tT; const toast = m => { $('toast').textContent = m; $('toast').classList.add('show'); clearTimeout(tT); tT = setTimeout(() => $('toast').classList.remove('show'), 2600); };
+const store = { get: (k, d) => { try { return localStorage.getItem('flixcall.' + k) ?? d; } catch (_) { return d; } }, set: (k, v) => { try { localStorage.setItem('flixcall.' + k, v); } catch (_) {} } };
+
+// #r=<room>&n=<name>&t=<title>
+const params = new URLSearchParams(location.hash.slice(1));
+const ROOM = (params.get('r') || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
+const TITLE = (params.get('t') || '').slice(0, 60);
+const WANT_VIDEO = params.get('v') === '1', START_MUTED = params.get('m') === '1', START_DEAF = params.get('d') === '1';
+$('name').value = params.get('n') || store.get('name', '');
+$('roomLabel').textContent = TITLE ? '· ' + TITLE : '';
+if (WANT_VIDEO) { $('lobbyTitle').textContent = '🎥 Join the video call'; $('join').textContent = 'Join with video'; }
+if (!ROOM) {
+  $('lobbyTitle').textContent = 'No call here';
+  $('lobbyText').textContent = 'Open a call from Diskord (the 📞 or 🎥 button in a channel, on someone\'s profile, or a voice channel) — or start one from the Diskord app home page.';
+  ['name', 'join'].forEach(id => $(id).classList.add('hidden')); document.querySelector('.meter').classList.add('hidden');
+  return;
+}
+if (typeof Peer === 'undefined') { $('lobbyText').textContent = 'Could not load the call engine. Check your internet connection and reload.'; $('join').disabled = true; return; }
+
+const COLORS = ['#ff3d6e', '#8b5cf6', '#22c1ee', '#2bd98a', '#ffb020', '#ff7a45', '#4f7cff', '#e94cd8'];
+const colorOf = s => COLORS[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
+const PREFIX = 'flixcord-v1-' + ROOM;
+const tellOpener = t => { try { if (window.opener) window.opener.postMessage({ diskord: t, room: ROOM }, '*'); } catch (_) {} };
+const ICE = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
+
+// ------------------------------------------------------------ local media
+let mic = null, camTrack = null, screenTrack = null;
+const blankCanvas = Object.assign(document.createElement('canvas'), { width: 32, height: 18 });
+blankCanvas.getContext('2d').fillRect(0, 0, 32, 18);
+const blankTrack = blankCanvas.captureStream(1).getVideoTracks()[0];
+let ac = null;
+function audioCtx() { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); return ac; }
+async function getMic() {
+  try { mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+  catch (_) {
+    $('lobbyNote').textContent = 'No microphone allowed — you can still listen. Allow the mic in your browser and reload to talk.';
+    const dst = audioCtx().createMediaStreamDestination(); mic = dst.stream;
+  }
+  meterFor(mic, v => { $('meter').style.width = Math.min(100, v * 280) + '%'; });
+}
+const meters = [];
+function meterFor(stream, cb) {
+  if (!stream.getAudioTracks().length) return;
+  try {
+    const src = audioCtx().createMediaStreamSource(stream), an = audioCtx().createAnalyser(); an.fftSize = 512; src.connect(an);
+    const buf = new Uint8Array(an.fftSize); meters.push({ an, buf, cb });
+  } catch (_) {}
+}
+(function tick() {
+  for (const m of meters) { m.an.getByteTimeDomainData(m.buf); let s = 0; for (const v of m.buf) { const x = (v - 128) / 128; s += x * x; } m.cb(Math.sqrt(s / m.buf.length)); }
+  requestAnimationFrame(tick);
+})();
+getMic();
+
+// ------------------------------------------------------------ state
+const me = { id: null, name: '', muted: false, deaf: false, cam: false, screen: false };
+let peer = null, dirPeer = null, dirConn = null;
+const calls = new Map();      // peerId -> MediaConnection
+const members = new Map();    // peerId -> {name, muted, cam, screen}
+const dirConns = new Map();   // (when I am directory) peerId -> DataConnection
+const dirMembers = new Map(); // (when I am directory) peerId -> state
+const outStream = () => new MediaStream([...mic.getAudioTracks(), currentVideo()]);
+const currentVideo = () => screenTrack || camTrack || blankTrack;
+
+// ------------------------------------------------------------ join
+$('name').oninput = () => store.set('name', $('name').value.trim());
+$('join').onclick = async () => {
+  me.name = ($('name').value.trim() || 'Guest').slice(0, 32); store.set('name', me.name);
+  $('join').disabled = true; $('join').textContent = 'Connecting…';
+  if (ac && ac.state === 'suspended') ac.resume();
+  if (!mic) await getMic();
+  peer = new Peer(PREFIX + '-' + Math.random().toString(36).slice(2, 10), { config: ICE, debug: 0 });
+  peer.on('open', id => { me.id = id; setTimeout(() => { if (START_MUTED && !me.muted) $('bMic').click(); if (START_DEAF && !me.deaf) $('bDeaf').click(); if (WANT_VIDEO && !me.cam) $('bCam').click(); }, 300); tellOpener('alive'); setInterval(() => { if (!left) tellOpener('alive'); }, 20000); $('lobby').classList.add('hidden'); ['stage', 'bar', 'live'].forEach(x => $(x).classList.remove('hidden')); addTile(id, true); claimDirectory(); });
+  peer.on('call', call => { call.answer(outStream()); wireCall(call); });
+  peer.on('error', e => { if (e.type === 'peer-unavailable') return; console.warn(e); if (!me.id) { $('join').disabled = false; $('join').textContent = 'Try again'; toast('Could not connect (' + e.type + ')'); } });
+  peer.on('disconnected', () => { if (!left) setTimeout(() => peer && !peer.destroyed && peer.reconnect(), 1500); });
+};
+
+// The "directory" is one peer with a fixed id that keeps the member list. Whoever grabs the id first runs it;
+// if they leave, everyone else races to take it over and re-registers.
+function claimDirectory() {
+  const d = new Peer(PREFIX, { config: ICE, debug: 0 });
+  d.on('open', () => { dirPeer = d; registerWithDirectory(); });
+  d.on('connection', conn => {
+    conn.on('open', () => dirConns.set(conn.peer, conn));
+    conn.on('data', msg => { if (msg && msg.t === 'state') { dirMembers.set(conn.peer, sanitize(msg)); broadcast(); } });
+    conn.on('close', () => { dirConns.delete(conn.peer); dirMembers.delete(conn.peer); broadcast(); });
+  });
+  d.on('error', e => { if (e.type === 'unavailable-id') { d.destroy(); registerWithDirectory(); } });
+}
+const sanitize = m => ({ name: String(m.name || 'Guest').slice(0, 32), muted: !!m.muted, cam: !!m.cam, screen: !!m.screen });
+function broadcast() { const list = [...dirMembers].map(([id, m]) => ({ id, ...m })); for (const c of dirConns.values()) if (c.open) c.send({ t: 'members', list }); }
+let regTimer = null;
+function registerWithDirectory() {
+  if (left) return;
+  const c = peer.connect(PREFIX, { reliable: true });
+  c.on('open', () => { dirConn = c; sendState(); });
+  c.on('data', msg => { if (msg && msg.t === 'members' && Array.isArray(msg.list)) onMembers(msg.list); });
+  c.on('close', () => { if (dirConn === c) dirConn = null; if (!left) { clearTimeout(regTimer); regTimer = setTimeout(claimDirectory, 300 + Math.random() * 1500); } });
+  c.on('error', () => {});
+  setTimeout(() => { if (!c.open && !left) { c.close(); claimDirectory(); } }, 6000);
+}
+function sendState() { if (dirConn && dirConn.open) dirConn.send({ t: 'state', name: me.name, muted: me.muted, cam: me.cam, screen: me.screen }); }
+function onMembers(list) {
+  const ids = new Set();
+  for (const m of list) {
+    if (typeof m.id !== 'string' || !m.id.startsWith(PREFIX + '-')) continue;
+    ids.add(m.id);
+    if (m.id === me.id) continue;
+    members.set(m.id, sanitize(m));
+    if (!calls.has(m.id) && me.id < m.id) wireCall(peer.call(m.id, outStream()));
+    updateTile(m.id);
+  }
+  for (const id of [...calls.keys()]) if (!ids.has(id)) dropPeer(id);
+  for (const id of [...members.keys()]) if (!ids.has(id)) members.delete(id);
+  $('count').textContent = ids.size + ' in call';
+}
+function wireCall(call) {
+  if (!call) return;
+  const id = call.peer;
+  if (calls.has(id) && calls.get(id) !== call) calls.get(id).close();
+  calls.set(id, call); addTile(id, false);
+  call.on('stream', s => {
+    const t = tiles.get(id); if (!t) return;
+    t.video.srcObject = s; t.video.muted = me.deaf; t.video.play().catch(() => {});
+    meterFor(s, v => t.el.classList.toggle('speaking', v > .04 && !(members.get(id) || {}).muted));
+  });
+  call.on('close', () => { if (calls.get(id) === call) dropPeer(id); });
+  call.on('error', () => {});
+}
+function dropPeer(id) { const c = calls.get(id); calls.delete(id); if (c) try { c.close(); } catch (_) {} removeTile(id); }
+
+// ------------------------------------------------------------ tiles
+const tiles = new Map();
+function addTile(id, mine) {
+  if (tiles.has(id)) return;
+  const el = document.createElement('div'); el.className = 'tile camoff';
+  el.innerHTML = `<video playsinline autoplay ${mine ? 'muted' : ''}></video><div class="face"></div><div class="tag"></div>`;
+  const video = el.querySelector('video');
+  if (mine) { video.srcObject = new MediaStream([currentVideo()]); video.classList.add('mirror'); meterFor(mic, v => el.classList.toggle('speaking', v > .04 && !me.muted)); }
+  tiles.set(id, { el, video, mine }); $('stage').appendChild(el); updateTile(id); layout();
+}
+function updateTile(id) {
+  const t = tiles.get(id); if (!t) return;
+  const m = t.mine ? me : (members.get(id) || { name: '…' });
+  const face = t.el.querySelector('.face'); face.textContent = (m.name || '?')[0].toUpperCase(); face.style.background = colorOf(m.name);
+  t.el.querySelector('.tag').innerHTML = `${m.muted ? '<span class="m">🔇</span>' : ''}${esc(m.name)}${t.mine ? ' (you)' : ''}${m.screen ? ' · 🖥️ sharing' : ''}`;
+  t.el.classList.toggle('camoff', !(m.cam || m.screen));
+  t.video.classList.toggle('contain', !!m.screen);
+  if (t.mine) t.video.classList.toggle('mirror', !me.screen);
+}
+function removeTile(id) { const t = tiles.get(id); if (t) t.el.remove(); tiles.delete(id); layout(); }
+function layout() {
+  const n = tiles.size, W = innerWidth - 40, H = innerHeight - 172;
+  let best = 1, bestW = 0;
+  for (let cols = 1; cols <= n; cols++) { const rows = Math.ceil(n / cols); const w = Math.min((W - (cols - 1) * 14) / cols, ((H - (rows - 1) * 14) / rows) * 1.6); if (w > bestW) { bestW = w; best = cols; } }
+  $('stage').style.gridTemplateColumns = `repeat(${best}, ${Math.floor(bestW)}px)`;
+}
+addEventListener('resize', layout);
+
+// ------------------------------------------------------------ controls
+function setVideoTrack() {
+  const tr = currentVideo();
+  for (const c of calls.values()) { const s = c.peerConnection && c.peerConnection.getSenders().find(x => x.track && x.track.kind === 'video'); if (s) s.replaceTrack(tr).catch(() => {}); }
+  const mine = tiles.get(me.id); if (mine) mine.video.srcObject = new MediaStream([tr]);
+  updateTile(me.id); sendState();
+}
+$('bMic').onclick = () => {
+  me.muted = !me.muted; mic.getAudioTracks().forEach(t => t.enabled = !me.muted);
+  $('bMic').classList.toggle('off', me.muted); $('bMic').dataset.tip = me.muted ? 'Unmute' : 'Mute'; updateTile(me.id); sendState();
+};
+$('bDeaf').onclick = () => {
+  me.deaf = !me.deaf; for (const [id, t] of tiles) if (!t.mine) t.video.muted = me.deaf;
+  $('bDeaf').classList.toggle('off', me.deaf); $('bDeaf').dataset.tip = me.deaf ? 'Undeafen' : 'Deafen';
+  if (me.deaf && !me.muted) $('bMic').click();
+};
+$('bCam').onclick = async () => {
+  if (camTrack) { camTrack.stop(); camTrack = null; me.cam = false; }
+  else {
+    try { const s = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } }); camTrack = s.getVideoTracks()[0]; me.cam = true; }
+    catch (_) { return toast('Camera is blocked or missing'); }
+  }
+  $('bCam').classList.toggle('on', me.cam); $('bCam').dataset.tip = me.cam ? 'Turn off camera' : 'Turn on camera'; setVideoTrack();
+};
+$('bScreen').onclick = async () => {
+  if (screenTrack) { screenTrack.stop(); screenTrack = null; me.screen = false; }
+  else {
+    try { const s = await navigator.mediaDevices.getDisplayMedia({ video: true }); screenTrack = s.getVideoTracks()[0]; me.screen = true; screenTrack.onended = () => { if (me.screen) $('bScreen').click(); }; }
+    catch (_) { return; }
+  }
+  $('bScreen').classList.toggle('on', me.screen); $('bScreen').dataset.tip = me.screen ? 'Stop sharing' : 'Share screen'; setVideoTrack();
+};
+$('bLink').onclick = async () => {
+  const u = location.href.split('#')[0] + '#r=' + ROOM + (WANT_VIDEO ? '&v=1' : '') + (TITLE ? '&t=' + encodeURIComponent(TITLE) : '');
+  try { await navigator.clipboard.writeText(u); toast('Invite link copied'); } catch (_) { prompt('Copy this link', u); }
+};
+let left = false;
+$('bLeave').onclick = () => {
+  left = true; tellOpener('left');
+  for (const id of [...calls.keys()]) dropPeer(id);
+  [peer, dirPeer].forEach(p => p && p.destroy());
+  [mic, camTrack, screenTrack].forEach(x => x && (x.getTracks ? x.getTracks() : [x]).forEach(t => t.stop()));
+  document.body.insertAdjacentHTML('beforeend', `<div class="ended"><div class="card"><img class="logo" src="logo.svg" alt=""><h1>You left the call</h1><p>You can close this tab and go back to Diskord.</p><button class="big" onclick="location.reload()">Rejoin</button></div></div>`);
+};
+addEventListener('beforeunload', () => { if (me.id) tellOpener('left'); left = true; [peer, dirPeer].forEach(p => p && p.destroy()); });
+})();
+</script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+</body>
+</html>
