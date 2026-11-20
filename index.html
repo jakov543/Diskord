@@ -161,7 +161,7 @@ a.btn.go { color: #062814; } a.btn.primary { color: #fff; }
 .addbox { display: flex; gap: 8px; background: var(--bg0); border-radius: 10px; padding: 8px 8px 8px 14px; border: 1px solid var(--line); }
 .addbox input { flex: 1; background: none; border: 0; outline: none; font-size: 15px; } .addbox:focus-within { border-color: var(--accent); }
 #addMsg .bad { color: var(--dnd); font-size: 13.5px; margin-top: 8px; } #addMsg .good { color: var(--ok); font-size: 13.5px; margin-top: 8px; }
-.dmside { min-height: 100%; margin: -16px -8px; padding-bottom: 20px; }
+.dmside { min-height: calc(100% + 32px); margin: -16px -8px; padding-bottom: 20px; }
 .dsb { height: 120px; } .dsa { margin: -46px 0 0 16px; } .dsa .av .st { width: 20px; height: 20px; border-width: 4px; border-color: var(--bg1); }
 .dsc { margin: 10px 12px 0; padding: 14px; border-radius: 10px; background: rgba(0,0,0,.28); } .dsn { font-size: 20px; font-weight: 800; } .dsu { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
 .dsh { font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: var(--muted); margin-top: 14px; } .dst { font-size: 13.5px; margin-top: 4px; white-space: pre-wrap; }
@@ -179,7 +179,7 @@ a.btn.go { color: #062814; } a.btn.primary { color: #fff; }
 .pc-menu button span { flex: 1; text-align: left; } .pc-menu button i { font-style: normal; color: var(--muted); font-size: 18px; } .pc-menu button:hover { background: rgba(255,255,255,.07) !important; color: var(--text) !important; }
 .pc-menu button.danger { color: var(--dnd) !important; }
 .st-dot { flex: 0 0 12px !important; width: 12px; height: 12px; border-radius: 50%; background: var(--ok); } .st-dot.idle { background: var(--idle); } .st-dot.dnd { background: var(--dnd); } .st-dot.off { background: var(--dim); }
-.pc-actions { display: flex; gap: 8px; margin-top: 14px; } .pc-actions .btn { padding: 9px 12px; } .pc-actions .btn.primary { flex: 1; }
+.pc-actions { display: flex; gap: 8px; margin-top: 14px; } .pc-actions .btn { padding: 0; height: 40px; min-width: 40px; display: grid; place-items: center; white-space: nowrap; font-size: 15px; } .pc-actions > .btn { flex: 0 0 40px !important; width: 40px; } .pc-actions > .btn.primary { flex: 1 1 auto !important; width: auto; padding: 0 12px; font-size: 14px; }
 .btn.alt { background: var(--bg3); color: var(--text); }
 .modal.wide { width: min(900px, 95vw); }
 .pe { display: grid; grid-template-columns: 1fr 340px; gap: 24px; padding: 22px 22px 6px; }
@@ -317,7 +317,13 @@ i.d { display: inline-block; width: 8px; height: 8px; border-radius: 50%; backgr
 
 .av { position: relative; flex: 0 0 auto; }
 .av img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
-.av .st { position: absolute; right: -2px; bottom: -2px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--bg0); background: var(--dim); }
+.av .st { position: absolute; right: 0 !important; bottom: 0 !important; width: var(--d, 12px) !important; height: var(--d, 12px) !important; border-radius: 50%; border: 0 !important; background: var(--dim); }
+.av .st.off { background: transparent; box-shadow: inset 0 0 0 calc(var(--d) * .22) #80848e; }
+.av .st.idle { background: radial-gradient(circle at 22% 22%, transparent calc(var(--d) * .3), var(--idle) calc(var(--d) * .3 + .5px)); }
+.av .st.dnd { background: linear-gradient(#fff0, #fff0) , var(--dnd); } .av .st.dnd::after { content: ''; position: absolute; left: 22%; right: 22%; top: 42%; height: 16%; border-radius: 2px; background: rgba(0,0,0,.55); }
+/* cut a hole in the picture for the status dot (like Discord) so it looks clean on every background */
+.av.has-st > img, .av.has-st > div:first-child { -webkit-mask: radial-gradient(circle at calc(100% - var(--d) / 2) calc(100% - var(--d) / 2), transparent calc(var(--d) / 2 + var(--g)), #000 calc(var(--d) / 2 + var(--g) + .5px)); mask: radial-gradient(circle at calc(100% - var(--d) / 2) calc(100% - var(--d) / 2), transparent calc(var(--d) / 2 + var(--g)), #000 calc(var(--d) / 2 + var(--g) + .5px)); }
+.av img { background: var(--bg3); }
 .st.online { background: var(--ok); } .st.idle { background: var(--idle); } .st.dnd { background: var(--dnd); }
 
 /* ---------- main ---------- */
@@ -654,9 +660,10 @@ async function resolveNow() {
 }
 function avatarHtml(uid, size, withStatus) {
   const src = avatarOf(uid);
-  const st = withStatus ? `<span class="st ${statusOf(uid)}"></span>` : '';
+  const d = Math.max(9, Math.round(size * .3)), gap = Math.max(2, Math.round(size * .07));
+  const st = withStatus ? `<span class="st ${statusOf(uid) || 'off'}"></span>` : '';
   const img = src ? `<img src="${esc(src)}" alt="">` : `<div style="width:100%;height:100%;border-radius:50%;background:${S.colors[uid] || '#555'};display:grid;place-items:center;font-weight:800;color:#fff;font-size:${Math.round(size * .42)}px">${esc((nameOf(uid)[0] || '?').toUpperCase())}</div>`;
-  return `<div class="av" style="width:${size}px;height:${size}px" data-uid="${esc(uid)}">${img}${st}</div>`;
+  return `<div class="av${withStatus ? ' has-st' : ''}" style="width:${size}px;height:${size}px;--d:${d}px;--g:${gap}px" data-uid="${esc(uid)}">${img}${st}</div>`;
 }
 function statusOf(uid) {
   if (uid === S.myId) return S.status === 'invisible' ? '' : S.status;
@@ -1467,7 +1474,7 @@ function fullProfile(uid, tab) {
             <button class="btn alt fp-ib" data-a="more" title="More">⋯</button></div>
           ${p.about ? `<div class="fp-about">${esc(p.about)}</div>` : ''}
           ${p.joinedAt ? `<div class="fp-h">Member Since</div><div class="fp-t">${esc(fmtDate(p.joinedAt))}</div>` : ''}
-          ${f && f.status === 'accepted' && f.at ? `<div class="fp-h">Friends Since</div><div class="fp-t">${esc(fmtDate(f.at))}</div>` : ''}
+          ${!me && f && f.status === 'accepted' && f.at ? `<div class="fp-h">Friends Since</div><div class="fp-t">${esc(fmtDate(f.at))}</div>` : ''}
           ${me ? '' : `<div class="fp-h">Note (only visible to you)</div><textarea class="fp-note" id="fpNote" maxlength="256" rows="2" placeholder="Click to add a note">${esc(note)}</textarea>`}
         </div></div>
       <div class="fp-r"><div class="fp-tabs">

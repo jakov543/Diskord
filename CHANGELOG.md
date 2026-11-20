@@ -1,5 +1,12 @@
 # Diskord changelog
 
+## 6.6.0
+- 🖼️ **Profile pictures look clean everywhere.** The status dot now sits in a cut-out of the picture like Discord, instead of a coloured ring on top
+  - Idle shows a moon 🌙, Do Not Disturb shows a minus ⛔, and offline shows a grey ring
+- Profile popup: the Message, View Profile, Call and Video buttons are now neatly lined up
+- The DM profile side panel now fills the whole height
+- Your own full profile no longer shows "Friends Since"
+
 ## 6.5.2
 - 🎞️ GIF search is more reliable in the desktop app
 
