@@ -1560,8 +1560,9 @@ async function tenor(path, params) {
   const q = new URLSearchParams({ page: '1', per_page: '40', customer_id: gifCustomer(), locale: (navigator.language || 'en').slice(0, 2), content_filter: 'medium', format_filter: 'gif', ...params });
   const url = `https://api.klipy.com/api/v1/${key}/gifs/${path === 'featured' ? 'trending' : 'search'}?${q}`;
   if (tenorCache.has(url)) return tenorCache.get(url);
-  const r = await fetch(url); if (!r.ok) throw new Error('klipy ' + r.status);
-  const j = await r.json();
+  let j;
+  if (window.diskord && window.diskord.gifFetch) { const r = await window.diskord.gifFetch(url); if (!r || r.status !== 200) throw new Error('klipy ' + (r ? r.status : 'net')); j = JSON.parse(r.body); }
+  else { const r = await fetch(url); if (!r.ok) throw new Error('klipy ' + r.status); j = await r.json(); }
   const items = (j && j.data && Array.isArray(j.data.data)) ? j.data.data : [];
   const pick = (f, ...sizes) => { for (const z of sizes) { const u = f && f[z] && f[z].gif && f[z].gif.url; if (KLIPY_OK(u)) return u; } return ''; };
   const list = items.filter(x => x && x.file && x.type !== 'ad').map(x => ({ u: pick(x.file, 'md', 'hd', 'sm'), p: pick(x.file, 'sm', 'xs', 'md'), n: String(x.title || 'GIF').slice(0, 60) })).filter(g => g.u && g.p);

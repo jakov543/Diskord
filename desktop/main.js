@@ -169,6 +169,11 @@ function createTray() {
 }
 
 // ---------------------------------------------------------------- screen-share picker
+// GIF search (KLIPY) from the app process, so it works whatever the site allows for browsers
+ipcMain.handle('gif-fetch', async (e, url) => {
+  if (!fromLocal(e) || typeof url !== 'string' || url.length > 800 || !url.startsWith('https://api.klipy.com/api/v1/')) return null;
+  try { const r = await net.fetch(url); if (!r.ok) return { status: r.status }; const t = await r.text(); return t.length > 3e6 ? null : { status: 200, body: t }; } catch (_) { return null; }
+});
 // in-call picker: the call page asks for the list, then says which one to share
 const sharePick = new Map(), shareLists = new Map();
 ipcMain.handle('screen-sources', async e => {

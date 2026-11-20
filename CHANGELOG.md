@@ -1,5 +1,8 @@
 # Diskord changelog
 
+## 6.5.2
+- 🎞️ GIF search is more reliable in the desktop app
+
 ## 6.5.1
 - 🎞️ **GIF search works again.** Open the GIF button and search millions of GIFs (powered by KLIPY), with trending GIFs and quick tags like lol, gg, hype and cat
 
