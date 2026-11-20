@@ -1,4 +1,4 @@
-name: Build Diskord installer + server
+name: Build Diskord installer
 on:
   push:
     branches: [main]
@@ -18,6 +18,7 @@ jobs:
         run: |
           mkdir -p desktop/app/icons desktop/app/vendor
           cp index.html call.html adapter.js diskord-config.js logo.svg manifest.webmanifest desktop/app/
+          cp vendor/nostr.bundle.js desktop/app/vendor/
           cp icons/*.png desktop/app/icons/
           cp CHANGELOG.md desktop/CHANGELOG.md
           cd desktop/app/vendor
@@ -25,15 +26,6 @@ jobs:
           tar -xzf peerjs-1.5.4.tgz && cp package/dist/peerjs.min.js . && rm -rf package *.tgz
           cd ..
           sed -i 's#https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js#vendor/peerjs.min.js#' call.html
-      - name: Build the server package
-        shell: bash
-        run: |
-          mkdir -p out/diskord-server/public/icons
-          cp server/server.js server/rules.js server/package.json server/config.json server/README.md server/start.bat server/start.sh out/diskord-server/
-          cp index.html call.html adapter.js diskord-config.js logo.svg manifest.webmanifest sw.js out/diskord-server/public/
-          cp icons/*.png out/diskord-server/public/icons/
-          cd out/diskord-server && npm install --omit=dev --no-audit --no-fund && cd ..
-          7z a -tzip diskord-server.zip diskord-server > /dev/null
       - name: Install
         working-directory: desktop
         run: npm install --no-audit --no-fund
@@ -53,7 +45,6 @@ jobs:
             echo "## What's new in Diskord $V"; echo; cat notes.md; echo
             echo "---"; echo "### ⬇️ Downloads"
             echo "- **Diskord-Setup-$V.exe**: the Diskord app for Windows 10 / 11. If SmartScreen appears, click **More info → Run anyway**."
-            echo "- **diskord-server.zip**: your own Diskord server. Upload it to your VPS or hosting panel and start it (see README inside)."
             echo; echo "Already have Diskord? It updates itself."
           } > body.md
       - name: Publish release
@@ -67,4 +58,3 @@ jobs:
             desktop/dist/Diskord-Setup-*.exe
             desktop/dist/Diskord-Setup-*.exe.blockmap
             desktop/dist/latest.yml
-            out/diskord-server.zip

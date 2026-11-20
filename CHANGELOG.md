@@ -1,5 +1,18 @@
 # Diskord changelog
 
+## 5.0.0
+### ✨ New
+- 🌍 **No server needed — just install and use, like Discord.** Diskord now runs on the open **Nostr** network: your messages are saved on several free public relays at once, so there's no VPS, no Firebase and nothing to set up
+- 🔐 **Sign up with display name, username and password**, no email needed. Log in from any PC with the same username + password
+- 🔒 **Encrypted DMs**: only you and your friend can read them
+- 🔗 **Invite codes**: servers are private to the people you invite. Server menu → **Invite people**, friends click **+** → **Join with an invite code**
+- 🚪 **Leave server** for members; the members list now shows who's actually in each server
+- 🖼️ Pictures and GIFs up to 15 MB in the desktop app (free anonymous upload)
+- ✅ Every app checks every change, so nobody can fake owners, edit other people's messages or read your DMs
+### ⚠️ Good to know
+- Your password can't be reset (it *is* your key), so write it down
+- Messages in servers can be read by anyone who has the invite code. Use DMs for private stuff
+
 ## 4.0.0
 ### ✨ New
 - 🗄️ **Diskord's own server and database**: no more Firebase and no Google. Run **diskord-server** on your VPS or hosting panel, and everything (accounts, servers, messages, DMs, friends, pictures, GIFs) is saved on your own machine

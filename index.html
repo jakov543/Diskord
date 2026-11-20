@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b0912">
+<script src="vendor/nostr.bundle.js"></script>
 <script src="diskord-config.js"></script>
 <script src="adapter.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -617,7 +618,6 @@ async function boot() {
   subscribeCore();
   subscribeHome();
   setupRoom();
-  if (!S.usernames[S.myId]) setTimeout(() => usernameModal(true), 1500);
   $('splash').classList.add('hidden');
   renderAll();
 }
@@ -625,8 +625,11 @@ async function boot() {
 let coreLoaded = { servers: false, channels: false };
 function subscribeCore() {
   const fail = e => { if (e && e.code === 'revoked') toast('Your access to Diskord changed.', true); };
+  S.db.doc('joined/' + S.myId).onSnapshot(sn => { S.myJoined = (sn.exists && Array.isArray(sn.data().servers)) ? sn.data().servers : []; filterServers(); pickChannel(); renderAll(); }, () => {});
+  S.db.collection('joined').onSnapshot(snap => { S.joinedBy = {}; snap.docs.forEach(d => { S.joinedBy[d.id] = Array.isArray(d.data().servers) ? d.data().servers : []; }); renderMembers(); }, () => {});
   S.db.collection('servers').orderBy('at').onSnapshot(snap => {
-    S.servers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    S.allServers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    filterServers();
     coreLoaded.servers = true;
     if (S.sid !== '@me' && !S.servers.find(s => s.id === S.sid)) S.sid = S.servers[0] ? S.servers[0].id : '@me';
     pickChannel(); renderAll();
@@ -660,6 +663,40 @@ async function ensureProfile() {
   } catch (_) { /* view-only viewers can't write */ }
 }
 
+function filterServers() { S.servers = (S.allServers || []).filter(s => s.owner === S.myId || (S.myJoined || []).includes(s.id)); }
+async function setJoined(list) { S.myJoined = [...new Set(list)]; filterServers(); await S.db.doc('joined/' + S.myId).set({ servers: S.myJoined }); }
+function serverMembers(s) { return [...new Set([s.owner, ...Object.entries(S.joinedBy || {}).filter(([, l]) => l.includes(s.id)).map(([u]) => u)])].filter(Boolean); }
+function joinModal() {
+  modal(`<div class="mh"><h2>Join a server</h2><p>Enter an invite code from a friend. It looks like <code>dk-AbCd1234…</code></p></div>
+    <div class="mb"><div class="field"><label>Invite code</label><input id="jCode" placeholder="dk-…" autocomplete="off"></div><div id="jMsg" style="color:var(--dnd);font-size:13px"></div></div>
+    <div class="mf"><button class="btn ghost" data-back>Back</button><button class="btn primary" data-ok>Join server</button></div>`, (o, close) => {
+    o.querySelector('[data-back]').onclick = () => { close(); addServerModal(); };
+    o.querySelector('[data-ok]').onclick = async () => {
+      const raw = o.querySelector('#jCode').value.trim(); const id = raw.replace(/^.*?dk-/, '').replace(/[^A-Za-z0-9]/g, '');
+      if (!id) return;
+      const b = o.querySelector('[data-ok]'); b.disabled = true; b.textContent = 'Looking…';
+      const snap = await S.db.doc('servers/' + id).get().catch(() => null);
+      if (!snap || !snap.exists) { b.disabled = false; b.textContent = 'Join server'; o.querySelector('#jMsg').textContent = 'That invite is invalid or the server was deleted.'; return; }
+      try { await setJoined([...(S.myJoined || []), id]); S.sid = id; S.cid = null; ls.set('sid', id); close(); pickChannel(); renderAll(); toast('Welcome to ' + snap.data().name + '! 🎉'); } catch (e) { writeError(e); }
+    };
+  });
+}
+function addServerModal() {
+  modal(`<div class="mh"><h2>Add a server</h2><p>Create your own, or join a friend's with an invite code.</p></div>
+    <div class="mb"><button class="btn primary" style="width:100%;margin-bottom:10px" data-c>✨ Create my own server</button><button class="btn alt" style="width:100%" data-j>🔗 Join with an invite code</button></div>`, (o, close) => {
+    o.querySelector('[data-c]').onclick = () => { close(); createServerModal(); };
+    o.querySelector('[data-j]').onclick = () => { close(); joinModal(); };
+  });
+}
+function inviteModal(s) {
+  const code = 'dk-' + s.id;
+  modal(`<div class="mh"><h2>Invite friends to ${esc(s.name)}</h2><p>Send them this invite code. In Diskord they click <b>+</b> → <b>Join with an invite code</b>.</p></div>
+    <div class="mb"><div class="addbox"><input readonly value="${esc(code)}" id="invCode"><button class="btn primary sm2" id="invCopy">Copy</button></div></div>
+    <div class="mf"><button class="btn primary" data-x>Done</button></div>`, (o, close) => {
+    o.querySelector('[data-x]').onclick = close;
+    o.querySelector('#invCopy').onclick = async () => { try { await navigator.clipboard.writeText(code); o.querySelector('#invCopy').textContent = 'Copied ✓'; } catch (_) { o.querySelector('#invCode').select(); } };
+  });
+}
 function serverChannels(sid) { return S.channels.filter(c => c.sid === sid).sort((a, b) => (a.pos || 0) - (b.pos || 0)); }
 function pickChannel() {
   if (isHome()) { if (S.cid && !String(S.cid).startsWith('dm_')) openChannel(null); return; }
@@ -798,7 +835,7 @@ function renderRail() {
   }
   if (S.canWrite) {
     const add = document.createElement('button'); add.className = 'srv add'; add.textContent = '+';
-    add.onclick = createServerModal; tip(add, 'Create a server'); r.appendChild(add);
+    add.onclick = addServerModal; tip(add, 'Add a server'); r.appendChild(add);
   }
 }
 function curServer() { return S.servers.find(s => s.id === S.sid) || null; }
@@ -1106,7 +1143,7 @@ function setPendingImg(f) {
 
 // mention picker
 let pick = null;
-function memberIds() { return [...new Set([...Object.keys(S.profiles), ...S.online.keys(), ...S.msgs.map(m => m.uid)])].filter(Boolean); }
+function memberIds() { const sv = curServer(); if (sv) return [...new Set([...serverMembers(sv), ...S.msgs.map(m => m.uid)])].filter(Boolean); return [...new Set([...S.friends.flatMap(f => f.members), ...S.dms.flatMap(d => d.members)])].filter(Boolean); }
 function mentionPicker(ta) {
   const before = ta.value.slice(0, ta.selectionStart);
   const m = before.match(/@([^\s@]{0,32})$/);
@@ -1444,11 +1481,12 @@ async function setStatus(st) {
 }
 
 function serverMenu(e, s) {
-  const items = [];
+  const items = [{ label: 'Invite people', icon: '🔗', run: () => inviteModal(s) }];
   if (canManage(s)) items.push({ label: 'Server settings', icon: '⚙️', run: () => serverModal(s) }, { label: 'Custom emoji', icon: '😀', run: () => serverModal(s, 'emoji') });
   if (isOwnerOf(s)) items.push({ label: 'Co-owners', icon: '🛡️', run: () => serverModal(s, 'team') });
   if (canManage(s)) items.push({ label: 'Create text channel', icon: '#', run: () => channelModal(null, 'text') }, { label: 'Create voice channel', icon: '🔊', run: () => channelModal(null, 'voice') });
   items.push({ label: 'Mark as read', icon: '✓', run: () => { for (const c of serverChannels(s.id)) if (c.last) ls.set('read.' + c.id, c.last); renderAll(); } });
+  if (s.owner !== S.myId) items.push('-', { label: 'Leave server', danger: true, run: () => confirmModal('Leave ' + s.name, 'You can join again later with an invite code.', 'Leave server', async () => { await setJoined((S.myJoined || []).filter(x => x !== s.id)); S.sid = '@me'; S.cid = null; renderAll(); }) });
   if (isOwnerOf(s)) items.push('-', { label: 'Delete server', danger: true, run: () => confirmModal('Delete ' + s.name, 'This deletes the server and its channels for everyone. Messages can\'t be recovered.', 'Delete server', () => deleteServer(s)) });
   menu(e, items);
 }
@@ -1494,6 +1532,7 @@ function createServerModal() {
           const doc = { name, emoji: st.emoji, color: st.color, owner: S.myId, admins: [], at: Date.now() };
           if (st.icon) doc.icon = st.icon;
           const ref = await S.db.collection('servers').add(doc);
+          await setJoined([...(S.myJoined || []), ref.id]);
           let pos = 0;
           for (const [n, t, type] of [['general', 'Talk about anything', 'text'], ['gaming', 'What are we playing?', 'text'], ['clips', 'Share your best moments', 'text'], ['memes', '', 'text'], ['Lounge', '', 'voice'], ['Gaming', '', 'voice']]) {
             await S.db.collection('channels').add({ sid: ref.id, name: n, topic: t, type, pos: pos++, at: Date.now() });
@@ -1812,6 +1851,12 @@ function renderFriendsPage() {
     S.addMsg = `<p class="good">Success! Your friend request to @${esc(v)} was sent.</p>`; const m2 = f.querySelector('#addMsg'); if (m2) m2.innerHTML = S.addMsg; const n2 = f.querySelector('#addName'); if (n2) n2.value = '';
   };
 }
+function networkModal() {
+  const rl = window.diskordRelays ? window.diskordRelays() : [];
+  modal(`<div class="mh"><h2>Diskord network 🌐</h2><p>Diskord has no central server. Your messages are saved on several free public Nostr relays at once, so if one is down the others keep working. DMs are end-to-end encrypted.</p></div>
+    <div class="mb"><div class="fh">Relays</div>${rl.map(u => `<div class="fnote">• ${esc(u)}</div>`).join('')}<p class="fnote" style="margin-top:14px">Messages in servers can be read by anyone who has the invite code. Don't share passwords or private info in server channels — use DMs.</p></div>
+    <div class="mf"><button class="btn primary" data-x>OK</button></div>`, (o, close) => { o.querySelector('[data-x]').onclick = close; });
+}
 function passwordModal() {
   modal(`<div class="mh"><h2>Change password</h2></div><div class="mb">
     <div class="field"><label>Current password</label><input id="pwOld" type="password" autocomplete="current-password"></div>
@@ -1876,9 +1921,8 @@ function profileCard(e, uid) {
       ${me ? `<div class="pc-menu">
         <button data-pm="edit">✏️<span>Edit Profile</span></button>
         <button data-pm="status"><span class="st-dot ${statusOf(uid) || 'off'}"></span><span>${stLabel[S.status] || 'Online'}</span><i>›</i></button>
-        <button data-pm="user">🪪<span>Username: ${unameOf(uid) ? '@' + esc(unameOf(uid)) : 'pick one'}</span><i>›</i></button>
-        <button data-pm="pw">🔑<span>Change password</span><i>›</i></button>
-        <button data-pm="srv">🌐<span>Server: ${esc((window.diskordServer ? window.diskordServer() : '').replace(/^https?:\/\//, ''))}</span><i>›</i></button>
+        <button data-pm="user">🪪<span>Copy username @${esc(unameOf(uid))}</span><i>›</i></button>
+        <button data-pm="net">🌐<span>Diskord network</span><i>›</i></button>
       </div><div class="pc-menu"><button data-pm="logout" class="danger">🚪<span>Log out</span></button></div>`
       : `<div class="pc-actions">
         <button class="btn primary" data-pm="dm">💬 Message</button>
@@ -1899,9 +1943,8 @@ function profileCard(e, uid) {
     if (k === 'status') return statusMenu({ currentTarget: btn, clientX: ev.clientX, clientY: ev.clientY });
     closeFloating();
     if (k === 'edit') profileEditor();
-    if (k === 'user') usernameModal();
-    if (k === 'pw') passwordModal();
-    if (k === 'srv') confirmModal('Change server', 'Log out and connect to a different Diskord server?', 'Change server', () => window.diskordChangeServer && window.diskordChangeServer());
+    if (k === 'user') { navigator.clipboard.writeText(unameOf(uid)).then(() => toast('Username copied — friends add you with @' + unameOf(uid))).catch(() => {}); }
+    if (k === 'net') networkModal();
     if (k === 'logout') confirmModal('Log out', 'Log out of Diskord on this device?', 'Log out', () => window.diskordLogout && window.diskordLogout());
     if (k === 'dm') openDm(uid);
     if (k === 'add') addFriendByUid(uid);

@@ -49,6 +49,19 @@ function showChat() { mode = 'chat'; main.loadURL(CHAT_URL); }
 function route() { if (!net.isOnline()) return showOffline('net'); showChat(); }
 
 ipcMain.on('version', e => { e.returnValue = app.getVersion(); });
+// Picture / GIF uploads go to catbox.moe (free, no account) so they can be bigger than the network allows.
+ipcMain.handle('upload', async (e, a) => {
+  if (!fromLocal(e) || !a || !(a.buf instanceof Uint8Array)) throw new Error('bad request');
+  if (!/^image\/(png|jpeg|gif|webp)$/.test(a.type) || a.buf.length > 15 * 1024 * 1024) throw new Error('Pictures can be PNG, JPG, GIF or WebP up to 15 MB');
+  const ext = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp' }[a.type];
+  const fd = new FormData();
+  fd.append('reqtype', 'fileupload');
+  fd.append('fileToUpload', new Blob([a.buf], { type: a.type }), 'diskord.' + ext);
+  const r = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: fd });
+  const t = (await r.text()).trim();
+  if (!r.ok || !/^https:\/\/files\.catbox\.moe\/[A-Za-z0-9]+\.(png|jpg|gif|webp)$/.test(t)) throw new Error('Upload failed');
+  return t;
+});
 // ---------------------------------------------------------------- Discord Rich Presence
 const clip = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
 function setPresence(p) {
