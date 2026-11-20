@@ -1,5 +1,8 @@
 # Diskord changelog
 
+## 6.5.1
+- 🎞️ **GIF search works again.** Open the GIF button and search millions of GIFs (powered by KLIPY), with trending GIFs and quick tags like lol, gg, hype and cat
+
 ## 6.5.0
 - 💎 **Diskord Nitro** is here: **2,99 € / month** or **29,99 € / year**
   - 💎 badge next to your name
