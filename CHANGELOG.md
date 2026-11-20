@@ -1,5 +1,9 @@
 # Diskord changelog
 
+## 6.1.1
+### 🛠️ Fixes
+- Tooltips on the server list no longer get stuck on screen. Only one shows at a time, and it disappears as soon as you move away or click
+
 ## 6.1.0
 ### ✨ New
 - 🎧 **New Diskord logo**: a gamer headset around a chat-bubble "D" on a blue app tile. It's on the app icon, taskbar, installer, login screen, loading screens, server list and Discord Rich Presence
