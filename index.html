@@ -1843,7 +1843,9 @@ function createServerModal() {
         try {
           const doc = { name, emoji: st.emoji, color: st.color, owner: S.myId, admins: [], at: Date.now() };
           if (st.icon) doc.icon = st.icon;
-          const ref = await S.db.collection('servers').add(doc);
+          // the server id starts with your account key, so nobody can claim it was theirs first
+          const ref = { id: S.myId.slice(0, 16) + Array.from(crypto.getRandomValues(new Uint8Array(10)), b => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[b % 62]).join('') };
+          await S.db.doc('servers/' + ref.id).set(doc);
           await setJoined([...(S.myJoined || []), ref.id]);
           let pos = 0;
           const tc = await S.db.collection('channels').add({ sid: ref.id, name: 'TEXT CHANNELS', type: 'category', pos: pos++, at: Date.now() });

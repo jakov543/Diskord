@@ -36,10 +36,20 @@ async function deriveKey(username, password) {
 
 // ------------------------------------------------------------ rules (every app checks these, so nobody can fake owners, edit others' messages, …)
 // The Diskord owner (can give Nitro / Boost): by username, plus optional raw ids from diskord-config.js
-const OWNER_NAMES = ['frost'];
-const OWNER_KEYS = Array.isArray(window.DISKORD_OWNERS) ? window.DISKORD_OWNERS.filter(x => /^[0-9a-f]{64}$/.test(x)) : [];
-const appOwners = () => [...new Set([...OWNER_KEYS, ...OWNER_NAMES.map(n => (resolved.get('usernames/' + n) || {}).uid).filter(x => /^[0-9a-f]{64}$/.test(x || ''))])];
+// SECURITY: the owner is fixed by account key (User ID), never by username — usernames can be claimed by anyone.
+const OWNER_KEYS = [];
+const appOwners = () => OWNER_KEYS.filter(x => /^[0-9a-f]{64}$/.test(x));
 window.diskordOwnerIds = appOwners;
+const MAX_PERK_MS = 400 * 864e5; // a perk can never run longer than ~1 year past the moment it was given
+// SECURITY: "who created it first" uses signed times, which a modified app can fake (back-dating).
+// 1) new servers have ids tied to the owner's key, 2) for everything else this device remembers the first
+//    owner it saw and refuses a different "earlier" creator later.
+const PIN_KEY = 'diskord.pins.v1';
+const pins = (() => { try { return JSON.parse(localStorage.getItem(PIN_KEY) || '{}') || {}; } catch (_) { return {}; } })();
+let pinT = null;
+const savePins = () => { clearTimeout(pinT); pinT = setTimeout(() => { try { localStorage.setItem(PIN_KEY, JSON.stringify(pins)); } catch (_) {} }, 800); };
+const ownerOfDoc = (path, data) => !data ? null : path.startsWith('servers/') ? data.owner : path.startsWith('usernames/') ? data.uid : null;
+const boundServerId = (id, owner) => !/^[0-9a-f]{16}[A-Za-z0-9]{10}$/.test(id) || (typeof owner === 'string' && id.startsWith(owner.slice(0, 16)));
 const isDm = cid => String(cid).startsWith('dm_');
 const dmPair = cid => String(cid).slice(3).split('_');
 const inDm = (cid, uid) => { const p = dmPair(cid); return p.length === 2 && (p[0] === uid || p[1] === uid); };
@@ -49,15 +59,16 @@ const arr = v => Array.isArray(v) ? v : [];
 const getDoc = p => resolved.get(p) || null;
 const manages = (uid, sid) => { const s = getDoc('servers/' + sid); return !!s && (s.owner === uid || arr(s.admins).includes(uid)); };
 const managesChannel = (uid, cid) => { const ch = getDoc('channels/' + cid); return !!ch && manages(uid, ch.sid); };
-function canWrite(uid, kind, path, before, after) {
+function canWrite(uid, kind, path, before, after, ts) {
   const p = path.split('/'), col = p[0], id = p[1];
+  if (kind === 'create' && pins[path] && ownerOfDoc(path, after) !== pins[path]) return false; // someone back-dated a fake "first" version
   switch (col) {
     case 'users': return id === uid && kind !== 'delete' && String(after.name || '').length <= 32;
     case 'profiles': case 'joined': return id === uid && kind !== 'delete';
     case 'usernames': if (!USER_RE.test(id)) return false; if (kind === 'create') return after.uid === uid; if (kind === 'delete') return before.uid === uid; return before.uid === uid && after.uid === uid;
     case 'gifs': if (kind === 'create') return after.by === uid; if (kind === 'delete') return before.by === uid; return false;
     case 'servers':
-      if (kind === 'create') return after.owner === uid && String(after.name || '').length <= 40;
+      if (kind === 'create') return after.owner === uid && String(after.name || '').length <= 40 && boundServerId(id, after.owner);
       if (kind === 'delete') return before.owner === uid;
       return after.owner === before.owner && (before.owner === uid || (arr(before.admins).includes(uid) && !changed(before, after).some(k => k === 'admins' || k === 'owner')));
     case 'channels':
@@ -72,7 +83,7 @@ function canWrite(uid, kind, path, before, after) {
       return after.uid === before.uid && ((before.uid === uid && onlyChanged(before, after, ['text', 'edited', 'react', 'poll', 'pinned'])) || onlyChanged(before, after, ['react', 'poll']) || (onlyChanged(before, after, ['pinned']) && (isDm(cid) || managesChannel(uid, cid))));
     }
     // Nitro / Boost: only the Diskord owner (window.DISKORD_OWNERS, checked by every app) can give them
-    case 'perks': return appOwners().includes(uid) && /^(u|s)_[A-Za-z0-9]{1,80}$/.test(id) && kind !== 'delete';
+    case 'perks': return appOwners().includes(uid) && /^(u|s)_[A-Za-z0-9]{1,80}$/.test(id) && kind !== 'delete' && typeof ts === 'number' && (Number(after.nitroUntil) || 0) <= ts + MAX_PERK_MS && (Number(after.boostUntil) || 0) <= ts + MAX_PERK_MS;
     case 'friendships':
       if (kind === 'create') { const m = arr(after.members); return after.from === uid && m.includes(uid) && m.length === 2 && id === m.join('_') && after.status === 'pending'; }
       if (kind === 'delete') return arr(before.members).includes(uid);
@@ -168,6 +179,7 @@ function ingest(ev) {
   if (!DOC_RE.test(path)) return;
   const o = decode(ev, path); if (!o) return;
   if (Math.abs(o.ts / 1000 - ev.created_at) > 120) return; // timestamps must match the signed time
+  if (ev.created_at > Date.now() / 1000 + 300) return; // no messages from the future
   if (!versions.has(path)) versions.set(path, new Map());
   const cur = versions.get(path).get(ev.pubkey);
   if (cur && cur.ts >= o.ts) return;
@@ -179,7 +191,7 @@ function resolve(path) {
   let state = null;
   for (const [author, v] of vs) {
     const kind = !state && v.data ? 'create' : state && !v.data ? 'delete' : state ? 'update' : null;
-    if (kind && canWrite(author, kind, path, state, v.data)) state = v.data;
+    if (kind && canWrite(author, kind, path, state, v.data, v.ts)) state = v.data;
   }
   return state;
 }
@@ -188,11 +200,11 @@ function recompute(path) {
   const before = resolved.get(path), after = resolve(path);
   if (JSON.stringify(before) === JSON.stringify(after)) return;
   const c = colOf(path);
-  if (after) { resolved.set(path, after); if (!colIndex.has(c)) colIndex.set(c, new Set()); colIndex.get(c).add(path); }
-  else { resolved.delete(path); if (colIndex.has(c)) colIndex.get(c).delete(path); }
+  if (after) { const o = ownerOfDoc(path, after); if (o && !pins[path]) { pins[path] = o; savePins(); }
+    resolved.set(path, after); if (!colIndex.has(c)) colIndex.set(c, new Set()); colIndex.get(c).add(path); }
+  else { resolved.delete(path); if (colIndex.has(c)) colIndex.get(c).delete(path); if (before && pins[path]) { delete pins[path]; savePins(); } }
   fire(path);
   // owner / co-owner changes can make other changes valid or invalid → re-check everything (debounced)
-  if (OWNER_NAMES.some(n => path === 'usernames/' + n)) { for (const p of versions.keys()) if (p.startsWith('perks/')) recompute(p); }
   if (path.startsWith('servers/') || path.startsWith('channels/')) { clearTimeout(fullTimer); fullTimer = setTimeout(() => { for (const p of versions.keys()) if (!p.startsWith('servers/')) recompute(p); }, 250); }
 }
 const fireQ = new Set(); let fireT = null;
@@ -243,8 +255,8 @@ async function writeDoc(path, op, data, merge) {
   else { if (!before) throw err('not-found', 'That no longer exists.'); after = { ...before, ...clone(data) }; }
   const kind = !before && after ? 'create' : before && !after ? 'delete' : before ? 'update' : null;
   if (!kind) return;
-  if (!canWrite(me, kind, path, before, after)) throw err('permission-denied', 'You don\'t have permission to do that.');
   const ts = Math.max(Date.now(), ((versions.get(path) || new Map()).get(me) || { ts: 0 }).ts + 1);
+  if (!canWrite(me, kind, path, before, after, ts)) throw err('permission-denied', 'You don\'t have permission to do that.');
   let content = JSON.stringify(after ? { ts, data: after } : { ts, del: true });
   if (content.length > 60000) throw err('invalid-argument', 'That is too big — pictures must be smaller.');
   const pair = privateOther(path);
@@ -337,7 +349,6 @@ function makeApi(info) {
   const db = { doc: docRef, collection: p => colRef(p) };
   const name = id => (resolved.get('users/' + id) || {});
   const usersSub = want('c:users', colFilter('users'));
-  OWNER_NAMES.forEach(n => want('d:usernames/' + n, docFilter('usernames/' + n))); // know who the owner is
   const user = {
     async id() { return me; },
     async me() { await usersSub.ready; const u = name(me); return { id: me, name: u.name || info.name || 'You', color: u.color || '#38bdf8', username: u.username || info.username || '', avatarUrl: '', isOwner: false, canEdit: false, isMe: true }; },

@@ -1,5 +1,12 @@
 # Diskord changelog
 
+## 6.9.1 — security fix
+- 🔒 Fixed a hole that let people **give themselves Nitro** (for example until 2033). All fake Nitro and Boosts are removed.
+- 🔒 Only the real Diskord owner account can give Nitro and Boost. Taking a username can't make you the owner anymore.
+- 🔒 Nitro and Boost can never last longer than about 1 year at a time.
+- 🔒 Servers can't be taken over by faking an older date, and new servers are tied to their owner's account.
+- 🔒 Messages with dates in the future are ignored.
+
 ## 6.9.0
 - ⏰ **Auto-renew for Nitro and Server Boost**
   - 2 days before it ends, a blue bar tells you how long is left, with a **Renew** button
