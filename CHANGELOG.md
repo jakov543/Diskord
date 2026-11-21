@@ -1,5 +1,16 @@
 # Diskord changelog
 
+## 6.8.1
+- 🎨 **All icons fixed** to one clean line style (Lucide)
+  - The top bar: call, video, pins, add friend and members/profile
+  - Message actions: react, reply, edit, pin, delete
+  - The message box (+, emoji, send)
+  - Mic, headphones and settings
+  - Friends list buttons
+  - Channel types and private channels
+  - The whole call window
+- The status menu shows coloured dots again
+
 ## 6.8.0
 - 🔊 **Real Google sounds.** The normal Diskord sound pack now uses Google's Android sounds:
   - Tethys for new messages
