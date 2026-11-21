@@ -373,6 +373,12 @@ svg.li, svg.li * { fill: none !important; stroke: currentColor !important; } svg
 .uc-notes { margin-top: 8px; max-height: 120px; overflow: auto; } .uc-notes .cl { margin: 0; } .uc-notes ul { margin: 0; } .uc-notes li { font-size: 12.5px; color: var(--text); margin: 3px 0 3px 16px; line-height: 1.4; } .uc-notes li.sub { display: none; }
 .uc-btns { display: flex; gap: 8px; margin-top: 10px; } .uc-x { color: var(--muted); align-self: flex-start; } .uc-x:hover { color: var(--text); }
 @media (max-width: 760px) { .us-2, .us-themes { grid-template-columns: 1fr 1fr; } .ss.us { flex-direction: column; } .us .ss-nav { flex: 0 0 auto; max-height: 34vh; justify-content: flex-start; } .us .ss-navin { width: 100%; padding: 50px 8px 8px; } .us .ss-main { flex: 1; } .us .ss-body { padding: 20px 14px 40px; } .updcard { left: 10px; right: 10px; width: auto; } }
+.calldock { position: relative; flex: 0 0 300px; height: 300px; background: #000; border-bottom: 1px solid var(--line); transition: flex-basis .2s, height .2s; }
+.calldock.big { flex-basis: 58vh; height: 58vh; } .calldock.full { flex: 1 1 auto; height: auto; border: 0; }
+.calldock iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+.cd-tools { position: absolute; right: 10px; top: 10px; display: flex; gap: 6px; } .calldock.full .cd-tools { display: none; }
+.cd-tools button { width: 32px; height: 32px; border-radius: 8px; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; } .cd-tools button:hover { background: rgba(255,255,255,.15); }
+.main.voiceview .feed-wrap { display: none; }
 .ch .mbadge { background: var(--dnd); color: #fff; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 1px 6px; }
 .me-bar { display: flex; align-items: center; gap: 9px; padding: 8px 10px; background: var(--bg0); flex: 0 0 auto; }
 .me-bar .who { flex: 1; min-width: 0; line-height: 1.2; }
@@ -624,6 +630,8 @@ mark { background: rgba(255,176,32,.35); color: inherit; border-radius: 3px; }
       <button class="icon-btn on" id="btnMembers" title="Members"><i data-ico="users"></i></button>
       <input class="search" id="search" placeholder="Search" autocomplete="off">
     </header>
+    <div class="calldock hidden" id="callDock"><iframe id="callFrame" title="Call" allow="camera; microphone; display-capture; autoplay; fullscreen; speaker-selection" allowfullscreen></iframe>
+      <div class="cd-tools"><button id="cdSize" title="Bigger / smaller"></button></div></div>
     <div class="feed-wrap">
       <div style="flex:1;display:flex;flex-direction:column;min-width:0;min-height:0">
         <div class="feed" id="feed"></div>
@@ -706,7 +714,7 @@ const S = {
   typing: {}, lastTypingEmit: 0, panel: null, query: '',
   theme: ls.get('theme', 'flix'), compact: ls.get('compact', false),
   status: 'online', custom: '', mentions: new Map(), // name -> uid for composer tokens
-  isSuper: false, inCall: new Map(), myCall: (c => c && Date.now() - c.at < 3 * 3600e3 ? c : null)(ls.get('myCall', null)), callAlive: 0, gifs: [], favGifs: ls.get('favGifs', []), recent: ls.get('recent', []), selfMute: ls.get('selfMute', false), dms: [], friends: [], usernames: {}, homeTab: 'online', selfDeaf: ls.get('selfDeaf', false), peerAudio: new Map()
+  isSuper: false, inCall: new Map(), myCall: null, /* calls run inside this window, so a reload ends them */ callAlive: 0, gifs: [], favGifs: ls.get('favGifs', []), recent: ls.get('recent', []), selfMute: ls.get('selfMute', false), dms: [], friends: [], usernames: {}, homeTab: 'online', selfDeaf: ls.get('selfDeaf', false), peerAudio: new Map()
 };
 document.documentElement.dataset.theme = S.theme;
 
@@ -880,6 +888,7 @@ function pickChannel() {
 }
 
 function openChannel(cid) {
+  if (cid) S.voiceView = false;
   if (S.msgUnsub) { S.msgUnsub(); S.msgUnsub = null; }
   S.cid = cid; S.msgs = []; S.reply = null; S.editing = null; S.loadingMsgs = !!cid;
   if (S.sid) ls.set('sid', S.sid);
@@ -905,7 +914,52 @@ function openChannel(cid) {
 function pushPresence() {
   if (S.room && S.myId) S.room.presence({ uid: S.myId, cid: S.cid || null, status: S.status, call: S.myCall ? S.myCall.room : null, callLabel: S.myCall ? S.myCall.label : null, muted: !!S.selfMute, deaf: !!S.selfDeaf }).catch(() => {});
 }
-function joinCall(room, label, video) { S.myCall = { room, label, at: Date.now(), video: !!video }; ls.set('myCall', S.myCall); pushPresence(); renderAll(); }
+function joinCall(room, label, video) {
+  const voice = /^fx-v-/.test(room);
+  S.myCall = { room, label, at: Date.now(), video: !!video, voice, home: voice ? null : (S.callHome || S.cid || null) };
+  S.callHome = null; if (voice) S.voiceView = true;
+  ls.set('myCall', S.myCall); pushPresence(); ensureDock(callLink(room, label, video)); renderAll();
+}
+// ---- in-app calls: the call runs in a panel at the top of the chat (like Discord), not in a new window
+const roomOfUrl = u => { try { return new URLSearchParams(String(u).split('#')[1] || '').get('r') || ''; } catch (_) { return ''; } };
+let dockRoom = '';
+function ensureDock(url) {
+  const f = $('callFrame'), room = roomOfUrl(url);
+  if (!room) return;
+  if (dockRoom === room) { const want = /[#&]s=1/.test(url) ? 'screen' : /[#&]v=1/.test(url) ? 'camera' : ''; if (want) try { f.contentWindow.postMessage({ diskord: 'cmd', cmd: want }, '*'); } catch (_) {} }
+  else { dockRoom = room; f.src = url.replace(/&s=1/, '').replace(/#/, /[#&]s=1/.test(url) ? '#s=1&' : '#'); }
+  layoutDock();
+}
+function closeDock() { dockRoom = ''; S.dockBig = false; S.voiceView = false; const f = $('callFrame'); if (f.src !== 'about:blank') f.src = 'about:blank'; layoutDock(); }
+function layoutDock() {
+  const d = $('callDock'), c = S.myCall;
+  const show = !!(c && dockRoom && (c.voice ? S.voiceView : (S.cid && S.cid === c.home) || S.voiceView));
+  d.classList.toggle('hidden', !show);
+  const big = show && (c.voice || S.voiceView || S.dockBig || S.dockVideo);
+  d.classList.toggle('big', big); d.classList.toggle('full', show && (c.voice || S.voiceView) && !c.home);
+  $('main').classList.toggle('voiceview', show && !!(c.voice && S.voiceView));
+  const vv = show && !!(c.voice && S.voiceView); if (layoutDock.vv !== vv) { layoutDock.vv = vv; if (S.myId) renderHeader(); }
+  $('cdSize').innerHTML = `<span style="display:grid;transform:rotate(${big ? 180 : 0}deg)">${ico('chevron-down', 18)}</span>`;
+  $('cdSize').title = big ? 'Smaller' : 'Bigger';
+}
+$('cdSize').onclick = () => { if (S.myCall && S.myCall.voice) return; S.dockBig = !S.dockBig; layoutDock(); };
+// any call link (voice channels, call buttons, Join buttons…) opens here instead of a new window
+document.addEventListener('click', e => {
+  const a = e.target.closest && e.target.closest('a[href]'); if (!a || e.defaultPrevented && !a.href.startsWith(CALL_URL)) return;
+  if (!a.href.startsWith(CALL_URL)) return;
+  e.preventDefault();
+  const url = a.href, room = roomOfUrl(url); if (!room || room === 'pending') return;
+  const q = new URLSearchParams(url.split('#')[1] || '');
+  if (!S.myCall || S.myCall.room !== room) joinCall(room, q.get('t') || 'Call', q.get('v') === '1');
+  else ensureDock(url);
+  if (/^fx-v-/.test(room)) { S.voiceView = true; layoutDock(); }
+  else if (S.myCall && S.myCall.home && S.cid !== S.myCall.home) { openChannel(S.myCall.home); }
+});
+window.addEventListener('message', e => {
+  const d = e.data; if (!d || typeof d !== 'object' || e.source !== $('callFrame').contentWindow) return;
+  if (d.diskord === 'expand') { S.dockBig = true; layoutDock(); }
+  if (d.diskord === 'video') { S.dockVideo = !!d.on; layoutDock(); }
+});
 window.addEventListener('message', e => {
   const d = e.data; if (!d || typeof d !== 'object' || typeof d.diskord !== 'string' || !S.myCall || d.room !== S.myCall.room) return;
   if (d.diskord === 'alive') S.callAlive = Date.now();
@@ -932,7 +986,7 @@ if (callBc) callBc.onmessage = e => {
   paintTalking();
 };
 function tellCall() { if (callBc && S.myCall) try { callBc.postMessage({ type: 'cmd', room: S.myCall.room, mute: !!S.selfMute, deaf: !!S.selfDeaf }); } catch (_) {} }
-function leaveCall() { S.talking = new Set(); S.callAudio = new Map(); S.myCall = null; ls.set('myCall', null); pushPresence(); renderAll(); }
+function leaveCall() { closeDock(); S.dockVideo = false; S.talking = new Set(); S.callAudio = new Map(); S.myCall = null; ls.set('myCall', null); pushPresence(); renderAll(); }
 const callersIn = room => { const m = new Map(S.inCall); if (S.myId) { if (S.myCall) m.set(S.myId, S.myCall.room); else m.delete(S.myId); } return [...m].filter(([, r]) => r === room).map(([u]) => u); };
 function showConn(t) { $('conn').textContent = t; $('conn').classList.toggle('hidden', !t); }
 
@@ -1055,7 +1109,7 @@ function renderVoiceBar() {
   if (!S.myCall) { v.innerHTML = ''; return; }
   const c = S.myCall, base = (extra) => esc(callLink(c.room, c.label, !!c.video) + (extra || ''));
   v.innerHTML = `<div class="vc"><div class="vc-top"><span class="vc-sig">${ICON.signal}</span><div class="vc-i"><b>Voice Connected</b><small>${esc(c.label || 'Call')}</small></div>
-      <a class="vc-ib" title="Open call window" target="_blank" rel="opener" href="${base()}">${ICON.popout}</a>
+      <button class="vc-ib" id="vShow" title="Go to the call">${ICON.popout}</button>
       <button class="vc-ib bad" id="vLeave" title="Disconnect">${ICON.hang}</button></div>
     ${(() => { const who = callersIn(c.room); return who.length ? `<div class="vc-people">${who.slice(0, 8).map(u => `<div data-vu="${esc(u)}" class="vc-p ${S.talking.has(u) ? 'speaking' : ''}" title="${esc(nameOf(u))}">${avatarHtml(u, 30)}${audioIcons(u) ? `<span class="vc-mi">${(S.callAudio.get(u) || (u === S.myId ? { deaf: S.selfDeaf } : {})).deaf ? ICON.headOff : ICON.micOff}</span>` : ''}</div>`).join('')}${who.length > 8 ? `<span class="vc-more">+${who.length - 8}</span>` : ''}</div>` : ''; })()}
     <div class="vc-row">
@@ -1064,6 +1118,8 @@ function renderVoiceBar() {
       <a class="vc-b" title="Copy invite link" href="#" id="vInvite">${ICON.link}</a>
       <button class="vc-b ${S.selfMute ? 'bad' : ''}" title="${S.selfMute ? 'Unmute' : 'Mute'}" id="vMute">${S.selfMute ? ICON.micOff : ICON.mic}</button>
     </div></div>`;
+  const goCall = () => { if (!S.myCall) return; if (S.myCall.home) { S.voiceView = false; if (S.cid !== S.myCall.home) openChannel(S.myCall.home); else layoutDock(); } else { S.voiceView = true; layoutDock(); } };
+  $('vShow').onclick = goCall; const vt = v.querySelector('.vc-i'); if (vt) { vt.style.cursor = 'pointer'; vt.onclick = goCall; }
   $('vLeave').onclick = () => { if (callBc && S.myCall) try { callBc.postMessage({ type: 'cmd', room: S.myCall.room, leave: true }); } catch (_) {} leaveCall(); };
   v.querySelectorAll('[data-vu]').forEach(el => el.onclick = e => profileCard(e, el.dataset.vu));
   $('vMute').onclick = () => $('btnMute') && $('btnMute').click();
@@ -1160,6 +1216,7 @@ function renderHeader() {
   const hs = $('chTitle').querySelector('.hash');
   if (c && c.dm) { hs.innerHTML = avatarHtml(c.other, 26, true); hs.classList.add('dmav'); } else { hs.textContent = '#'; hs.classList.remove('dmav'); }
   hs.classList.toggle('hidden', !c);
+  if (layoutDock.vv && S.myCall) { $('chName').textContent = String(S.myCall.label || 'Voice').replace(/^🔊\s*/, '').split(' / ')[0]; hs.innerHTML = ico('volume-2', 20); hs.classList.remove('dmav', 'hidden'); }
   const dmF = c && c.dm ? friendOf(c.other) : null;
   $('btnAddF').classList.toggle('hidden', !(c && c.dm && !dmF));
   $('btnMembers').title = c && c.dm ? (ls.get('members', true) ? 'Hide User Profile' : 'Show User Profile') : 'Members';
@@ -1265,7 +1322,7 @@ $('btnVideo').addEventListener('click', e => startChannelCall(e, true));
 function callPerson(uid, video) {
   const room = roomId('dm-' + [S.myId, uid].sort().join('-').replace(/[^a-zA-Z0-9]/g, '').slice(0, 40) + '-' + Date.now().toString(36));
   const label = nameOf(S.myId) + ' & ' + nameOf(uid);
-  joinCall(room, label, video);
+  S.callHome = dmCid(uid); joinCall(room, label, video);
   if (S.room) S.room.emit('ring', { kind: 'dm', to: uid, room, label, video: !!video }).catch(() => {});
   toast((video ? 'Video calling ' : 'Calling ') + nameOf(uid) + '…');
   return callLink(room, label, video);
@@ -1287,7 +1344,7 @@ function onRing(msg) {
     <div class="row2"><button class="btn danger" data-no>Decline</button><a class="btn go" target="_blank" rel="opener" href="${esc(callLink(room, label, !!d.video))}" data-yes>${d.video ? '🎥 Join' : 'Join'}</a></div>`;
   document.body.appendChild(el);
   el.querySelector('[data-no]').onclick = stopRing;
-  el.querySelector('[data-yes]').onclick = () => { joinCall(room, label, !!d.video); stopRing(); };
+  el.querySelector('[data-yes]').onclick = () => { S.callHome = d.kind === 'dm' ? dmCid(msg.by) : (d.cid || null); joinCall(room, label, !!d.video); stopRing(); if (S.myCall && S.myCall.home) openChannel(S.myCall.home); };
   let n = 0;
   const beep = () => { if (S.status !== 'dnd') sfx('ring'); if (++n > 14) stopRing(); };
   beep(); ringTimer = setInterval(beep, 2400);
@@ -2089,7 +2146,7 @@ function renderFriendsPage() {
   f.innerHTML = `<div class="ftabs"><b class="ft">${ICON.friends} Friends</b>${tabs.map(([k, l]) => `<button data-ft="${k}" class="${tab === k ? 'on' : ''} ${k === 'add' ? 'add' : ''}">${l}</button>`).join('')}</div><div class="fbody">${body}</div>`;
   f.querySelectorAll('[data-ft]').forEach(b => b.onclick = () => { S.homeTab = b.dataset.ft; renderFeed(false); renderChannels(); });
   f.querySelectorAll('[data-msg]').forEach(b => b.onclick = () => openDm(b.dataset.msg));
-  f.querySelectorAll('[data-callu]').forEach(b => b.onclick = () => { const url = callPerson(b.dataset.callu); window.open(url, '_blank'); });
+  f.querySelectorAll('[data-callu]').forEach(b => b.onclick = () => { callPerson(b.dataset.callu); openChannel(dmCid(b.dataset.callu)); });
   f.querySelectorAll('[data-unf]').forEach(b => b.onclick = () => { const x = friendOf(b.dataset.unf); if (x) confirmModal('Remove friend', 'Remove ' + nameOf(b.dataset.unf) + ' from your friends?', 'Remove', () => removeFriend(x)); });
   f.querySelectorAll('[data-acc]').forEach(b => b.onclick = () => { const x = S.friends.find(y => y.id === b.dataset.acc); if (x) acceptFriend(x); });
   f.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => { const x = S.friends.find(y => y.id === b.dataset.dec); if (x) removeFriend(x); });
@@ -2999,7 +3056,7 @@ function refreshSettingsBits() {
   const st = $('usStatusTxt'); if (st) st.textContent = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', invisible: 'Invisible' }[S.status] || 'Online';
   const me = document.querySelector('.us-me'); if (me && S.myId) { const b = me.querySelector('b'); if (b) b.textContent = nameOf(S.myId); const a = me.querySelector('.av'); if (a) a.outerHTML = avatarHtml(S.myId, 44, true); }
 }
-function renderAll() { refreshSettingsBits(); renderRenewBar(); renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }
+function renderAll() { layoutDock(); refreshSettingsBits(); renderRenewBar(); renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }
 
 applyCompact();
 (() => {

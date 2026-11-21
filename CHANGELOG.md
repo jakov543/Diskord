@@ -1,5 +1,14 @@
 # Diskord changelog
 
+## 7.2.0 — calls inside Diskord
+- 📞 **Calls no longer open a second window or tab** — everything happens inside Diskord, like Discord
+  - In a DM the call shows at the top of the chat, with the avatars in the middle and the buttons under them; you can still read and send messages below it
+  - Voice channels fill the middle of the app, and the header shows the voice channel's name
+  - The arrow button makes the call bigger or smaller; it grows on its own when someone turns on their camera or shares their screen
+- 🔀 Switch to another chat or server and the call keeps going — click **Voice Connected** (or its arrow) to jump back to it
+- ✅ Answering an incoming call opens the DM with the call on top
+- 🔧 Fixed "Waiting for others to join…" sometimes showing when both people were already in the call
+
 ## 7.1.1 — call fixes
 - 📞 **Fixed showing up twice in a call after leaving and joining back**
   - Clicking the voice channel again, or the ↗ button, now brings the call window you already have to the front instead of joining a second time
