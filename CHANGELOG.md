@@ -1,5 +1,15 @@
 # Diskord changelog
 
+## 6.9.2
+- 📞 **Fixed calls with no sound**
+  - Opening a call from Diskord asked for the microphone twice at once, and that could switch your mic off. Fixed.
+  - Your voice now goes straight into the call instead of through the soundboard mixer, which is more reliable and cancels echo better.
+  - Making a video tile big no longer stops that person's voice.
+  - Changing your microphone or noise suppression during a call no longer cuts you off.
+  - Soundboard sounds now play on everyone's own device.
+  - If Windows blocks your microphone, the call shows exactly what to switch on.
+  - If a phone or browser blocks sound, a "Tap to hear the call" button appears.
+
 ## 6.9.1 — security fix
 - 🔒 Fixed a hole that let people **give themselves Nitro** (for example until 2033). All fake Nitro and Boosts are removed.
 - 🔒 Only the real Diskord owner account can give Nitro and Boost. Taking a username can't make you the owner anymore.

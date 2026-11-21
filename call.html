@@ -160,6 +160,8 @@ header .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--
   <button class="cb leave" id="bLeave" data-tip="Disconnect"></button>
 </div>
 <div class="toast" id="toast"></div>
+<div id="voices" style="display:none"></div>
+<button id="soundTap" class="hidden" style="position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:70;background:#3b82f6;color:#fff;padding:10px 18px;border-radius:10px;font-weight:800">🔊 Tap to hear the call</button>
 
 <script>
 (() => {
@@ -167,6 +169,7 @@ header .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let tT; const toast = m => { $('toast').textContent = m; $('toast').classList.add('show'); clearTimeout(tT); tT = setTimeout(() => $('toast').classList.remove('show'), 2600); };
+function showSoundTap() { const b = document.getElementById('soundTap'); if (!b) return; b.classList.remove('hidden'); b.onclick = () => { for (const a of document.querySelectorAll('#voices audio')) a.play().catch(() => {}); if (ac && ac.state === 'suspended') ac.resume().catch(() => {}); b.classList.add('hidden'); }; }
 const sfx = n => { try { window.DiskordSounds && window.DiskordSounds.play(n); } catch (_) {} };
 const store = { get: (k, d) => { try { return localStorage.getItem('flixcall.' + k) ?? d; } catch (_) { return d; } }, set: (k, v) => { try { localStorage.setItem('flixcall.' + k, v); } catch (_) {} } };
 // Icons: Lucide (lucide.dev), ISC licence
@@ -225,7 +228,7 @@ function audioCtx() {
   if (!ac) {
     ac = new (window.AudioContext || window.webkitAudioContext)();
     outDest = ac.createMediaStreamDestination(); micGain = ac.createGain(); micGain.connect(outDest);
-    sfxBus = ac.createGain(); sfxBus.gain.value = .7; sfxBus.connect(outDest); sfxBus.connect(ac.destination);
+    sfxBus = ac.createGain(); sfxBus.gain.value = .7; sfxBus.connect(ac.destination);
     ac.onstatechange = () => useMixedAudio();
   }
   return ac;
@@ -235,12 +238,15 @@ let micId = store.get('micId', ''), camId = store.get('camId', ''), outId = stor
 const blankCanvas = Object.assign(document.createElement('canvas'), { width: 32, height: 18 });
 blankCanvas.getContext('2d').fillRect(0, 0, 32, 18);
 const blankTrack = blankCanvas.captureStream(1).getVideoTracks()[0];
-async function getMic() {
+let micBusy = null;
+function getMic() { if (!micBusy) micBusy = openMic().finally(() => { micBusy = null; }); return micBusy; }
+async function openMic() {
   audioCtx();
   try {
     const s = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: micId ? { ideal: micId } : undefined, echoCancellation: true, noiseSuppression: noise, autoGainControl: true } });
-    if (mic) mic.getTracks().forEach(t => t.stop());
-    mic = s; mic.getAudioTracks().forEach(t => t.enabled = !me.muted);
+    const old = mic; mic = s; mic.getAudioTracks().forEach(t => { t.enabled = !me.muted; t.onended = () => { if (!left && mic === s) { toast('Microphone stopped — reconnecting it…'); getMic(); } }; });
+    sendAudio();                       // swap the new mic into every call first…
+    if (old) old.getTracks().forEach(t => t.stop()); // …then stop the old one
   } catch (_) {
     $('lobbyNote').innerHTML = '🎙️ <b>No microphone access</b> — you can still listen. On Windows: Settings → Privacy &amp; security → <b>Microphone</b> → allow desktop apps. In a browser, click the 🔒 in the address bar → allow Microphone.';
     if (!mic) mic = new MediaStream();
@@ -270,14 +276,20 @@ function meterFor(stream, cb, isMic) {
 const me = { id: null, name: '', muted: false, deaf: false, cam: false, screen: false, av: MY_AV };
 let peer = null, dirPeer = null, dirConn = null, joinedAt = 0;
 const calls = new Map(), members = new Map(), dirConns = new Map(), dirMembers = new Map();
-// send the mixed track (mic + soundboard + PC sound) once audio is allowed; until then send the mic straight
-const outAudio = () => ac && ac.state === 'running' ? outDest.stream.getAudioTracks() : (mic ? mic.getAudioTracks() : []);
-function useMixedAudio() {
-  if (!ac || ac.state !== 'running') return;
-  const tr = outDest.stream.getAudioTracks()[0]; if (!tr) return;
-  for (const c of calls.values()) { const sn = c.peerConnection && c.peerConnection.getSenders().find(x => x.track && x.track.kind === 'audio'); if (sn && sn.track !== tr) sn.replaceTrack(tr).catch(() => {}); }
+// The microphone goes straight into the call (most reliable, best echo cancelling).
+// Only while you share PC sound is it mixed with that sound first.
+const mixing = () => !!(screenAudioSrc && ac && ac.state === 'running');
+const outAudio = () => mixing() ? outDest.stream.getAudioTracks() : (mic ? mic.getAudioTracks() : []);
+function sendAudio() {
+  const tr = outAudio()[0] || null;
+  for (const c of calls.values()) {
+    const pc = c.peerConnection; if (!pc) continue;
+    const sn = pc.getSenders().find(x => (x.track && x.track.kind === 'audio') || (!x.track && x.__audio));
+    if (sn && sn.track !== tr) { sn.__audio = true; sn.replaceTrack(tr).catch(() => {}); }
+  }
 }
-['pointerdown', 'keydown'].forEach(e => addEventListener(e, () => { if (ac && ac.state === 'suspended') ac.resume().then(useMixedAudio).catch(() => {}); }, true));
+const useMixedAudio = sendAudio;
+['pointerdown', 'keydown'].forEach(e => addEventListener(e, () => { if (ac && ac.state === 'suspended') ac.resume().then(sendAudio).catch(() => {}); for (const a of document.querySelectorAll('#voices audio')) if (a.paused && a.srcObject) a.play().catch(() => {}); }, true));
 const outStream = () => new MediaStream([...outAudio(), currentVideo()]);
 const currentVideo = () => screenTrack || camTrack || blankTrack;
 getMic();
@@ -288,7 +300,7 @@ $('join').onclick = async () => {
   me.name = ($('name').value.trim() || 'Guest').slice(0, 32); store.set('name', me.name);
   $('join').disabled = true; $('join').textContent = 'Connecting…';
   audioCtx(); if (ac.state === 'suspended') ac.resume();
-  if (!mic) await getMic();
+  if (micBusy) await micBusy; if (!mic || !mic.getAudioTracks().length) await getMic();
   peer = new Peer(PREFIX + '-' + Math.random().toString(36).slice(2, 10), PEER_OPTS());
   peer.on('open', id => {
     me.id = id; joinedAt = Date.now();
@@ -296,6 +308,7 @@ $('join').onclick = async () => {
     tellOpener('alive'); setInterval(() => { if (!left) tellOpener('alive'); }, 20000);
     $('lobby').classList.add('hidden'); ['stage', 'bar', 'live'].forEach(x => $(x).classList.remove('hidden'));
     addTile(id, true); claimDirectory(); refresh(); sfx('join');
+    if (!mic || !mic.getAudioTracks().length) document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:65;max-width:560px;background:#3a1216;border:1px solid #f23f43;color:#ffd5d6;padding:12px 16px;border-radius:10px;font-size:13.5px;line-height:1.5">🎙️ <b>Diskord can't use your microphone</b>, so nobody can hear you. On Windows: <b>Settings → Privacy &amp; security → Microphone</b> → turn on <b>Microphone access</b> and <b>Let desktop apps access your microphone</b>, then rejoin the call.</div>`);
   });
   peer.on('call', call => { call.answer(outStream()); wireCall(call); });
   peer.on('error', e => { if (e.type === 'peer-unavailable') return; console.warn(e); if (!me.id) { $('join').disabled = false; $('join').textContent = 'Try again'; toast('Could not connect (' + e.type + ')'); } });
@@ -359,14 +372,18 @@ function wireCall(call) {
   calls.set(id, call); addTile(id, false);
   call.on('stream', s => {
     const t = tiles.get(id); if (!t) return;
-    t.video.srcObject = s; t.video.muted = me.deaf; if (outId && t.video.setSinkId) t.video.setSinkId(outId).catch(() => {}); t.video.play().catch(() => {});
+    t.video.srcObject = new MediaStream(s.getVideoTracks()); t.video.muted = true; t.video.play().catch(() => {});
+    let au = document.getElementById('au-' + id);
+    if (!au) { au = document.createElement('audio'); au.id = 'au-' + id; au.autoplay = true; au.playsInline = true; $('voices').appendChild(au); }
+    au.srcObject = s; au.muted = me.deaf; if (outId && au.setSinkId) au.setSinkId(outId).catch(() => {});
+    au.play().catch(() => showSoundTap());
     meterFor(s, v => t.el.classList.toggle('speaking', v > .04 && !(members.get(id) || {}).muted));
     setTimeout(tuneSenders, 500);
   });
   call.on('close', () => { if (calls.get(id) === call) dropPeer(id); });
   call.on('error', () => {});
 }
-function dropPeer(id) { const c = calls.get(id); calls.delete(id); if (c) try { c.close(); } catch (_) {} removeTile(id); }
+function dropPeer(id) { const au = document.getElementById('au-' + id); if (au) { au.srcObject = null; au.remove(); } const c = calls.get(id); calls.delete(id); if (c) try { c.close(); } catch (_) {} removeTile(id); }
 
 // ------------------------------------------------------------ tiles
 const tiles = new Map();
@@ -404,6 +421,7 @@ function refresh() {
   for (const [id, t] of tiles) t.el.classList.toggle('big', id === focusId);
   if (focusId) { strip = document.createElement('div'); strip.className = 'strip'; for (const [id, t] of tiles) if (id !== focusId) strip.appendChild(t.el); st.appendChild(strip); st.style.gridTemplateColumns = ''; }
   else if (anyVideo) layout(); else st.style.gridTemplateColumns = '';
+  for (const t of tiles.values()) if (t.video.paused && t.video.srcObject) t.video.play().catch(() => {});
   $('waiting').classList.toggle('hidden', tiles.size !== 1 || anyVideo || !me.id);
 }
 function layout() {
@@ -446,7 +464,7 @@ $('bMic').onclick = () => {
   drawButtons(); updateTile(me.id); sendState();
 };
 function toggleDeaf() {
-  me.deaf = !me.deaf; for (const t of tiles.values()) if (!t.mine) t.video.muted = me.deaf;
+  me.deaf = !me.deaf; for (const a of document.querySelectorAll('#voices audio')) a.muted = me.deaf;
   if (me.deaf) { me.muted = true; mic && mic.getAudioTracks().forEach(t => t.enabled = false); }
   else { me.muted = false; mic && mic.getAudioTracks().forEach(t => t.enabled = true); }
   sfxBus && (sfxBus.gain.value = me.deaf ? 0 : .7); sfx(me.deaf ? 'deafen' : 'undeafen');
@@ -463,7 +481,7 @@ $('bCam').onclick = async () => {
 function stopScreen() {
   if (screenTrack) { screenTrack.onended = null; screenTrack.stop(); } screenTrack = null; me.screen = false;
   if (screenAudio) { screenAudio.getTracks().forEach(t => t.stop()); screenAudio = null; }
-  if (screenAudioSrc) { try { screenAudioSrc.disconnect(); } catch (_) {} screenAudioSrc = null; }
+  if (screenAudioSrc) { try { screenAudioSrc.disconnect(); } catch (_) {} screenAudioSrc = null; sendAudio(); }
   drawButtons(); setVideoTrack();
 }
 async function useScreenStream(s) {
@@ -473,7 +491,7 @@ async function useScreenStream(s) {
   try { await tr.applyConstraints({ width: { max: w }, height: { max: h }, frameRate: { ideal: Q.fps, max: Q.fps } }); } catch (_) {}
   try { tr.contentHint = Q.preset === 'text' ? 'detail' : 'motion'; } catch (_) {}
   screenTrack = tr; me.screen = true; screenTrack.onended = () => { if (me.screen) stopScreen(); };
-  if (s.getAudioTracks().length) { screenAudio = new MediaStream(s.getAudioTracks()); screenAudioSrc = audioCtx().createMediaStreamSource(screenAudio); screenAudioSrc.connect(outDest); }
+  if (s.getAudioTracks().length) { screenAudio = new MediaStream(s.getAudioTracks()); screenAudioSrc = audioCtx().createMediaStreamSource(screenAudio); screenAudioSrc.connect(outDest); if (ac.state === 'suspended') await ac.resume().catch(() => {}); sendAudio(); }
   drawButtons(); setVideoTrack(); toast('You are live 🔴 ' + qSub());
 }
 $('bScreen').onclick = () => { if (me.screen) stopScreen(); else openSharePicker(); };
@@ -499,7 +517,7 @@ $('mMic').onclick = async () => {
     <div class="sep"></div><button class="it" data-x="noise"><i class="rd" style="${noise ? 'background:#fff;border-color:#fff' : ''}"></i><span>Noise Suppression</span></button>
     <button class="it" data-x="deaf">${I.deaf.replace('<svg', '<svg width="18" height="18"')}<span>${me.deaf ? 'Undeafen' : 'Deafen'}</span></button>`, p => {
     p.querySelectorAll('[data-in]').forEach(b => b.onclick = async () => { micId = b.dataset.in; store.set('micId', micId); closePops(); await getMic(); toast('Microphone changed'); });
-    p.querySelectorAll('[data-out]').forEach(b => b.onclick = () => { outId = b.dataset.out; store.set('outId', outId); for (const t of tiles.values()) if (!t.mine && t.video.setSinkId) t.video.setSinkId(outId).catch(() => {}); try { ac && ac.setSinkId && ac.setSinkId(outId).catch(() => {}); } catch (_) {} closePops(); toast('Speaker changed'); });
+    p.querySelectorAll('[data-out]').forEach(b => b.onclick = () => { outId = b.dataset.out; store.set('outId', outId); for (const a of document.querySelectorAll('#voices audio')) if (a.setSinkId) a.setSinkId(outId).catch(() => {}); try { ac && ac.setSinkId && ac.setSinkId(outId).catch(() => {}); } catch (_) {} closePops(); toast('Speaker changed'); });
     p.querySelector('[data-x=noise]').onclick = async () => { noise = !noise; store.set('noise', noise ? '1' : '0'); closePops(); await getMic(); toast('Noise suppression ' + (noise ? 'on' : 'off')); };
     p.querySelector('[data-x=deaf]').onclick = () => { closePops(); toggleDeaf(); };
   });
@@ -517,7 +535,7 @@ function showFx(m) {
   if (m.k === 'react') {
     const f = document.createElement('div'); f.className = 'float'; f.style.left = (15 + Math.random() * 70) + '%';
     f.innerHTML = `${esc(m.e)}<small>${esc(m.by)}</small>`; document.body.appendChild(f); setTimeout(() => f.remove(), 2700);
-  } else if (m.k === 'sfx' && m.from !== me.id) { const s = SOUNDS.find(x => x[0] === m.e); toast(`${m.by} played ${s ? s[1] + ' ' + s[2] : 'a sound'}`); }
+  } else if (m.k === 'sfx' && m.from !== me.id) { const s = SOUNDS.find(x => x[0] === m.e); if (s && !me.deaf) playSound(s[0]); toast(`${m.by} played ${s ? s[1] + ' ' + s[2] : 'a sound'}`); }
 }
 $('bReact').onclick = () => popAt($('bReact'), `<h4>Reactions</h4><div class="emojis">${REACT.map(e => `<button data-e="${e}">${e}</button>`).join('')}</div>`, p => {
   p.querySelectorAll('[data-e]').forEach(b => b.onclick = () => sendFx('react', b.dataset.e));
