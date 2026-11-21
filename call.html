@@ -158,7 +158,7 @@ header .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--
 </div></div>
 
 <div class="stage hidden voice" id="stage"></div>
-<div class="waiting hidden" id="waiting">Waiting for others to join…</div>
+<div class="waiting hidden" id="waiting" style="padding:0 24px">Waiting for others to join…</div>
 <div class="bar hidden" id="bar">
   <div class="grp">
     <button class="cb" id="bMic" data-tip="Mute"></button><button class="cb caret" id="mMic" data-tip="Audio settings"></button>
@@ -239,8 +239,10 @@ const PREFIX = 'flixcord-v1-' + ROOM;
 const tellOpener = (t, extra) => { try { const w = EMBED ? window.parent : window.opener; if (w) w.postMessage(Object.assign({ diskord: t, room: ROOM }, extra || {}), '*'); } catch (_) {} };
 const ICE = { iceServers: [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] },
-  { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turn:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }
+  // a relay (TURN) server lets people connect when their routers block direct calls; set it in diskord-config.js
+  ...(Array.isArray(window.DISKORD_TURN) ? window.DISKORD_TURN.filter(x => x && x.urls) : [])
 ] };
+const HAS_RELAY = ICE.iceServers.some(x => [].concat(x.urls).some(u => /^turns?:/.test(u)));
 const PEER_OPTS = () => Object.assign({ config: ICE, debug: 0 }, window.DISKORD_PEER || {});
 
 // ------------------------------------------------------------ audio: mic + soundboard + shared screen sound -> one outgoing track
@@ -460,8 +462,25 @@ function wireCall(call) {
   });
   call.on('close', () => { if (calls.get(id) === call) dropPeer(id); });
   call.on('error', () => {});
+  const pc = call.peerConnection;
+  if (pc) pc.addEventListener('iceconnectionstatechange', () => {
+    const st = pc.iceConnectionState;
+    if (st === 'connected' || st === 'completed') { linkOk.add(id); linkBad.delete(id); refresh(); }
+    if (st === 'failed' && calls.get(id) === call && !left) { // try again, a few times
+      const n = (retries.get(id) || 0) + 1; retries.set(id, n);
+      if (n <= 3) setTimeout(() => { if (left || calls.get(id) !== call) return; dropPeer(id); if (me.id < id || n > 1) wireCall(peer.call(id, outStream())); }, 800 * n);
+      else { linkBad.add(id); refresh(); }
+    }
+  });
 }
-function dropPeer(id) { const au = document.getElementById('au-' + id); if (au) { au.srcObject = null; au.remove(); } const c = calls.get(id); calls.delete(id); if (c) try { c.close(); } catch (_) {} removeTile(id); }
+const linkOk = new Set(), linkBad = new Set(), retries = new Map(), seenAt = new Map();
+// someone is in the call but never reached us: call them ourselves (normally the other side starts)
+setInterval(() => {
+  if (!me.id || left) return;
+  for (const [id] of members) { if (!seenAt.has(id)) seenAt.set(id, Date.now()); if (!calls.has(id) && Date.now() - seenAt.get(id) > 7000) wireCall(peer.call(id, outStream())); }
+  refresh();
+}, 3000);
+function dropPeer(id) { linkOk.delete(id); const au = document.getElementById('au-' + id); if (au) { au.srcObject = null; au.remove(); } const c = calls.get(id); calls.delete(id); if (c) try { c.close(); } catch (_) {} removeTile(id); }
 
 // ------------------------------------------------------------ tiles
 const tiles = new Map();
@@ -500,7 +519,12 @@ function refresh() {
   if (focusId) { strip = document.createElement('div'); strip.className = 'strip'; for (const [id, t] of tiles) if (id !== focusId) strip.appendChild(t.el); st.appendChild(strip); st.style.gridTemplateColumns = ''; }
   else if (anyVideo) layout(); else st.style.gridTemplateColumns = '';
   for (const t of tiles.values()) if (t.video.paused && t.video.srcObject) t.video.play().catch(() => {});
-  $('waiting').classList.toggle('hidden', tiles.size !== 1 || anyVideo || !me.id);
+  const pending = [...members].filter(([id]) => !linkOk.has(id)), w = $('waiting');
+  const late = pending.filter(([id]) => linkBad.has(id) || Date.now() - (seenAt.get(id) || Date.now()) > 20000);
+  if (!pending.length) w.textContent = 'Waiting for others to join…';
+  else if (!late.length) w.textContent = 'Connecting to ' + pending.map(([, m]) => m.name || 'someone').join(', ') + '…';
+  else w.innerHTML = '⚠️ Can\'t connect to <b>' + esc(late.map(([, m]) => m.name || 'someone').join(', ')) + '</b>.<br><small>' + (HAS_RELAY ? 'Their internet or yours is blocking the call. Try leaving and joining again.' : 'Your router or theirs blocks direct calls. Diskord needs a relay (TURN) server for this — ask the Diskord owner to add one.') + '</small>';
+  w.classList.toggle('hidden', anyVideo || !me.id || (linkOk.size > 0 && !late.length) || (tiles.size > 1 && !pending.length));
   if (EMBED && refresh.lastVideo !== anyVideo) { refresh.lastVideo = anyVideo; tellOpener('video', { on: anyVideo }); }
 }
 function layout() {

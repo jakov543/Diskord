@@ -1,5 +1,11 @@
 # Diskord changelog
 
+## 7.2.2 — calls tell you what's wrong
+- 📞 The call now says **"Connecting to markezz…"** instead of "Waiting for others" when someone is in the call but not connected yet
+- ⚠️ If it can't connect, it tells you clearly instead of leaving you alone in silence
+- 🔁 Calls retry by themselves when the connection drops, and either side can now start the connection
+- 🛰️ Removed a free relay server that no longer works, and added a setting for a new relay server
+
 ## 7.2.1 — call fix
 - 📞 **Fixed calls where both people were in the call but each only saw "Waiting for others to join…"**
   - Every call in a DM used to reuse the same call room, so an old stuck call could block new ones. Now every call gets its own fresh room
