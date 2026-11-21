@@ -1,5 +1,20 @@
 # Diskord changelog
 
+## 6.9.0
+- ⏰ **Auto-renew for Nitro and Server Boost**
+  - 2 days before it ends, a blue bar tells you how long is left, with a **Renew** button
+  - Diskord opens the payment for you automatically, with your plan (monthly or yearly) already picked
+  - The new month or year is added on top, so you don't lose any days
+  - Turn auto-renew on or off on the Nitro page
+- 📱 **Install Diskord on your phone**: https://jakov543.github.io/Diskord/
+  - Android: tap **Install** in the bar at the bottom (or Chrome ⋮ → Install app)
+  - iPhone: open it in Safari → Share → **Add to Home Screen**
+- 📱 Better phone layout
+  - no search box squeezing the top bar
+  - tap outside the channel list to close it
+  - room for the iPhone notch and home bar
+  - the keyboard no longer zooms in
+
 ## 6.8.1
 - 🎨 **All icons fixed** to one clean line style (Lucide)
   - The top bar: call, video, pins, add friend and members/profile

@@ -1,0 +1,28 @@
+name: Web app (phones)
+# Publishes the Diskord web app to the gh-pages branch → https://jakov543.github.io/Diskord/
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect web files
+        run: |
+          mkdir -p dist
+          cp index.html call.html adapter.js sounds.js diskord-config.js logo.svg manifest.webmanifest sw.js dist/
+          cp -r icons vendor sounds dist/
+          touch dist/.nojekyll
+      - name: Push to gh-pages
+        run: |
+          cd dist
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Web app from ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" gh-pages

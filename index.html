@@ -2,11 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Diskord</title>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnZCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzM4YmRmOCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzRmNDZlNSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgo8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxOCIgZmlsbD0idXJsKCNnZCkiLz4KPHBhdGggZD0iTTEyLjUgMzNhMTkuNSAxOCAwIDAgMSAzOSAwIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNC4yIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPHJlY3QgeD0iMTAiIHk9IjMxIiB3aWR0aD0iOSIgaGVpZ2h0PSIxNSIgcng9IjQuNSIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjQ1IiB5PSIzMSIgd2lkdGg9IjkiIGhlaWdodD0iMTUiIHJ4PSI0LjUiIGZpbGw9IiNmZmYiLz4KPHBhdGggZD0iTTI1LjUgMjVoNi4yYzYuMyAwIDEwLjMgMy45IDEwLjMgOS40UzM4IDQ0IDMxLjcgNDRoLTIuM2wtMy45IDMuNnoiIGZpbGw9IiNmZmYiLz4KPHBhdGggZD0iTTI5LjMgMjkuMmgyLjVjMy40IDAgNS40IDIgNS40IDUuMXMtMiA1LjEtNS40IDUuMWgtMi41eiIgZmlsbD0idXJsKCNnZCkiLz4KPC9zdmc+">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Diskord">
 <meta name="theme-color" content="#0a0f1c">
 <script src="vendor/nostr.bundle.js"></script>
 <script src="diskord-config.js"></script>
@@ -160,7 +165,7 @@ a.btn.go { color: #062814; } a.btn.primary { color: #fff; }
 .fempty { text-align: center; color: var(--muted); padding: 60px 20px; } .fempty p { margin: 10px 0 16px; }
 .addf h3 { font-size: 16px; text-transform: uppercase; letter-spacing: .4px; } .addf p { color: var(--muted); font-size: 14px; margin: 6px 0 14px; }
 .addbox { display: flex; gap: 8px; background: var(--bg0); border-radius: 10px; padding: 8px 8px 8px 14px; border: 1px solid var(--line); }
-.addbox input { flex: 1; background: none; border: 0; outline: none; font-size: 15px; } .addbox:focus-within { border-color: var(--accent); }
+.addbox input { flex: 1; min-width: 0; background: none; border: 0; outline: none; font-size: 15px; } .addbox:focus-within { border-color: var(--accent); }
 #addMsg .bad { color: var(--dnd); font-size: 13.5px; margin-top: 8px; } #addMsg .good { color: var(--ok); font-size: 13.5px; margin-top: 8px; }
 .dmside { min-height: calc(100% + 32px); margin: -16px -8px; padding-bottom: 20px; }
 .dsb { height: 120px; } .dsa { margin: -46px 0 0 16px; } .dsa .av .st { width: 20px; height: 20px; border-width: 4px; border-color: var(--bg1); }
@@ -317,6 +322,13 @@ svg.li, svg.li * { fill: none !important; stroke: currentColor !important; } svg
 .sd-pack { position: relative; text-align: left; background: var(--bg1); border: 2px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
 .sd-pack.sel { border-color: var(--accent); background: var(--bg3); } .sd-pack .sd-ic { font-size: 26px; } .sd-pack b { font-size: 15px; } .sd-pack small { color: var(--muted); font-size: 12.5px; line-height: 1.35; padding-right: 26px; }
 .sd-play { position: absolute; right: 10px; bottom: 10px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 11px; } .sd-play:hover { filter: brightness(1.15); }
+.renewbar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: linear-gradient(90deg, #4f46e5, #3b82f6); color: #fff; font-size: 13.5px; flex: 0 0 auto; }
+.renewbar span { flex: 1; } .renewbar .btn { background: #fff; color: #1e293b; font-weight: 800; } .rb-x { color: #fff; opacity: .8; } .rb-x:hover { opacity: 1; }
+.pay-auto { margin-top: 12px; background: rgba(59,130,246,.15); border: 1px solid rgba(59,130,246,.4); border-radius: 8px; padding: 10px 12px; font-size: 13.5px; }
+.ni-auto { display: flex; gap: 8px; align-items: center; justify-content: center; color: var(--muted); font-size: 13.5px; margin: -4px 0 14px; cursor: pointer; }
+.installchip { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 45; display: flex; align-items: center; gap: 10px; background: var(--bg1); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; box-shadow: 0 12px 30px rgba(0,0,0,.5); width: min(420px, calc(100vw - 20px)); }
+.installchip img { width: 40px; height: 40px; border-radius: 10px; } .installchip div { flex: 1; min-width: 0; } .installchip b { display: block; font-size: 14.5px; } .installchip small { color: var(--muted); font-size: 12.5px; } .ic-x { color: var(--muted); }
+.kbd { display: inline-block; background: var(--bg3); border-radius: 5px; padding: 0 6px; }
 .ch .mbadge { background: var(--dnd); color: #fff; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 1px 6px; }
 .me-bar { display: flex; align-items: center; gap: 9px; padding: 8px 10px; background: var(--bg0); flex: 0 0 auto; }
 .me-bar .who { flex: 1; min-width: 0; line-height: 1.2; }
@@ -534,6 +546,15 @@ mark { background: rgba(255,176,32,.35); color: inherit; border-radius: 3px; }
 .empty-main h2 { color: var(--text); font-size: 22px; margin: 12px 0 6px; }
 
 @media (max-width: 1100px) { .members { display: none; } }
+@media (max-width: 760px) {
+  .top .search, .top .topic, #btnPins { display: none !important; }
+  .top { gap: 4px; padding: 0 6px 0 8px; padding-top: env(safe-area-inset-top); height: calc(52px + env(safe-area-inset-top)); flex-basis: calc(52px + env(safe-area-inset-top)); }
+  .composer { margin-bottom: env(safe-area-inset-bottom); } .composer textarea { font-size: 16px; }
+  .side.mobile-open { box-shadow: 30px 0 60px rgba(0,0,0,.6); }
+  .mob-shade { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 39; }
+  .rail { padding-top: calc(12px + env(safe-area-inset-top)); }
+  .modal { width: min(480px, 96vw); }
+}
 @media (max-width: 760px) { .app { grid-template-columns: 64px 1fr; } .side { display: none; } .side.mobile-open { display: flex; position: fixed; left: 64px; top: 0; bottom: 0; width: 248px; z-index: 30; } .top .search { width: 120px; } }
 </style>
 </head>
@@ -1520,7 +1541,8 @@ async function sendServerInvite(s, u) {
 }
 
 $('btnMembers').onclick = () => { ls.set('members', !ls.get('members', true)); renderHeader(); };
-$('btnMobile').onclick = () => $('side').classList.toggle('mobile-open');
+$('btnMobile').onclick = () => { const open = $('side').classList.toggle('mobile-open'); document.querySelectorAll('.mob-shade').forEach(x => x.remove()); if (open) { const sh = document.createElement('div'); sh.className = 'mob-shade'; sh.onclick = () => { $('side').classList.remove('mobile-open'); sh.remove(); }; document.body.appendChild(sh); } };
+new MutationObserver(() => { if (!$('side').classList.contains('mobile-open')) document.querySelectorAll('.mob-shade').forEach(x => x.remove()); }).observe($('side'), { attributes: true, attributeFilter: ['class'] });
 window.addEventListener('resize', renderHeader);
 
 // ====================================================================== pins + search panel
@@ -2519,10 +2541,11 @@ function bindBoost(el, done) { el.querySelectorAll('[data-boostbuy]').forEach(b 
 function boostModal(s) { modal(`<div class="mb" style="padding:24px">${boostHtml(s)}</div><div class="mf"><button class="btn alt" data-x>Close</button></div>`, (o, close) => { o.querySelector('[data-x]').onclick = close; bindBoost(o, close); }); }
 function renderNitroPage() {
   const f = $('feed');
-  f.innerHTML = `<div class="nitro"><div class="ni-hero"><div class="ni-logo">💎</div><h1>Diskord <span>Nitro</span></h1><p>Unleash more fun on Diskord — bigger uploads, HD streaming, custom profiles and more.</p>${hasNitro(S.myId) ? `<div class="ni-on">💎 You have Nitro until <b>${esc(untilTxt(perk('u_' + S.myId).nitroUntil))}</b></div><button class="btn primary big" id="niBuy">Add more time</button>` : `<button class="btn primary big" id="niBuy">Get Nitro — ${eur(PLANS.nitro.month.price)} / month</button><div class="ni-year">or ${eur(PLANS.nitro.year.price)} / year — save ${Math.round((1 - PLANS.nitro.year.price / (PLANS.nitro.month.price * 12)) * 100)}%</div>`}</div>
+  f.innerHTML = `<div class="nitro"><div class="ni-hero"><div class="ni-logo">💎</div><h1>Diskord <span>Nitro</span></h1><p>Unleash more fun on Diskord — bigger uploads, HD streaming, custom profiles and more.</p>${hasNitro(S.myId) ? `<div class="ni-on">💎 You have Nitro until <b>${esc(untilTxt(perk('u_' + S.myId).nitroUntil))}</b></div><label class="ni-auto"><input type="checkbox" id="niAuto" ${ls.get('autoRenew', true) ? 'checked' : ''}> Auto-renew — open the payment for me 2 days before it ends</label><button class="btn primary big" id="niBuy">Add more time</button>` : `<button class="btn primary big" id="niBuy">Get Nitro — ${eur(PLANS.nitro.month.price)} / month</button><div class="ni-year">or ${eur(PLANS.nitro.year.price)} / year — save ${Math.round((1 - PLANS.nitro.year.price / (PLANS.nitro.month.price * 12)) * 100)}%</div>`}</div>
     <div class="ni-grid">${[['💎', 'Nitro badge', 'A 💎 next to your name everywhere.'], ['🎞️', 'Animated avatar', 'Use a GIF as your profile picture.'], ['✨', 'Nitro decorations', 'Golden Stars, Fire, Galaxy, Crown and Cat Ears rings.'], ['😎', 'Emoji everywhere', 'Use custom emoji from all your servers in any server.'], ['📤', '50 MB uploads', 'Send bigger pictures and GIFs.'], ['💬', 'Support Diskord', 'Help pay for keeping Diskord running.'], ['🎬', 'HD streaming', 'Already free for everyone — 1440p 60fps.']].map(([i, t, d]) => `<div class="ni-card"><span>${i}</span><b>${t}</b><small>${d}</small></div>`).join('')}</div>
     <p class="fnote" style="text-align:center;margin-top:20px">Pay with PayPal (Aircash coming soon). Monthly or yearly — it does not renew by itself. Everything else in Diskord stays free.</p></div>`;
-  const nb = $('niBuy'); if (nb) nb.onclick = () => payModal('nitro');
+  const nb = $('niBuy'); if (nb) nb.onclick = () => payModal('nitro', null, ls.get('lastPlan.nitro', 'month'));
+  const na = $('niAuto'); if (na) na.onchange = () => { ls.set('autoRenew', na.checked); toast(na.checked ? 'Auto-renew on ⏰' : 'Auto-renew off'); };
 }
 
 // ====================================================================== Nitro + Boost payments (PayPal / Aircash, confirmed by hand by the Diskord owner)
@@ -2536,16 +2559,16 @@ const isBoosted = sid => (perk('s_' + sid).boostUntil || 0) > Date.now();
 const nitroBadge = uid => hasNitro(uid) ? ' <span class="nbadge" title="Diskord Nitro">💎</span>' : '';
 const eur = n => n.toFixed(2).replace('.', ',') + ' €';
 const untilTxt = t => new Date(t).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
-function payModal(kind, sid) {
+function payModal(kind, sid, startPlan, auto) {
   const sv = sid ? (S.allServers || []).find(x => x.id === sid) : null;
-  let plan = 'month';
+  let plan = startPlan === 'year' ? 'year' : 'month';
   const price = () => PLANS[kind][plan].price;
   const item = kind === 'boost' ? `Server Boost for ${sv ? sv.name : 'server'}` : 'Diskord Nitro';
   let cur = {};
   const codeBase = `${kind === 'boost' ? 'BOOST' : 'NITRO'}-${(unameOf(S.myId) || S.myId.slice(0, 8)).toUpperCase()}${kind === 'boost' && sv ? '-' + sv.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 12).toUpperCase() : ''}`;
   const owner = ownerIds()[0];
   let method = 'paypal';
-  modal(`<div class="pay"><div class="pay-h"><div class="pay-ic">${kind === 'boost' ? '🚀' : '💎'}</div><div><h2>${esc(item)}</h2><p id="payPer"></p></div></div>
+  modal(`<div class="pay"><div class="pay-h"><div class="pay-ic">${kind === 'boost' ? '🚀' : '💎'}</div><div><h2>${auto ? 'Renew ' : ''}${esc(item)}</h2><p id="payPer"></p></div></div>${auto ? `<div class="pay-auto">⏰ Auto-renew: your ${kind === 'boost' ? 'boost' : 'Nitro'} ends in ${leftTxt(kind === 'boost' ? perk('s_' + sid).boostUntil : perk('u_' + S.myId).nitroUntil)}. Pay now and the new month or year is added on top, so you lose nothing.</div>` : ''}
     ${owner ? '' : '<div class="pay-warn">Payments are not switched on yet. Try again later.</div>'}
     <div class="pay-l">Plan</div>
     <div class="pay-m pay-plan"><button data-plan="month"><b>Monthly</b><small>${eur(PLANS[kind].month.price)} / month</small></button>
@@ -2574,7 +2597,7 @@ function payModal(kind, sid) {
       const cp = o.querySelector('[data-copy]'); if (cp) cp.onclick = () => navigator.clipboard.writeText(cur.code).then(() => { cp.textContent = 'Copied'; }).catch(() => {});
     };
     o.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { if (!b.disabled) { method = b.dataset.m; draw(); } });
-    o.querySelectorAll('[data-plan]').forEach(b => b.onclick = () => { plan = b.dataset.plan; draw(); });
+    o.querySelectorAll('[data-plan]').forEach(b => b.onclick = () => { plan = b.dataset.plan; ls.set('lastPlan.' + kind, plan); draw(); });
     o.querySelector('[data-x]').onclick = close; draw();
     o.querySelector('#payDone').onclick = async () => {
       if (!owner) return;
@@ -2582,7 +2605,8 @@ function payModal(kind, sid) {
       const b = o.querySelector('#payDone'); b.disabled = true; b.textContent = 'Sending…';
       try {
         const cid = dmCid(owner), at = Date.now();
-        await S.db.collection(`ch/${cid}/m`).add({ uid: S.myId, text: '', at, order: { kind, plan, days: cur.days, sid: sv ? sv.id : null, sname: sv ? sv.name.slice(0, 40) : null, method, amount: cur.price, code: cur.code } });
+        ls.set('lastPlan.' + kind, plan);
+        await S.db.collection(`ch/${cid}/m`).add({ uid: S.myId, text: '', at, order: { kind, plan, renew: !!(kind === 'nitro' ? hasNitro(S.myId) : (sv && isBoosted(sv.id))), days: cur.days, sid: sv ? sv.id : null, sname: sv ? sv.name.slice(0, 40) : null, method, amount: cur.price, code: cur.code } });
         S.db.doc('dms/' + cid.slice(3)).set({ members: [S.myId, owner].sort(), last: at, lastUid: S.myId, ok: { [S.myId]: true }, hide: { [S.myId]: false, [owner]: false } }, { merge: true }).catch(() => {});
         close();
         modal(`<div class="mh"><h2>Thanks! 🎉</h2><p>Your payment was sent for checking. You'll get a message when your ${kind === 'boost' ? 'boost' : 'Nitro'} is on.</p></div><div class="mf"><button class="btn primary" data-x>OK</button></div>`, (o2, c2) => { o2.querySelector('[data-x]').onclick = c2; });
@@ -2611,7 +2635,7 @@ function orderCardHtml(m) {
   const until = boost ? perk('s_' + o.sid).boostUntil : perk('u_' + buyer).nitroUntil;
   const done = (m.react && m.react['✅'] && m.react['✅'].length) || false;
   const owner = isAppOwner(S.myId) && buyer !== S.myId;
-  return `<div class="ordcard"><div class="oh">${boost ? '🚀 Server Boost' : '💎 Nitro'} order</div>
+  return `<div class="ordcard"><div class="oh">${boost ? '🚀 Server Boost' : '💎 Nitro'} ${o.renew ? 'renewal' : 'order'}</div>
     <div class="ob"><div><b>${esc(boost ? 'Boost for ' + (o.sname || 'server') : 'Diskord Nitro')} · ${o.days === 365 ? 'Yearly' : 'Monthly'}</b><small>${eur(+o.amount || 0)} · ${o.method === 'aircash' ? 'Aircash' : 'PayPal'} · note: <code>${esc(o.code || '')}</code></small>
     <small>${active ? `✅ Active until ${esc(untilTxt(until))}` : done ? '✅ Confirmed' : owner ? 'Check that the money arrived with this note, then confirm.' : '⏳ Waiting for confirmation'}</small></div></div>
     ${owner ? `<div class="ob2"><button class="btn go" data-give="${esc(m.id)}">${active ? 'Add ' + (o.days === 365 ? '1 more year' : '1 more month') : 'Confirm & give ' + (boost ? 'Boost' : 'Nitro')}</button><button class="btn alt" data-decline="${esc(m.id)}">Not received</button></div>` : ''}</div>`;
@@ -2676,7 +2700,62 @@ const decoHtml = (k, size) => {
   return `<svg class="deco ${size >= 64 ? 'anim' : ''}" viewBox="0 0 120 120" aria-hidden="true">${body}</svg>`;
 };
 
-function renderAll() { renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }
+// ====================================================================== renewal (2 days before Nitro / a Boost ends)
+// PayPal.me can't take money by itself every month, so Diskord reminds you and opens the payment 2 days before the end.
+const RENEW_MS = 2 * 864e5;
+function renewalDue() {
+  if (!S.myId) return [];
+  const out = [], now = Date.now();
+  const n = perk('u_' + S.myId).nitroUntil || 0;
+  if (n > now && n - now < RENEW_MS) out.push({ kind: 'nitro', until: n, key: 'nitro' });
+  for (const [id, v] of Object.entries(S.perks || {})) if (id.startsWith('s_') && (v.boostUntil || 0) > now && v.boostUntil - now < RENEW_MS && (v.boosters || []).includes(S.myId)) {
+    const sid = id.slice(2), sv = (S.allServers || []).find(x => x.id === sid); out.push({ kind: 'boost', sid, until: v.boostUntil, key: 'boost_' + sid, name: sv ? sv.name : 'your server' });
+  }
+  return out;
+}
+const leftTxt = t => { const h = Math.max(1, Math.round((t - Date.now()) / 36e5)); return h >= 24 ? Math.round(h / 24) + (Math.round(h / 24) === 1 ? ' day' : ' days') : h + (h === 1 ? ' hour' : ' hours'); };
+function renderRenewBar() {
+  let bar = $('renewBar');
+  const due = renewalDue().filter(d => ls.get('renewHide.' + d.key, 0) < d.until - RENEW_MS);
+  if (!due.length) { if (bar) bar.remove(); return; }
+  if (!bar) { bar = document.createElement('div'); bar.id = 'renewBar'; bar.className = 'renewbar'; $('main').prepend(bar); }
+  const d = due[0];
+  bar.innerHTML = `<span>${d.kind === 'nitro' ? '💎 Your <b>Nitro</b>' : `🚀 Your <b>Boost</b> for ${esc(d.name)}`} ends in <b>${leftTxt(d.until)}</b>${ls.get('autoRenew', true) ? ' — renew now so it keeps going' : ''}.</span>
+    <button class="btn sm2 rb-go">Renew</button><button class="rb-x" title="Remind me later">${ico('x', 16)}</button>`;
+  bar.querySelector('.rb-go').onclick = () => payModal(d.kind, d.sid, ls.get('lastPlan.' + d.kind, 'month'));
+  bar.querySelector('.rb-x').onclick = () => { ls.set('renewHide.' + d.key, Date.now()); renderRenewBar(); };
+  // auto-renew: once per period, open the payment window by itself
+  if (ls.get('autoRenew', true) && ls.get('renewOpened.' + d.key, 0) < d.until - RENEW_MS && !document.querySelector('.overlay')) {
+    ls.set('renewOpened.' + d.key, Date.now());
+    setTimeout(() => { try { window.DiskordSounds && window.DiskordSounds.play('mention'); } catch (_) {} payModal(d.kind, d.sid, ls.get('lastPlan.' + d.kind, 'month'), true); }, 1200);
+  }
+}
+setInterval(() => { if (S.myId) renderRenewBar(); }, 10 * 60e3);
+
+// ====================================================================== install on phones (PWA)
+let installEvt = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; renderInstallChip(); });
+addEventListener('appinstalled', () => { installEvt = null; ls.set('installed', true); renderInstallChip(); toast('Diskord installed 🎉'); });
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || !!window.diskord;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function renderInstallChip() {
+  let c = $('installChip');
+  const show = !isStandalone() && !ls.get('installHide', false) && (installEvt || isIOS() || /android/i.test(navigator.userAgent));
+  if (!show) { if (c) c.remove(); return; }
+  if (!c) { c = document.createElement('div'); c.id = 'installChip'; c.className = 'installchip'; document.body.appendChild(c); }
+  c.innerHTML = `<img src="icons/icon-192.png" alt=""><div><b>Install Diskord</b><small>Get the app on your home screen</small></div><button class="btn primary sm2" id="icGo">Install</button><button class="ic-x" id="icX">${ico('x', 16)}</button>`;
+  c.querySelector('#icX').onclick = () => { ls.set('installHide', true); c.remove(); };
+  c.querySelector('#icGo').onclick = async () => {
+    if (installEvt) { installEvt.prompt(); const r = await installEvt.userChoice.catch(() => null); if (r && r.outcome === 'accepted') c.remove(); installEvt = null; return; }
+    modal(`<div class="mh" style="text-align:left"><h2>Install Diskord</h2><p>${isIOS() ? 'On iPhone / iPad (in Safari):' : 'On Android (in Chrome):'}</p></div><div class="mb install-steps">
+      ${isIOS() ? `<div class="step"><i>1</i><div>Tap the <b>Share</b> button <span class="kbd">⬆︎</span> at the bottom of Safari.</div></div><div class="step"><i>2</i><div>Scroll down and tap <b>Add to Home Screen</b>.</div></div><div class="step"><i>3</i><div>Tap <b>Add</b>. Diskord appears on your home screen like a normal app.</div></div><p class="fnote">On iPhone this only works in <b>Safari</b>, not in Chrome or other apps.</p>`
+      : `<div class="step"><i>1</i><div>Tap the <b>⋮</b> menu at the top right of Chrome.</div></div><div class="step"><i>2</i><div>Tap <b>Install app</b> (or <b>Add to Home screen</b>).</div></div><div class="step"><i>3</i><div>Tap <b>Install</b>. Diskord appears in your apps.</div></div>`}</div>
+      <div class="mf"><button class="btn primary" data-x>OK</button></div>`, (o, close) => { o.querySelector('[data-x]').onclick = close; });
+  };
+}
+setTimeout(renderInstallChip, 2500);
+
+function renderAll() { renderRenewBar(); renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }
 
 applyCompact();
 (() => {
