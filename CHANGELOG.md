@@ -1,5 +1,9 @@
 # Diskord changelog
 
+## 7.2.3 — calls back to how they were
+- 📞 **Calls are back to the 7.1.1 version** (the call opens in its own window again), because that one worked best
+- 💎 Nitro and Boost payments are now switched on (the Diskord owner account is set)
+
 ## 7.2.2 — calls tell you what's wrong
 - 📞 The call now says **"Connecting to markezz…"** instead of "Waiting for others" when someone is in the call but not connected yet
 - ⚠️ If it can't connect, it tells you clearly instead of leaving you alone in silence

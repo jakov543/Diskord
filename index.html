@@ -373,12 +373,6 @@ svg.li, svg.li * { fill: none !important; stroke: currentColor !important; } svg
 .uc-notes { margin-top: 8px; max-height: 120px; overflow: auto; } .uc-notes .cl { margin: 0; } .uc-notes ul { margin: 0; } .uc-notes li { font-size: 12.5px; color: var(--text); margin: 3px 0 3px 16px; line-height: 1.4; } .uc-notes li.sub { display: none; }
 .uc-btns { display: flex; gap: 8px; margin-top: 10px; } .uc-x { color: var(--muted); align-self: flex-start; } .uc-x:hover { color: var(--text); }
 @media (max-width: 760px) { .us-2, .us-themes { grid-template-columns: 1fr 1fr; } .ss.us { flex-direction: column; } .us .ss-nav { flex: 0 0 auto; max-height: 34vh; justify-content: flex-start; } .us .ss-navin { width: 100%; padding: 50px 8px 8px; } .us .ss-main { flex: 1; } .us .ss-body { padding: 20px 14px 40px; } .updcard { left: 10px; right: 10px; width: auto; } }
-.calldock { position: relative; flex: 0 0 300px; height: 300px; background: #000; border-bottom: 1px solid var(--line); transition: flex-basis .2s, height .2s; }
-.calldock.big { flex-basis: 58vh; height: 58vh; } .calldock.full { flex: 1 1 auto; height: auto; border: 0; }
-.calldock iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
-.cd-tools { position: absolute; right: 10px; top: 10px; display: flex; gap: 6px; } .calldock.full .cd-tools { display: none; }
-.cd-tools button { width: 32px; height: 32px; border-radius: 8px; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; } .cd-tools button:hover { background: rgba(255,255,255,.15); }
-.main.voiceview .feed-wrap { display: none; }
 .ch .mbadge { background: var(--dnd); color: #fff; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 1px 6px; }
 .me-bar { display: flex; align-items: center; gap: 9px; padding: 8px 10px; background: var(--bg0); flex: 0 0 auto; }
 .me-bar .who { flex: 1; min-width: 0; line-height: 1.2; }
@@ -630,8 +624,6 @@ mark { background: rgba(255,176,32,.35); color: inherit; border-radius: 3px; }
       <button class="icon-btn on" id="btnMembers" title="Members"><i data-ico="users"></i></button>
       <input class="search" id="search" placeholder="Search" autocomplete="off">
     </header>
-    <div class="calldock hidden" id="callDock"><iframe id="callFrame" title="Call" allow="camera; microphone; display-capture; autoplay; fullscreen; speaker-selection" allowfullscreen></iframe>
-      <div class="cd-tools"><button id="cdSize" title="Bigger / smaller"></button></div></div>
     <div class="feed-wrap">
       <div style="flex:1;display:flex;flex-direction:column;min-width:0;min-height:0">
         <div class="feed" id="feed"></div>
@@ -693,8 +685,6 @@ const blob = id => {
   return (window.diskordServer ? window.diskordServer() : '') + '/blob/' + id;
 };const callLink = (room, title, video) => `${CALL_URL}#r=${encodeURIComponent(room)}${video ? '&v=1' : ''}${S.selfMute ? '&m=1' : ''}${S.selfDeaf ? '&d=1' : ''}&u=${S.myId}&n=${encodeURIComponent(nameOf(S.myId))}&t=${encodeURIComponent(title || '')}${/^https:\/\//.test(avatarOf(S.myId) || '') ? '&a=' + encodeURIComponent(avatarOf(S.myId)) : ''}`;
 const roomId = s => ('fx-' + s).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 70);
-const shortKey = s => { let a = 0x811c9dc5, b = 0x1b873593; for (const ch of String(s)) { const c = ch.charCodeAt(0); a = Math.imul(a ^ c, 16777619); b = Math.imul(b ^ c, 2246822507); } return (a >>> 0).toString(36) + (b >>> 0).toString(36); };
-const freshRoom = key => roomId('c-' + shortKey(key) + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
 const COLORS = ['#ff3d6e', '#8b5cf6', '#22c1ee', '#2bd98a', '#ffb020', '#ff7a45', '#4f7cff', '#e94cd8'];
 const fmtTime = t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 function fmtDay(t) {
@@ -716,7 +706,7 @@ const S = {
   typing: {}, lastTypingEmit: 0, panel: null, query: '',
   theme: ls.get('theme', 'flix'), compact: ls.get('compact', false),
   status: 'online', custom: '', mentions: new Map(), // name -> uid for composer tokens
-  isSuper: false, inCall: new Map(), myCall: null, /* calls run inside this window, so a reload ends them */ callAlive: 0, gifs: [], favGifs: ls.get('favGifs', []), recent: ls.get('recent', []), selfMute: ls.get('selfMute', false), dms: [], friends: [], usernames: {}, homeTab: 'online', selfDeaf: ls.get('selfDeaf', false), peerAudio: new Map()
+  isSuper: false, inCall: new Map(), myCall: (c => c && Date.now() - c.at < 3 * 3600e3 ? c : null)(ls.get('myCall', null)), callAlive: 0, gifs: [], favGifs: ls.get('favGifs', []), recent: ls.get('recent', []), selfMute: ls.get('selfMute', false), dms: [], friends: [], usernames: {}, homeTab: 'online', selfDeaf: ls.get('selfDeaf', false), peerAudio: new Map()
 };
 document.documentElement.dataset.theme = S.theme;
 
@@ -890,7 +880,6 @@ function pickChannel() {
 }
 
 function openChannel(cid) {
-  if (cid) S.voiceView = false;
   if (S.msgUnsub) { S.msgUnsub(); S.msgUnsub = null; }
   S.cid = cid; S.msgs = []; S.reply = null; S.editing = null; S.loadingMsgs = !!cid;
   if (S.sid) ls.set('sid', S.sid);
@@ -914,55 +903,9 @@ function openChannel(cid) {
   setTimeout(() => { const ta = $('ta'); if (ta && window.innerWidth > 760) ta.focus(); }, 0);
 }
 function pushPresence() {
-  if (S.room && S.myId) S.room.presence({ uid: S.myId, cid: S.cid || null, status: S.status, call: S.myCall ? S.myCall.room : null, callPeer: S.myCall && S.myPeer ? S.myPeer : null, callLabel: S.myCall ? S.myCall.label : null, muted: !!S.selfMute, deaf: !!S.selfDeaf }).catch(() => {});
+  if (S.room && S.myId) S.room.presence({ uid: S.myId, cid: S.cid || null, status: S.status, call: S.myCall ? S.myCall.room : null, callLabel: S.myCall ? S.myCall.label : null, muted: !!S.selfMute, deaf: !!S.selfDeaf }).catch(() => {});
 }
-function joinCall(room, label, video) {
-  const voice = /^fx-v-/.test(room);
-  S.myPeer = null;
-  S.myCall = { room, label, at: Date.now(), video: !!video, voice, home: voice ? null : (S.callHome || S.cid || null) };
-  S.callHome = null; if (voice) S.voiceView = true;
-  ls.set('myCall', S.myCall); pushPresence(); ensureDock(callLink(room, label, video)); renderAll();
-}
-// ---- in-app calls: the call runs in a panel at the top of the chat (like Discord), not in a new window
-const roomOfUrl = u => { try { return new URLSearchParams(String(u).split('#')[1] || '').get('r') || ''; } catch (_) { return ''; } };
-let dockRoom = '';
-function ensureDock(url) {
-  const f = $('callFrame'), room = roomOfUrl(url);
-  if (!room) return;
-  if (dockRoom === room) { const want = /[#&]s=1/.test(url) ? 'screen' : /[#&]v=1/.test(url) ? 'camera' : ''; if (want) try { f.contentWindow.postMessage({ diskord: 'cmd', cmd: want }, '*'); } catch (_) {} }
-  else { dockRoom = room; f.src = url.replace(/&s=1/, '').replace(/#/, /[#&]s=1/.test(url) ? '#s=1&' : '#'); }
-  layoutDock();
-}
-function closeDock() { const old = dockRoom; dockRoom = ''; S.dockBig = false; S.voiceView = false; const f = $('callFrame'); try { if (old) f.contentWindow.postMessage({ diskord: 'cmd', cmd: 'leave' }, '*'); } catch (_) {} setTimeout(() => { if (!dockRoom && f.src !== 'about:blank') f.src = 'about:blank'; }, 400); layoutDock(); }
-function layoutDock() {
-  const d = $('callDock'), c = S.myCall;
-  const show = !!(c && dockRoom && (c.voice ? S.voiceView : (S.cid && S.cid === c.home) || S.voiceView));
-  d.classList.toggle('hidden', !show);
-  const big = show && (c.voice || S.voiceView || S.dockBig || S.dockVideo);
-  d.classList.toggle('big', big); d.classList.toggle('full', show && (c.voice || S.voiceView) && !c.home);
-  $('main').classList.toggle('voiceview', show && !!(c.voice && S.voiceView));
-  const vv = show && !!(c.voice && S.voiceView); if (layoutDock.vv !== vv) { layoutDock.vv = vv; if (S.myId) renderHeader(); }
-  $('cdSize').innerHTML = `<span style="display:grid;transform:rotate(${big ? 180 : 0}deg)">${ico('chevron-down', 18)}</span>`;
-  $('cdSize').title = big ? 'Smaller' : 'Bigger';
-}
-$('cdSize').onclick = () => { if (S.myCall && S.myCall.voice) return; S.dockBig = !S.dockBig; layoutDock(); };
-// any call link (voice channels, call buttons, Join buttons…) opens here instead of a new window
-document.addEventListener('click', e => {
-  const a = e.target.closest && e.target.closest('a[href]'); if (!a || e.defaultPrevented && !a.href.startsWith(CALL_URL)) return;
-  if (!a.href.startsWith(CALL_URL)) return;
-  e.preventDefault();
-  const url = a.href, room = roomOfUrl(url); if (!room || room === 'pending') return;
-  const q = new URLSearchParams(url.split('#')[1] || '');
-  if (!S.myCall || S.myCall.room !== room) joinCall(room, q.get('t') || 'Call', q.get('v') === '1');
-  else ensureDock(url);
-  if (/^fx-v-/.test(room)) { S.voiceView = true; layoutDock(); }
-  else if (S.myCall && S.myCall.home && S.cid !== S.myCall.home) { openChannel(S.myCall.home); }
-});
-window.addEventListener('message', e => {
-  const d = e.data; if (!d || typeof d !== 'object' || e.source !== $('callFrame').contentWindow) return;
-  if (d.diskord === 'expand') { S.dockBig = true; layoutDock(); }
-  if (d.diskord === 'video') { S.dockVideo = !!d.on; layoutDock(); }
-});
+function joinCall(room, label, video) { S.myCall = { room, label, at: Date.now(), video: !!video }; ls.set('myCall', S.myCall); pushPresence(); renderAll(); }
 window.addEventListener('message', e => {
   const d = e.data; if (!d || typeof d !== 'object' || typeof d.diskord !== 'string' || !S.myCall || d.room !== S.myCall.room) return;
   if (d.diskord === 'alive') S.callAlive = Date.now();
@@ -980,7 +923,6 @@ if (callBc) callBc.onmessage = e => {
   const d = e.data; if (!d || d.type !== 'state' || typeof d.room !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(d.room)) return;
   if (!S.myCall || S.myCall.room !== d.room) { S.myCall = { room: d.room, label: String(d.title || 'Call').slice(0, 60), at: Date.now(), video: false }; ls.set('myCall', S.myCall); pushPresence(); renderAll(); }
   S.callAlive = Date.now();
-  if (typeof d.peer === 'string' && /^[A-Za-z0-9_-]{1,120}$/.test(d.peer) && d.peer !== S.myPeer && S.myCall && S.myCall.room === d.room) { S.myPeer = d.peer; pushPresence(); }
   S.talking = new Set((d.speaking || []).filter(u => /^[0-9a-f]{64}$/.test(u)));
   const before = JSON.stringify([...S.callAudio]);
   S.callAudio = new Map((d.members || []).filter(m => /^[0-9a-f]{64}$/.test(m.uid)).map(m => [m.uid, { muted: !!m.muted, deaf: !!m.deaf }]));
@@ -990,13 +932,7 @@ if (callBc) callBc.onmessage = e => {
   paintTalking();
 };
 function tellCall() { if (callBc && S.myCall) try { callBc.postMessage({ type: 'cmd', room: S.myCall.room, mute: !!S.selfMute, deaf: !!S.selfDeaf }); } catch (_) {} }
-function sendPeersToCall() {
-  const f = $('callFrame'); if (!S.myCall || !dockRoom || !f || !f.contentWindow) return;
-  const list = [...(S.callPeers || new Map())].filter(([u]) => u !== S.myId && (S.inCall.get(u) === S.myCall.room)).map(([uid, id]) => ({ id, uid, name: nameOf(uid) }));
-  try { f.contentWindow.postMessage({ diskord: 'peers', room: S.myCall.room, list }, '*'); } catch (_) {}
-}
-setInterval(sendPeersToCall, 4000);
-function leaveCall() { S.myPeer = null; closeDock(); S.dockVideo = false; S.talking = new Set(); S.callAudio = new Map(); S.myCall = null; ls.set('myCall', null); pushPresence(); renderAll(); }
+function leaveCall() { S.talking = new Set(); S.callAudio = new Map(); S.myCall = null; ls.set('myCall', null); pushPresence(); renderAll(); }
 const callersIn = room => { const m = new Map(S.inCall); if (S.myId) { if (S.myCall) m.set(S.myId, S.myCall.room); else m.delete(S.myId); } return [...m].filter(([, r]) => r === room).map(([u]) => u); };
 function showConn(t) { $('conn').textContent = t; $('conn').classList.toggle('hidden', !t); }
 
@@ -1024,16 +960,16 @@ function notifyNew(snap) {
 function setupRoom() {
   if (!S.room) return;
   S.room.onPeers(ch => {
-    const m = new Map(), calls = new Map(), cpeers = new Map();
+    const m = new Map(), calls = new Map();
     for (const p of ch.peers) {
       const uid = p.by || (p.presence && typeof p.presence.uid === 'string' ? p.presence.uid : null);
       if (!uid || p.kind !== 'viewer') continue;
       const st = p.presence && ['online', 'idle', 'dnd', 'invisible'].includes(p.presence.status) ? p.presence.status : 'online';
       m.set(uid, st);
-      if (p.presence && typeof p.presence.call === 'string') { calls.set(uid, p.presence.call.slice(0, 80)); if (typeof p.presence.callPeer === 'string' && p.presence.callPeer.length <= 120) cpeers.set(uid, p.presence.callPeer); }
+      if (p.presence && typeof p.presence.call === 'string') calls.set(uid, p.presence.call.slice(0, 80));
       S.peerAudio.set(uid, { muted: !!(p.presence && p.presence.muted), deaf: !!(p.presence && p.presence.deaf) });
     }
-    S.online = m; S.inCall = calls; S.callPeers = cpeers; sendPeersToCall();
+    S.online = m; S.inCall = calls;
     if (S.myCall && S.myId) calls.set(S.myId, S.myCall.room);
     renderChannels(); refreshCallCards();
     needNames([...m.keys()]);
@@ -1119,7 +1055,7 @@ function renderVoiceBar() {
   if (!S.myCall) { v.innerHTML = ''; return; }
   const c = S.myCall, base = (extra) => esc(callLink(c.room, c.label, !!c.video) + (extra || ''));
   v.innerHTML = `<div class="vc"><div class="vc-top"><span class="vc-sig">${ICON.signal}</span><div class="vc-i"><b>Voice Connected</b><small>${esc(c.label || 'Call')}</small></div>
-      <button class="vc-ib" id="vShow" title="Go to the call">${ICON.popout}</button>
+      <a class="vc-ib" title="Open call window" target="_blank" rel="opener" href="${base()}">${ICON.popout}</a>
       <button class="vc-ib bad" id="vLeave" title="Disconnect">${ICON.hang}</button></div>
     ${(() => { const who = callersIn(c.room); return who.length ? `<div class="vc-people">${who.slice(0, 8).map(u => `<div data-vu="${esc(u)}" class="vc-p ${S.talking.has(u) ? 'speaking' : ''}" title="${esc(nameOf(u))}">${avatarHtml(u, 30)}${audioIcons(u) ? `<span class="vc-mi">${(S.callAudio.get(u) || (u === S.myId ? { deaf: S.selfDeaf } : {})).deaf ? ICON.headOff : ICON.micOff}</span>` : ''}</div>`).join('')}${who.length > 8 ? `<span class="vc-more">+${who.length - 8}</span>` : ''}</div>` : ''; })()}
     <div class="vc-row">
@@ -1128,8 +1064,6 @@ function renderVoiceBar() {
       <a class="vc-b" title="Copy invite link" href="#" id="vInvite">${ICON.link}</a>
       <button class="vc-b ${S.selfMute ? 'bad' : ''}" title="${S.selfMute ? 'Unmute' : 'Mute'}" id="vMute">${S.selfMute ? ICON.micOff : ICON.mic}</button>
     </div></div>`;
-  const goCall = () => { if (!S.myCall) return; if (S.myCall.home) { S.voiceView = false; if (S.cid !== S.myCall.home) openChannel(S.myCall.home); else layoutDock(); } else { S.voiceView = true; layoutDock(); } };
-  $('vShow').onclick = goCall; const vt = v.querySelector('.vc-i'); if (vt) { vt.style.cursor = 'pointer'; vt.onclick = goCall; }
   $('vLeave').onclick = () => { if (callBc && S.myCall) try { callBc.postMessage({ type: 'cmd', room: S.myCall.room, leave: true }); } catch (_) {} leaveCall(); };
   v.querySelectorAll('[data-vu]').forEach(el => el.onclick = e => profileCard(e, el.dataset.vu));
   $('vMute').onclick = () => $('btnMute') && $('btnMute').click();
@@ -1226,7 +1160,6 @@ function renderHeader() {
   const hs = $('chTitle').querySelector('.hash');
   if (c && c.dm) { hs.innerHTML = avatarHtml(c.other, 26, true); hs.classList.add('dmav'); } else { hs.textContent = '#'; hs.classList.remove('dmav'); }
   hs.classList.toggle('hidden', !c);
-  if (layoutDock.vv && S.myCall) { $('chName').textContent = String(S.myCall.label || 'Voice').replace(/^🔊\s*/, '').split(' / ')[0]; hs.innerHTML = ico('volume-2', 20); hs.classList.remove('dmav', 'hidden'); }
   const dmF = c && c.dm ? friendOf(c.other) : null;
   $('btnAddF').classList.toggle('hidden', !(c && c.dm && !dmF));
   $('btnMembers').title = c && c.dm ? (ls.get('members', true) ? 'Hide User Profile' : 'Show User Profile') : 'Members';
@@ -1240,7 +1173,7 @@ function renderHeader() {
   $('btnMobile').style.display = window.innerWidth <= 760 ? '' : 'none';
   const bc = $('btnCall');
   bc.classList.toggle('hidden', !(c && S.myId && S.canWrite)); $('btnVideo').classList.toggle('hidden', !(c && S.myId && S.canWrite));
-  if (c && !bc.dataset.cid || c && bc.dataset.cid !== c.id) { const sv = curServer(); bc.dataset.cid = c.id; bc.dataset.room = freshRoom(c.id); bc.dataset.label = c.dm ? nameOf(S.myId) + ' & ' + c.name : '#' + c.name + (sv ? ' · ' + sv.name : ''); bc.href = callLink(bc.dataset.room, bc.dataset.label); }
+  if (c && !bc.dataset.cid || c && bc.dataset.cid !== c.id) { const sv = curServer(); bc.dataset.cid = c.id; bc.dataset.room = roomId('c-' + c.id + '-' + Date.now().toString(36)); bc.dataset.label = c.dm ? nameOf(S.myId) + ' & ' + c.name : '#' + c.name + (sv ? ' · ' + sv.name : ''); bc.href = callLink(bc.dataset.room, bc.dataset.label); }
   if (c) { $('btnVideo').href = callLink(bc.dataset.room, bc.dataset.label, true); bc.href = callLink(bc.dataset.room, bc.dataset.label); }
 }
 const nearBottom = () => { const f = $('feed'); return f.scrollHeight - f.scrollTop - f.clientHeight < 120; };
@@ -1311,11 +1244,6 @@ function msgHtml(m, cont) {
 function refreshCallCards() {
   document.querySelectorAll('#feed .msg').forEach(el => { const m = S.msgs.find(x => x.id === el.dataset.id); const cc = el.querySelector('.callcard'); if (m && m.call && cc) { cc.outerHTML = callCardHtml(m); el.querySelectorAll('[data-joincall]').forEach(a => a.addEventListener('click', () => joinCall(a.dataset.joincall, a.dataset.label))); } });
 }
-function liveCallIn(cid) { // newest call in this chat that someone else is still in
-  if (S.cid !== cid) return null;
-  for (let i = S.msgs.length - 1; i >= 0; i--) { const m = S.msgs[i]; if (m && m.call && typeof m.call.room === 'string' && callersIn(m.call.room).some(u => u !== S.myId)) return m.call; }
-  return null;
-}
 function callCardHtml(m) {
   const room = String(m.call.room || ''), who = callersIn(room), live = who.length > 0, mine = S.myCall && S.myCall.room === room;
   return `<div class="callcard"><div class="ci">${m.call.video ? '🎥' : '📞'}</div><div class="cm"><b>${esc(nameOf(m.uid))} started a ${m.call.video ? 'video ' : ''}call</b>
@@ -1326,8 +1254,6 @@ function callCardHtml(m) {
 async function startChannelCall(e, video) {
   const bc = $('btnCall'), c = curChannel();
   if (!c || !S.myId) { e.preventDefault(); return; }
-  const live = liveCallIn(c.id);
-  if (live) { e.preventDefault(); S.callHome = c.id; if (!S.myCall || S.myCall.room !== live.room) joinCall(live.room, live.label || bc.dataset.label, video); else ensureDock(callLink(live.room, live.label, video)); return; }
   const room = bc.dataset.room, label = bc.dataset.label;
   joinCall(room, label, video);
   if (S.room) S.room.emit('ring', c.dm ? { kind: 'dm', to: c.other, room, label, video: !!video } : { kind: 'channel', room, label, cid: c.id, sid: S.sid, video: !!video }).catch(() => {});
@@ -1339,7 +1265,7 @@ $('btnVideo').addEventListener('click', e => startChannelCall(e, true));
 function callPerson(uid, video) {
   const room = roomId('dm-' + [S.myId, uid].sort().join('-').replace(/[^a-zA-Z0-9]/g, '').slice(0, 40) + '-' + Date.now().toString(36));
   const label = nameOf(S.myId) + ' & ' + nameOf(uid);
-  S.callHome = dmCid(uid); joinCall(room, label, video);
+  joinCall(room, label, video);
   if (S.room) S.room.emit('ring', { kind: 'dm', to: uid, room, label, video: !!video }).catch(() => {});
   toast((video ? 'Video calling ' : 'Calling ') + nameOf(uid) + '…');
   return callLink(room, label, video);
@@ -1361,7 +1287,7 @@ function onRing(msg) {
     <div class="row2"><button class="btn danger" data-no>Decline</button><a class="btn go" target="_blank" rel="opener" href="${esc(callLink(room, label, !!d.video))}" data-yes>${d.video ? '🎥 Join' : 'Join'}</a></div>`;
   document.body.appendChild(el);
   el.querySelector('[data-no]').onclick = stopRing;
-  el.querySelector('[data-yes]').onclick = () => { S.callHome = d.kind === 'dm' ? dmCid(msg.by) : (d.cid || null); joinCall(room, label, !!d.video); stopRing(); if (S.myCall && S.myCall.home) openChannel(S.myCall.home); };
+  el.querySelector('[data-yes]').onclick = () => { joinCall(room, label, !!d.video); stopRing(); };
   let n = 0;
   const beep = () => { if (S.status !== 'dnd') sfx('ring'); if (++n > 14) stopRing(); };
   beep(); ringTimer = setInterval(beep, 2400);
@@ -2163,7 +2089,7 @@ function renderFriendsPage() {
   f.innerHTML = `<div class="ftabs"><b class="ft">${ICON.friends} Friends</b>${tabs.map(([k, l]) => `<button data-ft="${k}" class="${tab === k ? 'on' : ''} ${k === 'add' ? 'add' : ''}">${l}</button>`).join('')}</div><div class="fbody">${body}</div>`;
   f.querySelectorAll('[data-ft]').forEach(b => b.onclick = () => { S.homeTab = b.dataset.ft; renderFeed(false); renderChannels(); });
   f.querySelectorAll('[data-msg]').forEach(b => b.onclick = () => openDm(b.dataset.msg));
-  f.querySelectorAll('[data-callu]').forEach(b => b.onclick = () => { callPerson(b.dataset.callu); openChannel(dmCid(b.dataset.callu)); });
+  f.querySelectorAll('[data-callu]').forEach(b => b.onclick = () => { const url = callPerson(b.dataset.callu); window.open(url, '_blank'); });
   f.querySelectorAll('[data-unf]').forEach(b => b.onclick = () => { const x = friendOf(b.dataset.unf); if (x) confirmModal('Remove friend', 'Remove ' + nameOf(b.dataset.unf) + ' from your friends?', 'Remove', () => removeFriend(x)); });
   f.querySelectorAll('[data-acc]').forEach(b => b.onclick = () => { const x = S.friends.find(y => y.id === b.dataset.acc); if (x) acceptFriend(x); });
   f.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => { const x = S.friends.find(y => y.id === b.dataset.dec); if (x) removeFriend(x); });
@@ -3073,7 +2999,7 @@ function refreshSettingsBits() {
   const st = $('usStatusTxt'); if (st) st.textContent = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', invisible: 'Invisible' }[S.status] || 'Online';
   const me = document.querySelector('.us-me'); if (me && S.myId) { const b = me.querySelector('b'); if (b) b.textContent = nameOf(S.myId); const a = me.querySelector('.av'); if (a) a.outerHTML = avatarHtml(S.myId, 44, true); }
 }
-function renderAll() { layoutDock(); refreshSettingsBits(); renderRenewBar(); renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }
+function renderAll() { refreshSettingsBits(); renderRenewBar(); renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }
 
 applyCompact();
 (() => {

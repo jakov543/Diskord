@@ -37,7 +37,7 @@ async function deriveKey(username, password) {
 // ------------------------------------------------------------ rules (every app checks these, so nobody can fake owners, edit others' messages, …)
 // The Diskord owner (can give Nitro / Boost): by username, plus optional raw ids from diskord-config.js
 // SECURITY: the owner is fixed by account key (User ID), never by username — usernames can be claimed by anyone.
-const OWNER_KEYS = [];
+const OWNER_KEYS = ['ee4cb51fa801c8cdcbafd72a63f91c0824a6d8ab2f7568d15c22dcc0860467f0']; // @frost (jakov)
 const appOwners = () => OWNER_KEYS.filter(x => /^[0-9a-f]{64}$/.test(x));
 window.diskordOwnerIds = appOwners;
 const MAX_PERK_MS = 400 * 864e5; // a perk can never run longer than ~1 year past the moment it was given

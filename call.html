@@ -129,19 +129,6 @@ header .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--
 .toast { position: fixed; top: 62px; left: 50%; transform: translateX(-50%); background: var(--bg1); border: 1px solid var(--line); padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 13.5px; opacity: 0; transition: .25s; pointer-events: none; z-index: 60; }
 .toast.show { opacity: 1; }
 .ended { position: fixed; inset: 0; display: grid; place-items: center; background: #000; z-index: 70; }
-
-.embed body { background: #000; }
-.embed header { display: none; }
-.embed .lobby { background: #000; } .embed .lobby .card { transform: scale(.85); }
-.embed .stage { top: 0; bottom: 84px; padding: 12px 16px 0; }
-.embed .stage.voice { gap: 18px; }
-.embed .stage.voice .tile { width: 92px; height: 92px; } .embed .stage.voice .tile .face { width: 88px; height: 88px; font-size: 36px; }
-.embed .waiting { top: auto; bottom: 92px; font-size: 13px; }
-.embed .bar { bottom: 14px; }
-.embed .cb { height: 42px; min-width: 42px; } .embed .cb.leave { height: 50px; width: 66px; }
-.embed .toast { top: 10px; }
-.embed #soundTap { top: 10px !important; left: 10px !important; transform: none !important; padding: 6px 12px !important; font-size: 12px !important; }
-.embed .sp { height: calc(100% - 20px); } .embed .ov { padding: 10px; }
 </style>
 </head>
 <body>
@@ -158,7 +145,7 @@ header .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--
 </div></div>
 
 <div class="stage hidden voice" id="stage"></div>
-<div class="waiting hidden" id="waiting" style="padding:0 24px">Waiting for others to join…</div>
+<div class="waiting hidden" id="waiting">Waiting for others to join…</div>
 <div class="bar hidden" id="bar">
   <div class="grp">
     <button class="cb" id="bMic" data-tip="Mute"></button><button class="cb caret" id="mMic" data-tip="Audio settings"></button>
@@ -179,16 +166,11 @@ header .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--
 <script>
 (() => {
 'use strict';
-const EMBED = (() => { try { return window.parent !== window && window.parent.location.origin === location.origin; } catch (_) { return false; } })();
-const DK = window.diskord || (EMBED ? (() => { try { return window.parent.diskord; } catch (_) { return null; } })() : null) || null;
-const DESK = !!(DK && DK.screenSources);
-if (EMBED) document.documentElement.classList.add('embed');
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let tT; const toast = m => { $('toast').textContent = m; $('toast').classList.add('show'); clearTimeout(tT); tT = setTimeout(() => $('toast').classList.remove('show'), 2600); };
 function showSoundTap() { const b = document.getElementById('soundTap'); if (!b) return; b.classList.remove('hidden'); b.onclick = () => { for (const a of document.querySelectorAll('#voices audio')) a.play().catch(() => {}); if (ac && ac.state === 'suspended') ac.resume().catch(() => {}); b.classList.add('hidden'); }; }
-if (DK && DK.onCallCmd) DK.onCallCmd(c => { if (!me.id) return; if (c === 'camera' && !me.cam) $('bCam').click(); if (c === 'screen' && !me.screen) $('bScreen').click(); });
-addEventListener('message', e => { const d = e.data; if (!EMBED || e.source !== window.parent || !d || d.diskord !== 'cmd' || !me.id) return; if (d.cmd === 'leave' && !left) { $('bLeave').click(); return; } if (d.cmd === 'camera' && !me.cam) $('bCam').click(); if (d.cmd === 'screen' && !me.screen) $('bScreen').click(); });
+if (window.diskord && window.diskord.onCallCmd) window.diskord.onCallCmd(c => { if (!me.id) return; if (c === 'camera' && !me.cam) $('bCam').click(); if (c === 'screen' && !me.screen) $('bScreen').click(); });
 const sfx = n => { try { window.DiskordSounds && window.DiskordSounds.play(n); } catch (_) {} };
 const store = { get: (k, d) => { try { return localStorage.getItem('flixcall.' + k) ?? d; } catch (_) { return d; } }, set: (k, v) => { try { localStorage.setItem('flixcall.' + k, v); } catch (_) {} } };
 // Icons: Lucide (lucide.dev), ISC licence
@@ -220,7 +202,7 @@ const MY_AV = okAv(params.get('a') || '');
 const okUid = v => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v) ? v : '';
 const MY_UID = okUid(params.get('u') || '');
 const WANT_SCREEN = params.get('s') === '1', WANT_VIDEO = params.get('v') === '1', START_MUTED = params.get('m') === '1', START_DEAF = params.get('d') === '1';
-// inside Diskord (embedded in the chat) or a page of its own
+const DESK = !!(window.diskord && window.diskord.screenSources);
 $('name').value = params.get('n') || store.get('name', '');
 $('roomLabel').textContent = TITLE || 'Diskord call';
 document.title = (TITLE || 'Call') + ' · Diskord';
@@ -236,13 +218,11 @@ if (typeof Peer === 'undefined') { $('lobbyText').textContent = 'Could not load 
 const COLORS = ['#ff3d6e', '#8b5cf6', '#22c1ee', '#2bd98a', '#ffb020', '#ff7a45', '#4f7cff', '#e94cd8'];
 const colorOf = s => COLORS[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
 const PREFIX = 'flixcord-v1-' + ROOM;
-const tellOpener = (t, extra) => { try { const w = EMBED ? window.parent : window.opener; if (w) w.postMessage(Object.assign({ diskord: t, room: ROOM }, extra || {}), '*'); } catch (_) {} };
+const tellOpener = t => { try { if (window.opener) window.opener.postMessage({ diskord: t, room: ROOM }, '*'); } catch (_) {} };
 const ICE = { iceServers: [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] },
-  // a relay (TURN) server lets people connect when their routers block direct calls; set it in diskord-config.js
-  ...(Array.isArray(window.DISKORD_TURN) ? window.DISKORD_TURN.filter(x => x && x.urls) : [])
+  { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turn:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }
 ] };
-const HAS_RELAY = ICE.iceServers.some(x => [].concat(x.urls).some(u => /^turns?:/.test(u)));
 const PEER_OPTS = () => Object.assign({ config: ICE, debug: 0 }, window.DISKORD_PEER || {});
 
 // ------------------------------------------------------------ audio: mic + soundboard + shared screen sound -> one outgoing track
@@ -340,7 +320,7 @@ $('join').onclick = async () => {
   peer.on('disconnected', () => { if (!left) setTimeout(() => peer && !peer.destroyed && peer.reconnect(), 1500); });
 };
 // opened from the Diskord app with your name: go straight in, like Discord
-if (params.get('n') && (DESK || EMBED)) { $('lobbyTitle').textContent = 'Connecting…'; $('lobbyText').textContent = TITLE; setTimeout(() => $('join').click(), 50); }
+if (params.get('n') && DESK) { $('lobbyTitle').textContent = 'Connecting…'; $('lobbyText').textContent = TITLE; setTimeout(() => $('join').click(), 50); }
 setInterval(() => { if (!joinedAt) return; const s = Math.floor((Date.now() - joinedAt) / 1000); $('timer').textContent = (s >= 3600 ? Math.floor(s / 3600) + ':' : '') + String(Math.floor(s / 60) % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }, 1000);
 
 // The "directory" is one peer with a fixed id that keeps the member list and relays reactions.
@@ -395,7 +375,7 @@ function tellApp() {
     const now = Date.now(), speaking = [];
     for (const [id, t] of talking) if (now - t < 350) { const u = id === me.id ? me.uid : (members.get(id) || {}).uid; if (u) speaking.push(u); }
     const list = [...members.values()].filter(m => m.uid).map(m => ({ uid: m.uid, muted: m.muted, deaf: m.deaf }));
-    const msg = { type: 'state', room: ROOM, peer: me.id, title: TITLE, me: { muted: me.muted, deaf: me.deaf }, speaking, members: list };
+    const msg = { type: 'state', room: ROOM, title: TITLE, me: { muted: me.muted, deaf: me.deaf }, speaking, members: list };
     const k = JSON.stringify(msg); if (k === lastApp) return; lastApp = k; bc.postMessage(msg);
   }, 60);
 }
@@ -405,7 +385,7 @@ setInterval(tellApp, 200); // notice when someone stops talking
 if (bc) bc.onmessage = e => { const d = e.data;
   if (d && d.type === 'takeover' && d.page !== PAGE && d.uid && d.uid === me.uid && !left) { // you opened Diskord's call somewhere else: leave here
     if (me.id) $('bLeave').click(); else left = true;
-    if (DESK && !EMBED) setTimeout(() => window.close(), 300); return; }
+    if (DESK) setTimeout(() => window.close(), 300); return; }
   if (!d || d.type !== 'cmd' || d.room !== ROOM || !me.id) return;
   if (d.leave) { $('bLeave').click(); return; }
   if (typeof d.deaf === 'boolean' && d.deaf !== me.deaf) toggleDeaf();
@@ -422,29 +402,11 @@ function onMembers(list) {
     if (!calls.has(m.id) && me.id < m.id) wireCall(peer.call(m.id, outStream()));
     updateTile(m.id);
   }
-  dirIds = ids;
-  for (const id of [...calls.keys()]) if (!ids.has(id) && !appPeers.has(id)) dropPeer(id);
-  for (const id of [...members.keys()]) if (!ids.has(id) && !appPeers.has(id)) { members.delete(id); sfx('leave'); }
+  for (const id of [...calls.keys()]) if (!ids.has(id)) dropPeer(id);
+  for (const id of [...members.keys()]) if (!ids.has(id)) { members.delete(id); sfx('leave'); }
   $('count').textContent = ids.size + (ids.size === 1 ? ' person' : ' people');
   refresh(); tellApp();
 }
-const appPeers = new Map(); let dirIds = new Set();
-addEventListener('message', e => {
-  const d = e.data; if (!EMBED || e.source !== window.parent || !d || d.diskord !== 'peers' || d.room !== ROOM || !Array.isArray(d.list) || !me.id || left) return;
-  appPeers.clear();
-  for (const p of d.list.slice(0, 40)) {
-    if (!p || typeof p.id !== 'string' || !p.id.startsWith(PREFIX + '-') || p.id === me.id || okUid(p.uid) !== p.uid || p.uid === me.uid) continue;
-    appPeers.set(p.id, p);
-    const sameUid = [...members].find(([id, m]) => id !== p.id && m.uid === p.uid);
-    if (sameUid && dirIds.has(sameUid[0])) continue; // the call's host already knows this person by another id
-    if (!members.has(p.id)) { members.set(p.id, sanitize({ name: p.name, uid: p.uid, at: 0 })); if (joinedAt && Date.now() - joinedAt > 1500) sfx('join'); }
-    if (!calls.has(p.id) && me.id < p.id) wireCall(peer.call(p.id, outStream()));
-    updateTile(p.id);
-  }
-  for (const id of [...members.keys()]) if (!dirIds.has(id) && !appPeers.has(id)) { members.delete(id); dropPeer(id); }
-  $('count').textContent = (members.size + 1) + (members.size ? ' people' : ' person');
-  refresh(); tellApp();
-});
 function wireCall(call) {
   if (!call) return;
   const id = call.peer;
@@ -462,25 +424,8 @@ function wireCall(call) {
   });
   call.on('close', () => { if (calls.get(id) === call) dropPeer(id); });
   call.on('error', () => {});
-  const pc = call.peerConnection;
-  if (pc) pc.addEventListener('iceconnectionstatechange', () => {
-    const st = pc.iceConnectionState;
-    if (st === 'connected' || st === 'completed') { linkOk.add(id); linkBad.delete(id); refresh(); }
-    if (st === 'failed' && calls.get(id) === call && !left) { // try again, a few times
-      const n = (retries.get(id) || 0) + 1; retries.set(id, n);
-      if (n <= 3) setTimeout(() => { if (left || calls.get(id) !== call) return; dropPeer(id); if (me.id < id || n > 1) wireCall(peer.call(id, outStream())); }, 800 * n);
-      else { linkBad.add(id); refresh(); }
-    }
-  });
 }
-const linkOk = new Set(), linkBad = new Set(), retries = new Map(), seenAt = new Map();
-// someone is in the call but never reached us: call them ourselves (normally the other side starts)
-setInterval(() => {
-  if (!me.id || left) return;
-  for (const [id] of members) { if (!seenAt.has(id)) seenAt.set(id, Date.now()); if (!calls.has(id) && Date.now() - seenAt.get(id) > 7000) wireCall(peer.call(id, outStream())); }
-  refresh();
-}, 3000);
-function dropPeer(id) { linkOk.delete(id); const au = document.getElementById('au-' + id); if (au) { au.srcObject = null; au.remove(); } const c = calls.get(id); calls.delete(id); if (c) try { c.close(); } catch (_) {} removeTile(id); }
+function dropPeer(id) { const au = document.getElementById('au-' + id); if (au) { au.srcObject = null; au.remove(); } const c = calls.get(id); calls.delete(id); if (c) try { c.close(); } catch (_) {} removeTile(id); }
 
 // ------------------------------------------------------------ tiles
 const tiles = new Map();
@@ -493,7 +438,7 @@ function addTile(id, mine) {
   if (mine) { video.srcObject = new MediaStream([currentVideo()]); video.classList.add('mirror'); }
   el.onclick = () => { if (el.classList.contains('camoff')) return; focusId = focusId === id ? null : id; refresh(); };
   el.ondblclick = () => { if (!el.classList.contains('camoff')) (el.requestFullscreen || (() => {})).call(el); };
-  tiles.set(id, { el, video, mine }); $('stage').appendChild(el); updateTile(id); refresh();
+  tiles.set(id, { el, video, mine }); $('stage').appendChild(el); updateTile(id);
 }
 function updateTile(id) {
   const t = tiles.get(id); if (!t) return;
@@ -519,13 +464,7 @@ function refresh() {
   if (focusId) { strip = document.createElement('div'); strip.className = 'strip'; for (const [id, t] of tiles) if (id !== focusId) strip.appendChild(t.el); st.appendChild(strip); st.style.gridTemplateColumns = ''; }
   else if (anyVideo) layout(); else st.style.gridTemplateColumns = '';
   for (const t of tiles.values()) if (t.video.paused && t.video.srcObject) t.video.play().catch(() => {});
-  const pending = [...members].filter(([id]) => !linkOk.has(id)), w = $('waiting');
-  const late = pending.filter(([id]) => linkBad.has(id) || Date.now() - (seenAt.get(id) || Date.now()) > 20000);
-  if (!pending.length) w.textContent = 'Waiting for others to join…';
-  else if (!late.length) w.textContent = 'Connecting to ' + pending.map(([, m]) => m.name || 'someone').join(', ') + '…';
-  else w.innerHTML = '⚠️ Can\'t connect to <b>' + esc(late.map(([, m]) => m.name || 'someone').join(', ')) + '</b>.<br><small>' + (HAS_RELAY ? 'Their internet or yours is blocking the call. Try leaving and joining again.' : 'Your router or theirs blocks direct calls. Diskord needs a relay (TURN) server for this — ask the Diskord owner to add one.') + '</small>';
-  w.classList.toggle('hidden', anyVideo || !me.id || (linkOk.size > 0 && !late.length) || (tiles.size > 1 && !pending.length));
-  if (EMBED && refresh.lastVideo !== anyVideo) { refresh.lastVideo = anyVideo; tellOpener('video', { on: anyVideo }); }
+  $('waiting').classList.toggle('hidden', tiles.size !== 1 || anyVideo || !me.id);
 }
 function layout() {
   const n = tiles.size, W = innerWidth - 40, H = innerHeight - 160;
@@ -698,7 +637,7 @@ function qualityPanel(anchor, onChange) {
   setTimeout(() => document.addEventListener('mousedown', function off(e) { if (!p.contains(e.target) && !anchor.contains(e.target)) { p.remove(); document.removeEventListener('mousedown', off); } }), 0);
 }
 async function openSharePicker() {
-  closePops(); if (EMBED) tellOpener('expand');
+  closePops();
   const ov = document.createElement('div'); ov.className = 'ov';
   ov.innerHTML = `<div class="sp"><div class="sp-tabs"><button data-t="window">${I.app}Applications</button><button data-t="screen">${I.monitor}Entire Screen</button><button data-t="device">${I.cam}Devices</button></div>
     <div class="sp-grid" id="spGrid"><div class="sp-empty">Loading…</div></div>
@@ -740,14 +679,14 @@ async function openSharePicker() {
     g.querySelectorAll('[data-id]').forEach(b => b.onclick = async () => {
       const id = b.dataset.id, au = audio(); close();
       try {
-        const ok = await DK.shareSource(id, au); if (!ok) return toast('That window closed — try again');
+        const ok = await window.diskord.shareSource(id, au); if (!ok) return toast('That window closed — try again');
         const s = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: Q.fps }, audio: au });
         await useScreenStream(s);
       } catch (_) { toast('Screen share was cancelled'); }
     });
   };
   ov.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { tab = b.dataset.t; draw(); });
-  if (DESK) { try { list = await DK.screenSources(); } catch (_) { list = []; } if (!list.some(x => x.type === 'window')) tab = 'screen'; }
+  if (DESK) { try { list = await window.diskord.screenSources(); } catch (_) { list = []; } if (!list.some(x => x.type === 'window')) tab = 'screen'; }
   if (ov.isConnected) draw();
 }
 
@@ -758,9 +697,8 @@ $('bLeave').onclick = () => {
   for (const id of [...calls.keys()]) dropPeer(id);
   [peer, dirPeer].forEach(p => p && p.destroy());
   [mic, screenAudio].forEach(x => x && x.getTracks().forEach(t => t.stop())); [camTrack, screenTrack].forEach(t => t && t.stop());
-  if (EMBED) return;
   document.body.insertAdjacentHTML('beforeend', `<div class="ended"><div class="card"><img class="logo" src="logo.svg" alt=""><h1>You left the call</h1><p>You can close this window and go back to Diskord.</p><button class="big" onclick="location.reload()">Rejoin</button></div></div>`);
-  if (window.opener && DESK && !EMBED) setTimeout(() => window.close(), 900);
+  if (window.opener && DESK) setTimeout(() => window.close(), 900);
 };
 addEventListener('beforeunload', () => { try { if (dirConn && dirConn.open) dirConn.send({ t: 'bye' }); } catch (_) {} if (me.id) tellOpener('left'); left = true; [peer, dirPeer].forEach(p => p && p.destroy()); });
 addEventListener('keydown', e => { if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') $('bMic').click(); if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') toggleDeaf(); });

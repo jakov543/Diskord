@@ -127,7 +127,7 @@ function createMain() {
   main = new BrowserWindow({
     width: b.width || 1360, height: b.height || 860, x: b.x, y: b.y, minWidth: 900, minHeight: 600,
     backgroundColor: '#0a0f1c', icon: ICON, title: 'Diskord', autoHideMenuBar: true, show: false,
-    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: true, allowRunningInsecureContent: true, backgroundThrottling: false } // calls keep going when Diskord is minimised
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: true, allowRunningInsecureContent: true }
   });
   if (state.maximized) main.maximize();
   wire(main);
