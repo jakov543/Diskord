@@ -1,5 +1,12 @@
 # Diskord changelog
 
+## 7.2.1 — call fix
+- 📞 **Fixed calls where both people were in the call but each only saw "Waiting for others to join…"**
+  - Every call in a DM used to reuse the same call room, so an old stuck call could block new ones. Now every call gets its own fresh room
+  - If the call's connection helper gets stuck anyway, Diskord connects you directly to the people it can see in the call
+- 📲 Pressing the call button in a chat that already has a call going now joins that call instead of starting a second one
+- 👋 Hanging up from the Voice Connected panel now says goodbye properly, so you don't stay "in the call" for others
+
 ## 7.2.0 — calls inside Diskord
 - 📞 **Calls no longer open a second window or tab** — everything happens inside Diskord, like Discord
   - In a DM the call shows at the top of the chat, with the avatars in the middle and the buttons under them; you can still read and send messages below it

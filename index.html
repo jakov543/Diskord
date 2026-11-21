@@ -693,6 +693,8 @@ const blob = id => {
   return (window.diskordServer ? window.diskordServer() : '') + '/blob/' + id;
 };const callLink = (room, title, video) => `${CALL_URL}#r=${encodeURIComponent(room)}${video ? '&v=1' : ''}${S.selfMute ? '&m=1' : ''}${S.selfDeaf ? '&d=1' : ''}&u=${S.myId}&n=${encodeURIComponent(nameOf(S.myId))}&t=${encodeURIComponent(title || '')}${/^https:\/\//.test(avatarOf(S.myId) || '') ? '&a=' + encodeURIComponent(avatarOf(S.myId)) : ''}`;
 const roomId = s => ('fx-' + s).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 70);
+const shortKey = s => { let a = 0x811c9dc5, b = 0x1b873593; for (const ch of String(s)) { const c = ch.charCodeAt(0); a = Math.imul(a ^ c, 16777619); b = Math.imul(b ^ c, 2246822507); } return (a >>> 0).toString(36) + (b >>> 0).toString(36); };
+const freshRoom = key => roomId('c-' + shortKey(key) + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
 const COLORS = ['#ff3d6e', '#8b5cf6', '#22c1ee', '#2bd98a', '#ffb020', '#ff7a45', '#4f7cff', '#e94cd8'];
 const fmtTime = t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 function fmtDay(t) {
@@ -912,10 +914,11 @@ function openChannel(cid) {
   setTimeout(() => { const ta = $('ta'); if (ta && window.innerWidth > 760) ta.focus(); }, 0);
 }
 function pushPresence() {
-  if (S.room && S.myId) S.room.presence({ uid: S.myId, cid: S.cid || null, status: S.status, call: S.myCall ? S.myCall.room : null, callLabel: S.myCall ? S.myCall.label : null, muted: !!S.selfMute, deaf: !!S.selfDeaf }).catch(() => {});
+  if (S.room && S.myId) S.room.presence({ uid: S.myId, cid: S.cid || null, status: S.status, call: S.myCall ? S.myCall.room : null, callPeer: S.myCall && S.myPeer ? S.myPeer : null, callLabel: S.myCall ? S.myCall.label : null, muted: !!S.selfMute, deaf: !!S.selfDeaf }).catch(() => {});
 }
 function joinCall(room, label, video) {
   const voice = /^fx-v-/.test(room);
+  S.myPeer = null;
   S.myCall = { room, label, at: Date.now(), video: !!video, voice, home: voice ? null : (S.callHome || S.cid || null) };
   S.callHome = null; if (voice) S.voiceView = true;
   ls.set('myCall', S.myCall); pushPresence(); ensureDock(callLink(room, label, video)); renderAll();
@@ -930,7 +933,7 @@ function ensureDock(url) {
   else { dockRoom = room; f.src = url.replace(/&s=1/, '').replace(/#/, /[#&]s=1/.test(url) ? '#s=1&' : '#'); }
   layoutDock();
 }
-function closeDock() { dockRoom = ''; S.dockBig = false; S.voiceView = false; const f = $('callFrame'); if (f.src !== 'about:blank') f.src = 'about:blank'; layoutDock(); }
+function closeDock() { const old = dockRoom; dockRoom = ''; S.dockBig = false; S.voiceView = false; const f = $('callFrame'); try { if (old) f.contentWindow.postMessage({ diskord: 'cmd', cmd: 'leave' }, '*'); } catch (_) {} setTimeout(() => { if (!dockRoom && f.src !== 'about:blank') f.src = 'about:blank'; }, 400); layoutDock(); }
 function layoutDock() {
   const d = $('callDock'), c = S.myCall;
   const show = !!(c && dockRoom && (c.voice ? S.voiceView : (S.cid && S.cid === c.home) || S.voiceView));
@@ -977,6 +980,7 @@ if (callBc) callBc.onmessage = e => {
   const d = e.data; if (!d || d.type !== 'state' || typeof d.room !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(d.room)) return;
   if (!S.myCall || S.myCall.room !== d.room) { S.myCall = { room: d.room, label: String(d.title || 'Call').slice(0, 60), at: Date.now(), video: false }; ls.set('myCall', S.myCall); pushPresence(); renderAll(); }
   S.callAlive = Date.now();
+  if (typeof d.peer === 'string' && /^[A-Za-z0-9_-]{1,120}$/.test(d.peer) && d.peer !== S.myPeer && S.myCall && S.myCall.room === d.room) { S.myPeer = d.peer; pushPresence(); }
   S.talking = new Set((d.speaking || []).filter(u => /^[0-9a-f]{64}$/.test(u)));
   const before = JSON.stringify([...S.callAudio]);
   S.callAudio = new Map((d.members || []).filter(m => /^[0-9a-f]{64}$/.test(m.uid)).map(m => [m.uid, { muted: !!m.muted, deaf: !!m.deaf }]));
@@ -986,7 +990,13 @@ if (callBc) callBc.onmessage = e => {
   paintTalking();
 };
 function tellCall() { if (callBc && S.myCall) try { callBc.postMessage({ type: 'cmd', room: S.myCall.room, mute: !!S.selfMute, deaf: !!S.selfDeaf }); } catch (_) {} }
-function leaveCall() { closeDock(); S.dockVideo = false; S.talking = new Set(); S.callAudio = new Map(); S.myCall = null; ls.set('myCall', null); pushPresence(); renderAll(); }
+function sendPeersToCall() {
+  const f = $('callFrame'); if (!S.myCall || !dockRoom || !f || !f.contentWindow) return;
+  const list = [...(S.callPeers || new Map())].filter(([u]) => u !== S.myId && (S.inCall.get(u) === S.myCall.room)).map(([uid, id]) => ({ id, uid, name: nameOf(uid) }));
+  try { f.contentWindow.postMessage({ diskord: 'peers', room: S.myCall.room, list }, '*'); } catch (_) {}
+}
+setInterval(sendPeersToCall, 4000);
+function leaveCall() { S.myPeer = null; closeDock(); S.dockVideo = false; S.talking = new Set(); S.callAudio = new Map(); S.myCall = null; ls.set('myCall', null); pushPresence(); renderAll(); }
 const callersIn = room => { const m = new Map(S.inCall); if (S.myId) { if (S.myCall) m.set(S.myId, S.myCall.room); else m.delete(S.myId); } return [...m].filter(([, r]) => r === room).map(([u]) => u); };
 function showConn(t) { $('conn').textContent = t; $('conn').classList.toggle('hidden', !t); }
 
@@ -1014,16 +1024,16 @@ function notifyNew(snap) {
 function setupRoom() {
   if (!S.room) return;
   S.room.onPeers(ch => {
-    const m = new Map(), calls = new Map();
+    const m = new Map(), calls = new Map(), cpeers = new Map();
     for (const p of ch.peers) {
       const uid = p.by || (p.presence && typeof p.presence.uid === 'string' ? p.presence.uid : null);
       if (!uid || p.kind !== 'viewer') continue;
       const st = p.presence && ['online', 'idle', 'dnd', 'invisible'].includes(p.presence.status) ? p.presence.status : 'online';
       m.set(uid, st);
-      if (p.presence && typeof p.presence.call === 'string') calls.set(uid, p.presence.call.slice(0, 80));
+      if (p.presence && typeof p.presence.call === 'string') { calls.set(uid, p.presence.call.slice(0, 80)); if (typeof p.presence.callPeer === 'string' && p.presence.callPeer.length <= 120) cpeers.set(uid, p.presence.callPeer); }
       S.peerAudio.set(uid, { muted: !!(p.presence && p.presence.muted), deaf: !!(p.presence && p.presence.deaf) });
     }
-    S.online = m; S.inCall = calls;
+    S.online = m; S.inCall = calls; S.callPeers = cpeers; sendPeersToCall();
     if (S.myCall && S.myId) calls.set(S.myId, S.myCall.room);
     renderChannels(); refreshCallCards();
     needNames([...m.keys()]);
@@ -1230,7 +1240,7 @@ function renderHeader() {
   $('btnMobile').style.display = window.innerWidth <= 760 ? '' : 'none';
   const bc = $('btnCall');
   bc.classList.toggle('hidden', !(c && S.myId && S.canWrite)); $('btnVideo').classList.toggle('hidden', !(c && S.myId && S.canWrite));
-  if (c && !bc.dataset.cid || c && bc.dataset.cid !== c.id) { const sv = curServer(); bc.dataset.cid = c.id; bc.dataset.room = roomId('c-' + c.id + '-' + Date.now().toString(36)); bc.dataset.label = c.dm ? nameOf(S.myId) + ' & ' + c.name : '#' + c.name + (sv ? ' · ' + sv.name : ''); bc.href = callLink(bc.dataset.room, bc.dataset.label); }
+  if (c && !bc.dataset.cid || c && bc.dataset.cid !== c.id) { const sv = curServer(); bc.dataset.cid = c.id; bc.dataset.room = freshRoom(c.id); bc.dataset.label = c.dm ? nameOf(S.myId) + ' & ' + c.name : '#' + c.name + (sv ? ' · ' + sv.name : ''); bc.href = callLink(bc.dataset.room, bc.dataset.label); }
   if (c) { $('btnVideo').href = callLink(bc.dataset.room, bc.dataset.label, true); bc.href = callLink(bc.dataset.room, bc.dataset.label); }
 }
 const nearBottom = () => { const f = $('feed'); return f.scrollHeight - f.scrollTop - f.clientHeight < 120; };
@@ -1301,6 +1311,11 @@ function msgHtml(m, cont) {
 function refreshCallCards() {
   document.querySelectorAll('#feed .msg').forEach(el => { const m = S.msgs.find(x => x.id === el.dataset.id); const cc = el.querySelector('.callcard'); if (m && m.call && cc) { cc.outerHTML = callCardHtml(m); el.querySelectorAll('[data-joincall]').forEach(a => a.addEventListener('click', () => joinCall(a.dataset.joincall, a.dataset.label))); } });
 }
+function liveCallIn(cid) { // newest call in this chat that someone else is still in
+  if (S.cid !== cid) return null;
+  for (let i = S.msgs.length - 1; i >= 0; i--) { const m = S.msgs[i]; if (m && m.call && typeof m.call.room === 'string' && callersIn(m.call.room).some(u => u !== S.myId)) return m.call; }
+  return null;
+}
 function callCardHtml(m) {
   const room = String(m.call.room || ''), who = callersIn(room), live = who.length > 0, mine = S.myCall && S.myCall.room === room;
   return `<div class="callcard"><div class="ci">${m.call.video ? '🎥' : '📞'}</div><div class="cm"><b>${esc(nameOf(m.uid))} started a ${m.call.video ? 'video ' : ''}call</b>
@@ -1311,6 +1326,8 @@ function callCardHtml(m) {
 async function startChannelCall(e, video) {
   const bc = $('btnCall'), c = curChannel();
   if (!c || !S.myId) { e.preventDefault(); return; }
+  const live = liveCallIn(c.id);
+  if (live) { e.preventDefault(); S.callHome = c.id; if (!S.myCall || S.myCall.room !== live.room) joinCall(live.room, live.label || bc.dataset.label, video); else ensureDock(callLink(live.room, live.label, video)); return; }
   const room = bc.dataset.room, label = bc.dataset.label;
   joinCall(room, label, video);
   if (S.room) S.room.emit('ring', c.dm ? { kind: 'dm', to: c.other, room, label, video: !!video } : { kind: 'channel', room, label, cid: c.id, sid: S.sid, video: !!video }).catch(() => {});

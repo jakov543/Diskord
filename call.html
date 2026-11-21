@@ -188,7 +188,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 let tT; const toast = m => { $('toast').textContent = m; $('toast').classList.add('show'); clearTimeout(tT); tT = setTimeout(() => $('toast').classList.remove('show'), 2600); };
 function showSoundTap() { const b = document.getElementById('soundTap'); if (!b) return; b.classList.remove('hidden'); b.onclick = () => { for (const a of document.querySelectorAll('#voices audio')) a.play().catch(() => {}); if (ac && ac.state === 'suspended') ac.resume().catch(() => {}); b.classList.add('hidden'); }; }
 if (DK && DK.onCallCmd) DK.onCallCmd(c => { if (!me.id) return; if (c === 'camera' && !me.cam) $('bCam').click(); if (c === 'screen' && !me.screen) $('bScreen').click(); });
-addEventListener('message', e => { const d = e.data; if (!EMBED || e.source !== window.parent || !d || d.diskord !== 'cmd' || !me.id) return; if (d.cmd === 'camera' && !me.cam) $('bCam').click(); if (d.cmd === 'screen' && !me.screen) $('bScreen').click(); });
+addEventListener('message', e => { const d = e.data; if (!EMBED || e.source !== window.parent || !d || d.diskord !== 'cmd' || !me.id) return; if (d.cmd === 'leave' && !left) { $('bLeave').click(); return; } if (d.cmd === 'camera' && !me.cam) $('bCam').click(); if (d.cmd === 'screen' && !me.screen) $('bScreen').click(); });
 const sfx = n => { try { window.DiskordSounds && window.DiskordSounds.play(n); } catch (_) {} };
 const store = { get: (k, d) => { try { return localStorage.getItem('flixcall.' + k) ?? d; } catch (_) { return d; } }, set: (k, v) => { try { localStorage.setItem('flixcall.' + k, v); } catch (_) {} } };
 // Icons: Lucide (lucide.dev), ISC licence
@@ -393,7 +393,7 @@ function tellApp() {
     const now = Date.now(), speaking = [];
     for (const [id, t] of talking) if (now - t < 350) { const u = id === me.id ? me.uid : (members.get(id) || {}).uid; if (u) speaking.push(u); }
     const list = [...members.values()].filter(m => m.uid).map(m => ({ uid: m.uid, muted: m.muted, deaf: m.deaf }));
-    const msg = { type: 'state', room: ROOM, title: TITLE, me: { muted: me.muted, deaf: me.deaf }, speaking, members: list };
+    const msg = { type: 'state', room: ROOM, peer: me.id, title: TITLE, me: { muted: me.muted, deaf: me.deaf }, speaking, members: list };
     const k = JSON.stringify(msg); if (k === lastApp) return; lastApp = k; bc.postMessage(msg);
   }, 60);
 }
@@ -420,11 +420,29 @@ function onMembers(list) {
     if (!calls.has(m.id) && me.id < m.id) wireCall(peer.call(m.id, outStream()));
     updateTile(m.id);
   }
-  for (const id of [...calls.keys()]) if (!ids.has(id)) dropPeer(id);
-  for (const id of [...members.keys()]) if (!ids.has(id)) { members.delete(id); sfx('leave'); }
+  dirIds = ids;
+  for (const id of [...calls.keys()]) if (!ids.has(id) && !appPeers.has(id)) dropPeer(id);
+  for (const id of [...members.keys()]) if (!ids.has(id) && !appPeers.has(id)) { members.delete(id); sfx('leave'); }
   $('count').textContent = ids.size + (ids.size === 1 ? ' person' : ' people');
   refresh(); tellApp();
 }
+const appPeers = new Map(); let dirIds = new Set();
+addEventListener('message', e => {
+  const d = e.data; if (!EMBED || e.source !== window.parent || !d || d.diskord !== 'peers' || d.room !== ROOM || !Array.isArray(d.list) || !me.id || left) return;
+  appPeers.clear();
+  for (const p of d.list.slice(0, 40)) {
+    if (!p || typeof p.id !== 'string' || !p.id.startsWith(PREFIX + '-') || p.id === me.id || okUid(p.uid) !== p.uid || p.uid === me.uid) continue;
+    appPeers.set(p.id, p);
+    const sameUid = [...members].find(([id, m]) => id !== p.id && m.uid === p.uid);
+    if (sameUid && dirIds.has(sameUid[0])) continue; // the call's host already knows this person by another id
+    if (!members.has(p.id)) { members.set(p.id, sanitize({ name: p.name, uid: p.uid, at: 0 })); if (joinedAt && Date.now() - joinedAt > 1500) sfx('join'); }
+    if (!calls.has(p.id) && me.id < p.id) wireCall(peer.call(p.id, outStream()));
+    updateTile(p.id);
+  }
+  for (const id of [...members.keys()]) if (!dirIds.has(id) && !appPeers.has(id)) { members.delete(id); dropPeer(id); }
+  $('count').textContent = (members.size + 1) + (members.size ? ' people' : ' person');
+  refresh(); tellApp();
+});
 function wireCall(call) {
   if (!call) return;
   const id = call.peer;
