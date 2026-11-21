@@ -106,12 +106,12 @@ ipcMain.on('retry', e => { if (fromLocal(e) && net.isOnline()) { mode = 'retry';
 // ---------------------------------------------------------------- windows
 function wire(win) {
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (isCall(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 1100, height: 720, minWidth: 640, minHeight: 480, backgroundColor: '#0a0f1c', icon: ICON, autoHideMenuBar: true, title: 'Diskord Call', webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true } } };
+    if (isCall(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 1100, height: 720, minWidth: 640, minHeight: 480, backgroundColor: '#0a0f1c', icon: ICON, autoHideMenuBar: true, title: 'Diskord Call', webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, backgroundThrottling: false } } };
     if (isSignIn(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 520, height: 720, icon: ICON, autoHideMenuBar: true, title: 'Sign in' } };
     if (/^https?:/.test(url)) shell.openExternal(url);
     return { action: 'deny' };
   });
-  win.webContents.on('did-create-window', child => wire(child));
+  win.webContents.on('did-create-window', child => { try { child.webContents.setBackgroundThrottling(false); } catch (_) {} wire(child); }); // calls keep working when hidden
   win.webContents.on('will-navigate', (e, url) => { if (!/^(diskord|file):/.test(url)) { e.preventDefault(); if (/^https?:/.test(url)) shell.openExternal(url); } });
 }
 

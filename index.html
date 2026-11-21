@@ -84,7 +84,16 @@ input, textarea, select { font: inherit; color: var(--text); }
 a.ch { text-decoration: none; }
 .vusers { margin: -2px 0 6px 30px; }
 .vusers div { display: flex; align-items: center; gap: 7px; padding: 3px 6px; font-size: 13px; color: var(--muted); border-radius: 5px; }
-.vusers .av { width: 22px; height: 22px; }
+.vusers .av { width: 24px !important; height: 24px !important; border-radius: 50%; transition: box-shadow .12s; }
+.vusers div { cursor: pointer; } .vusers div:hover { background: var(--bg3); color: var(--text); }
+.vusers .vu-n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color .12s; }
+.vc-people { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 2px 8px; }
+.vc-p { position: relative; cursor: pointer; } .vc-p .av { border-radius: 50%; transition: box-shadow .12s; } .vc-p.speaking .av { box-shadow: 0 0 0 2px var(--bg1), 0 0 0 4px var(--ok); }
+.vc-mi { position: absolute; right: -4px; bottom: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg1); color: var(--dnd); display: grid; place-items: center; } .vc-mi svg { width: 11px; height: 11px; }
+.vc-more { align-self: center; color: var(--muted); font-size: 12px; font-weight: 700; }
+.vusers div.speaking .av { box-shadow: 0 0 0 2px var(--bg1), 0 0 0 4px var(--ok); } .vusers div.speaking .vu-n { color: var(--text); font-weight: 700; }
+.vusers .vi-ic { color: var(--dnd); display: inline-flex; } .vusers .vi-ic svg { width: 15px; height: 15px; }
+.av.talking { box-shadow: 0 0 0 2px var(--bg1), 0 0 0 4px var(--ok); border-radius: 50%; }
 .voice-bar { padding: 9px 12px; background: var(--bg1); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
 .voice-bar .vi { flex: 1; min-width: 0; line-height: 1.25; }
 .voice-bar .vi b { color: var(--ok); font-size: 13px; display: block; }
@@ -674,7 +683,7 @@ const blob = id => {
   if (String(id).startsWith('data:') || /^https?:/.test(id)) return id;
   if (!/^[A-Za-z0-9]{24}$/.test(id)) return PIX;
   return (window.diskordServer ? window.diskordServer() : '') + '/blob/' + id;
-};const callLink = (room, title, video) => `${CALL_URL}#r=${encodeURIComponent(room)}${video ? '&v=1' : ''}${S.selfMute ? '&m=1' : ''}${S.selfDeaf ? '&d=1' : ''}&n=${encodeURIComponent(nameOf(S.myId))}&t=${encodeURIComponent(title || '')}${/^https:\/\//.test(avatarOf(S.myId) || '') ? '&a=' + encodeURIComponent(avatarOf(S.myId)) : ''}`;
+};const callLink = (room, title, video) => `${CALL_URL}#r=${encodeURIComponent(room)}${video ? '&v=1' : ''}${S.selfMute ? '&m=1' : ''}${S.selfDeaf ? '&d=1' : ''}&u=${S.myId}&n=${encodeURIComponent(nameOf(S.myId))}&t=${encodeURIComponent(title || '')}${/^https:\/\//.test(avatarOf(S.myId) || '') ? '&a=' + encodeURIComponent(avatarOf(S.myId)) : ''}`;
 const roomId = s => ('fx-' + s).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 70);
 const COLORS = ['#ff3d6e', '#8b5cf6', '#22c1ee', '#2bd98a', '#ffb020', '#ff7a45', '#4f7cff', '#e94cd8'];
 const fmtTime = t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -903,7 +912,26 @@ window.addEventListener('message', e => {
   if (d.diskord === 'left') leaveCall();
 });
 setInterval(() => { if (S.myCall && S.callAlive && Date.now() - S.callAlive > 60000) { S.callAlive = 0; leaveCall(); } if (S.myCall && Date.now() - S.myCall.at > 3 * 3600e3) leaveCall(); }, 15000);
-function leaveCall() { S.myCall = null; ls.set('myCall', null); pushPresence(); renderAll(); }
+// ---- live call info from the call window: who is talking, who is muted
+let callBc = null; try { callBc = new BroadcastChannel('diskord-call'); } catch (_) {}
+S.talking = new Set(); S.callAudio = new Map();
+function paintTalking() {
+  document.querySelectorAll('[data-vu]').forEach(el => el.classList.toggle('speaking', S.talking.has(el.dataset.vu)));
+  document.querySelectorAll('.vb-me .av, #meBar .av').forEach(el => el.classList.toggle('talking', S.talking.has(S.myId)));
+}
+if (callBc) callBc.onmessage = e => {
+  const d = e.data; if (!d || d.type !== 'state' || !S.myCall || d.room !== S.myCall.room) return;
+  S.callAlive = Date.now();
+  S.talking = new Set((d.speaking || []).filter(u => /^[0-9a-f]{64}$/.test(u)));
+  const before = JSON.stringify([...S.callAudio]);
+  S.callAudio = new Map((d.members || []).filter(m => /^[0-9a-f]{64}$/.test(m.uid)).map(m => [m.uid, { muted: !!m.muted, deaf: !!m.deaf }]));
+  let changed = before !== JSON.stringify([...S.callAudio]);
+  if (d.me && (!!d.me.muted !== !!S.selfMute || !!d.me.deaf !== !!S.selfDeaf)) { S.selfMute = !!d.me.muted; S.selfDeaf = !!d.me.deaf; ls.set('selfMute', S.selfMute); ls.set('selfDeaf', S.selfDeaf); pushPresence(); renderMe(); changed = true; }
+  if (changed) renderChannels();
+  paintTalking();
+};
+function tellCall() { if (callBc && S.myCall) try { callBc.postMessage({ type: 'cmd', room: S.myCall.room, mute: !!S.selfMute, deaf: !!S.selfDeaf }); } catch (_) {} }
+function leaveCall() { S.talking = new Set(); S.callAudio = new Map(); S.myCall = null; ls.set('myCall', null); pushPresence(); renderAll(); }
 const callersIn = room => { const m = new Map(S.inCall); if (S.myId) { if (S.myCall) m.set(S.myId, S.myCall.room); else m.delete(S.myId); } return [...m].filter(([, r]) => r === room).map(([u]) => u); };
 function showConn(t) { $('conn').textContent = t; $('conn').classList.toggle('hidden', !t); }
 
@@ -1028,13 +1056,15 @@ function renderVoiceBar() {
   v.innerHTML = `<div class="vc"><div class="vc-top"><span class="vc-sig">${ICON.signal}</span><div class="vc-i"><b>Voice Connected</b><small>${esc(c.label || 'Call')}</small></div>
       <a class="vc-ib" title="Open call window" target="_blank" rel="opener" href="${base()}">${ICON.popout}</a>
       <button class="vc-ib bad" id="vLeave" title="Disconnect">${ICON.hang}</button></div>
+    ${(() => { const who = callersIn(c.room); return who.length ? `<div class="vc-people">${who.slice(0, 8).map(u => `<div data-vu="${esc(u)}" class="vc-p ${S.talking.has(u) ? 'speaking' : ''}" title="${esc(nameOf(u))}">${avatarHtml(u, 30)}${audioIcons(u) ? `<span class="vc-mi">${(S.callAudio.get(u) || (u === S.myId ? { deaf: S.selfDeaf } : {})).deaf ? ICON.headOff : ICON.micOff}</span>` : ''}</div>`).join('')}${who.length > 8 ? `<span class="vc-more">+${who.length - 8}</span>` : ''}</div>` : ''; })()}
     <div class="vc-row">
       <a class="vc-b" title="Turn on camera" target="_blank" rel="opener" href="${esc(callLink(c.room, c.label, true))}">${ICON.cam}</a>
       <a class="vc-b" title="Share your screen" target="_blank" rel="opener" href="${base('&s=1')}">${ICON.screen}</a>
       <a class="vc-b" title="Copy invite link" href="#" id="vInvite">${ICON.link}</a>
       <button class="vc-b ${S.selfMute ? 'bad' : ''}" title="${S.selfMute ? 'Unmute' : 'Mute'}" id="vMute">${S.selfMute ? ICON.micOff : ICON.mic}</button>
     </div></div>`;
-  $('vLeave').onclick = leaveCall;
+  $('vLeave').onclick = () => { if (callBc && S.myCall) try { callBc.postMessage({ type: 'cmd', room: S.myCall.room, leave: true }); } catch (_) {} leaveCall(); };
+  v.querySelectorAll('[data-vu]').forEach(el => el.onclick = e => profileCard(e, el.dataset.vu));
   $('vMute').onclick = () => $('btnMute') && $('btnMute').click();
   $('vInvite').onclick = async e => { e.preventDefault(); try { await navigator.clipboard.writeText(callLink(c.room, c.label, !!c.video).replace(/&n=[^&]*/, '')); toast('Invite link copied 🔗'); } catch (_) { toast('Could not copy', true); } };
 }
@@ -1042,10 +1072,10 @@ const sfx = n => { try { window.DiskordSounds && window.DiskordSounds.play(n); }
 function saveAudio(msg) {
   sfx(/^Undeafened/.test(msg) ? 'undeafen' : /^Deafened/.test(msg) ? 'deafen' : /^Muted/.test(msg) ? 'mute' : 'unmute');
   ls.set('selfMute', S.selfMute); ls.set('selfDeaf', S.selfDeaf); pushPresence(); renderMe(); renderChannels();
-  toast(msg + (S.myCall ? ' — new calls start this way; in an open call use its own buttons' : ''));
+  tellCall(); toast(msg);
 }
 function audioIcons(u) {
-  const a = u === S.myId ? { muted: S.selfMute, deaf: S.selfDeaf } : (S.peerAudio.get(u) || {});
+  const a = u === S.myId ? { muted: S.selfMute, deaf: S.selfDeaf } : (S.callAudio.get(u) || S.peerAudio.get(u) || {});
   return (a.muted ? `<span class="vi-ic" title="Muted">${ICON.micOff}</span>` : '') + (a.deaf ? `<span class="vi-ic" title="Deafened">${ICON.headOff}</span>` : '');
 }
 function renderMe() {
@@ -2278,7 +2308,7 @@ function renderChannels() {
     if (c.type === 'voice') {
       const room = roomId('v-' + c.id), who = callersIn(room);
       return `<a class="ch voice ${S.myCall && S.myCall.room === room ? 'active' : ''}" data-vcid="${esc(c.id)}" href="${esc(callLink(room, s.name + ' · ' + c.name))}" target="_blank" rel="opener"><span class="hash">${ico('volume-2', 18)}</span><span class="nm">${esc(c.name)}</span>${c.private ? `<span class="lock">${ico('lock', 13)}</span>` : ''}</a>` +
-        (who.length ? `<div class="vusers">${who.map(u => `<div>${avatarHtml(u, 22)}<span style="flex:1">${esc(nameOf(u))}</span>${audioIcons(u)}</div>`).join('')}</div>` : '');
+        (who.length ? `<div class="vusers">${who.map(u => `<div data-vu="${esc(u)}" class="${S.talking.has(u) ? 'speaking' : ''}" title="${esc(nameOf(u))}">${avatarHtml(u, 24)}<span class="vu-n">${esc(nameOf(u))}</span>${audioIcons(u)}</div>`).join('')}</div>` : '');
     }
     return `<button class="ch ${c.id === S.cid ? 'active' : ''} ${isUnread(c) ? 'unread' : ''}" data-cid="${esc(c.id)}"><span class="hash">${c.private ? ico('lock', 17) : '#'}</span><span class="nm">${esc(c.name)}</span>${canManage(s) ? `<span class="ch-gear" data-edit="${esc(c.id)}" title="Edit channel">${ico('settings', 15)}</span>` : ''}</button>`;
   };
@@ -2290,6 +2320,7 @@ function renderChannels() {
     (all.length ? '' : `<div style="padding:10px;color:var(--dim);font-size:13px">${canManage(s) ? 'No channels yet — click the server name → Create Channel.' : 'No channels you can see yet.'}</div>`);
   box.querySelectorAll('[data-cid]').forEach(b => b.onclick = e => { if (e.target.closest('[data-edit]')) return; openChannel(b.dataset.cid); $('side').classList.remove('mobile-open'); });
   box.querySelectorAll('[data-edit]').forEach(b => b.onclick = e => { e.stopPropagation(); const c = S.channels.find(x => x.id === b.dataset.edit); if (c) channelModal(c); });
+  box.querySelectorAll('.vusers [data-vu]').forEach(el => el.onclick = e => { e.stopPropagation(); profileCard(e, el.dataset.vu); });
   box.querySelectorAll('[data-vcid]').forEach(b => b.onclick = () => { const c = S.channels.find(x => x.id === b.dataset.vcid); if (c) joinCall(roomId('v-' + c.id), '🔊 ' + c.name + ' / ' + s.name); });
   box.querySelectorAll('[data-cid],[data-vcid]').forEach(b => b.oncontextmenu = e => { e.preventDefault(); if (canManage(s)) channelMenu(e, b.dataset.cid || b.dataset.vcid); });
   box.querySelectorAll('.cathead').forEach(h => {

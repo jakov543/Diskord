@@ -1,5 +1,18 @@
 # Diskord changelog
 
+## 7.1.0
+- 🟢 **See who is talking.** In a call, everyone's picture gets a **green ring while they talk**, like Discord:
+  - under the voice channel, next to their name
+  - in the **Voice Connected** panel at the bottom left, which now shows everyone in the call (also for DM calls)
+  - on your own picture at the bottom left
+- 🔇 **Mute and deafen now stay in sync**
+  - The mic and headphone buttons at the bottom left of Diskord now mute and deafen you in the call too
+  - Muting in the call window shows in Diskord
+  - Everyone sees your red mute or deafen icon next to your name
+- ☎️ **Disconnect** in the Voice Connected panel now closes the call window too
+- Click someone in a voice channel to see their profile
+- Calls keep working properly when the call window is hidden behind Diskord or minimised
+
 ## 7.0.1 — Settings fixes
 - Windows opened from **Settings** and **Server Settings** were hidden behind them. They now open on top:
   - Edit Profile, Change name, Log Out, buying Nitro or a Boost

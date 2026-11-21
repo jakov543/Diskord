@@ -198,6 +198,8 @@ const ROOM = (params.get('r') || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80)
 const TITLE = (params.get('t') || '').slice(0, 60);
 const okAv = v => typeof v === 'string' && /^https:\/\/[^\s"'()<>]+$/.test(v) && v.length < 300 ? v : '';
 const MY_AV = okAv(params.get('a') || '');
+const okUid = v => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v) ? v : '';
+const MY_UID = okUid(params.get('u') || '');
 const WANT_SCREEN = params.get('s') === '1', WANT_VIDEO = params.get('v') === '1', START_MUTED = params.get('m') === '1', START_DEAF = params.get('d') === '1';
 const DESK = !!(window.diskord && window.diskord.screenSources);
 $('name').value = params.get('n') || store.get('name', '');
@@ -255,26 +257,26 @@ async function openMic() {
   if (micSrc) try { micSrc.disconnect(); } catch (_) {}
   micSrc = mic.getAudioTracks().length ? ac.createMediaStreamSource(mic) : null;
   if (micSrc) micSrc.connect(micGain); micGain.gain.value = micVol();
-  micMeter = null; meterFor(mic, v => { $('meter').style.width = Math.min(100, v * 280) + '%'; const t = tiles.get(me.id); if (t) t.el.classList.toggle('speaking', v > .04 && !me.muted); }, true);
+  micMeter = null; meterFor(mic, v => { $('meter').style.width = Math.min(100, v * 280) + '%'; const on = v > .04 && !me.muted; const t = tiles.get(me.id); if (t) t.el.classList.toggle('speaking', on); if (me.id) markTalking(me.id, on); }, true);
 }
 let micMeter = null;
 const meters = [];
 function meterFor(stream, cb, isMic) {
   if (!stream || !stream.getAudioTracks().length) return;
   try {
-    const src = audioCtx().createMediaStreamSource(stream), an = ac.createAnalyser(); an.fftSize = 512; src.connect(an);
+    const src = audioCtx().createMediaStreamSource(stream), an = ac.createAnalyser(); an.fftSize = 2048; src.connect(an); // ~45 ms of sound per check: no gaps between checks
     const m = { an, buf: new Uint8Array(an.fftSize), cb };
     if (isMic) { if (micMeter) meters.splice(meters.indexOf(micMeter), 1); micMeter = m; }
     meters.push(m);
   } catch (_) {}
 }
-(function tick() {
+// a steady timer (not animation frames), so talking is still noticed when the call window is hidden or minimised
+setInterval(() => {
   for (const m of meters) { m.an.getByteTimeDomainData(m.buf); let s = 0; for (const v of m.buf) { const x = (v - 128) / 128; s += x * x; } m.cb(Math.sqrt(s / m.buf.length)); }
-  requestAnimationFrame(tick);
-})();
+}, 50);
 
 // ------------------------------------------------------------ state
-const me = { id: null, name: '', muted: false, deaf: false, cam: false, screen: false, av: MY_AV };
+const me = { id: null, name: '', muted: false, deaf: false, cam: false, screen: false, av: MY_AV, uid: MY_UID };
 let peer = null, dirPeer = null, dirConn = null, joinedAt = 0;
 const calls = new Map(), members = new Map(), dirConns = new Map(), dirMembers = new Map();
 // The microphone goes straight into the call (most reliable, best echo cancelling).
@@ -335,7 +337,7 @@ function claimDirectory() {
   });
   d.on('error', e => { if (e.type === 'unavailable-id') { d.destroy(); registerWithDirectory(); } });
 }
-const sanitize = m => ({ name: String(m.name || 'Guest').slice(0, 32), muted: !!m.muted, deaf: !!m.deaf, cam: !!m.cam, screen: !!m.screen, av: okAv(m.av) });
+const sanitize = m => ({ name: String(m.name || 'Guest').slice(0, 32), muted: !!m.muted, deaf: !!m.deaf, cam: !!m.cam, screen: !!m.screen, av: okAv(m.av), uid: okUid(m.uid) });
 function broadcast() { const list = [...dirMembers].map(([id, m]) => ({ id, ...m })); for (const c of dirConns.values()) if (c.open) c.send({ t: 'members', list }); }
 let regTimer = null;
 function registerWithDirectory() {
@@ -350,7 +352,28 @@ function registerWithDirectory() {
   c.on('error', () => {});
   setTimeout(() => { if (!c.open && !left) { c.close(); claimDirectory(); } }, 6000);
 }
-function sendState() { if (dirConn && dirConn.open) dirConn.send({ t: 'state', name: me.name, muted: me.muted, deaf: me.deaf, cam: me.cam, screen: me.screen, av: me.av }); }
+function sendState() { if (dirConn && dirConn.open) dirConn.send({ t: 'state', name: me.name, muted: me.muted, deaf: me.deaf, cam: me.cam, screen: me.screen, av: me.av, uid: me.uid }); tellApp(); }
+// ---- tell the Diskord window who is talking and who is muted (and take mute/deafen from its buttons)
+let bc = null; try { bc = new BroadcastChannel('diskord-call'); } catch (_) {}
+const talking = new Map(); // peer id -> time they last made sound
+let appT = null, lastApp = '';
+function tellApp() {
+  clearTimeout(appT); appT = setTimeout(() => {
+    if (!bc || !me.id) return;
+    const now = Date.now(), speaking = [];
+    for (const [id, t] of talking) if (now - t < 350) { const u = id === me.id ? me.uid : (members.get(id) || {}).uid; if (u) speaking.push(u); }
+    const list = [...members.values()].filter(m => m.uid).map(m => ({ uid: m.uid, muted: m.muted, deaf: m.deaf }));
+    const msg = { type: 'state', room: ROOM, me: { muted: me.muted, deaf: me.deaf }, speaking, members: list };
+    const k = JSON.stringify(msg); if (k === lastApp) return; lastApp = k; bc.postMessage(msg);
+  }, 60);
+}
+function markTalking(id, on) { const was = talking.has(id) && Date.now() - talking.get(id) < 350; if (on) talking.set(id, Date.now()); if (on !== was) tellApp(); }
+setInterval(() => { lastApp = ''; tellApp(); }, 2000); // keep the Diskord window in sync
+setInterval(tellApp, 200); // notice when someone stops talking
+if (bc) bc.onmessage = e => { const d = e.data; if (!d || d.type !== 'cmd' || d.room !== ROOM || !me.id) return;
+  if (d.leave) { $('bLeave').click(); return; }
+  if (typeof d.deaf === 'boolean' && d.deaf !== me.deaf) toggleDeaf();
+  if (typeof d.mute === 'boolean' && d.mute !== me.muted && !me.deaf) $('bMic').click(); };
 function onMembers(list) {
   const ids = new Set();
   for (const m of list) {
@@ -365,7 +388,7 @@ function onMembers(list) {
   for (const id of [...calls.keys()]) if (!ids.has(id)) dropPeer(id);
   for (const id of [...members.keys()]) if (!ids.has(id)) { members.delete(id); sfx('leave'); }
   $('count').textContent = ids.size + (ids.size === 1 ? ' person' : ' people');
-  refresh();
+  refresh(); tellApp();
 }
 function wireCall(call) {
   if (!call) return;
@@ -379,7 +402,7 @@ function wireCall(call) {
     if (!au) { au = document.createElement('audio'); au.id = 'au-' + id; au.autoplay = true; au.playsInline = true; $('voices').appendChild(au); }
     au.srcObject = s; au.muted = me.deaf; au.volume = Math.max(0, Math.min(1, +store.get('spkVol', '1') || 1)); if (outId && au.setSinkId) au.setSinkId(outId).catch(() => {});
     au.play().catch(() => showSoundTap());
-    meterFor(s, v => t.el.classList.toggle('speaking', v > .04 && !(members.get(id) || {}).muted));
+    meterFor(s, v => { const on = v > .04 && !(members.get(id) || {}).muted; t.el.classList.toggle('speaking', on); markTalking(id, on); });
     setTimeout(tuneSenders, 500);
   });
   call.on('close', () => { if (calls.get(id) === call) dropPeer(id); });
