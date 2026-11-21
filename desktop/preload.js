@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webFrame } = require('electron');
 contextBridge.exposeInMainWorld('diskord', {
   version: ipcRenderer.sendSync('version'),
   retry: () => ipcRenderer.send('retry'),
@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('diskord', {
   upload: (buf, name, type) => ipcRenderer.invoke('upload', { buf, name, type }),
   onStatus: cb => ipcRenderer.on('status', (_e, t) => cb(t)),
   onSources: cb => ipcRenderer.on('sources', (_e, s) => cb(s)),
+  setZoom: f => { const z = Number(f); if (z >= .5 && z <= 2) webFrame.setZoomFactor(z); },
   onUpdate: cb => ipcRenderer.on('update', (_e, u) => cb(u)),
   updateNow: () => ipcRenderer.send('update-now'),
   checkUpdates: () => ipcRenderer.send('update-check'),

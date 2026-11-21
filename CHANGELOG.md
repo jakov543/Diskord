@@ -1,5 +1,16 @@
 # Diskord changelog
 
+## 7.0.1 — Settings fixes
+- Windows opened from **Settings** and **Server Settings** were hidden behind them. They now open on top:
+  - Edit Profile, Change name, Log Out, buying Nitro or a Boost
+  - the Network window and the status menu
+  - View Full Profile
+- Zoom in Appearance now zooms the whole app properly, so menus no longer open in the wrong place. In a browser, use Ctrl + / -.
+- Keybinds: shortcuts like Shift + Enter are shown neatly together
+- The close (✕ ESC) button no longer covers switches, buttons or the Nitro banner
+- Your status and name update right away in Settings after you change them
+- Links in Settings are easier to read
+
 ## 7.0.0
 - ⚙️ **New full-screen Settings, like Discord.** Click the ⚙ next to your name.
   - **My Account**: display name, username, copy User ID, status, log out

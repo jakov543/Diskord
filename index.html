@@ -235,7 +235,7 @@ a.btn.go { color: #062814; } a.btn.primary { color: #fff; }
 .ivb { display: flex; gap: 12px; align-items: center; } .ivi { width: 50px; height: 50px; border-radius: 16px; display: grid; place-items: center; font-size: 26px; overflow: hidden; flex: 0 0 50px; } .ivi img { width: 100%; height: 100%; object-fit: cover; }
 .ivt { flex: 1; min-width: 0; } .ivt b { display: block; font-size: 16px; } .ivt small { color: var(--muted); font-size: 12.5px; display: flex; align-items: center; gap: 5px; }
 i.d { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--dim); font-style: normal; } i.d.on { background: var(--ok); }
-.ss { position: fixed; inset: 0; z-index: 120; display: flex; background: var(--bg2); animation: fade .15s ease; }
+.ss { position: fixed; inset: 0; z-index: 46; display: flex; background: var(--bg2); animation: fade .15s ease; }
 .ss-nav { flex: 1 0 220px; background: var(--bg1); display: flex; justify-content: flex-end; overflow-y: auto; } .ss-navin { width: 220px; padding: 60px 8px 30px 18px; }
 .ss-h { font-size: 12px; font-weight: 800; color: var(--dim); text-transform: uppercase; padding: 14px 10px 6px; }
 .ss-navin button { display: block; width: 100%; text-align: left; padding: 8px 10px; border-radius: 6px; color: var(--muted); font-weight: 600; font-size: 15px; margin-bottom: 2px; }
@@ -352,6 +352,8 @@ svg.li, svg.li * { fill: none !important; stroke: currentColor !important; } svg
 .us-bars { flex: 1; display: flex; gap: 4px; height: 32px; align-items: stretch; } .us-bars i { flex: 1; border-radius: 3px; background: var(--bg4); transition: background .05s; } .us-bars i.on { background: var(--ok); } .us-bars i.hot { background: var(--idle); }
 .us-radio { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; cursor: pointer; } .us-radio input { margin-top: 4px; accent-color: var(--accent); width: 18px; height: 18px; } .us-radio b { display: block; font-size: 15px; } .us-radio small { color: var(--muted); font-size: 13px; }
 .us-cam { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 10px; object-fit: cover; transform: scaleX(-1); }
+.us-key .keys { display: inline-flex; align-items: center; gap: 6px; } .us-key .keys i { font-style: normal; color: var(--muted); }
+.ss .ss-body { padding-right: 90px; } @media (max-width: 760px) { .ss .ss-body { padding-right: 14px; } .ss-x { top: 10px; right: 10px; } } .ss-body a { color: var(--accent); font-weight: 600; }
 .us-key { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; } kbd { background: var(--bg3); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 6px; padding: 2px 8px; font-family: inherit; font-size: 13px; font-weight: 700; }
 .us-news .cl { background: var(--bg1); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 12px; } .us-news .cl h3 { color: var(--text); font-size: 16px; text-transform: none; margin: 0 0 8px; } .us-news li { margin: 5px 0 5px 18px; font-size: 14px; line-height: 1.45; } .us-news li.sub { margin-left: 36px; color: var(--muted); }
 .updcard { position: fixed; right: 18px; bottom: 18px; z-index: 95; width: 360px; display: flex; gap: 12px; background: var(--bg1); border: 1px solid var(--line); border-radius: 14px; padding: 14px; box-shadow: 0 18px 50px rgba(0,0,0,.55); animation: ucIn .25s ease; }
@@ -2747,7 +2749,7 @@ function applyLook() {
   const r = document.documentElement, acc = ACCENTS[ls.get('accent', '')];
   if (acc) { r.style.setProperty('--a1', acc[0]); r.style.setProperty('--a2', acc[1]); r.style.setProperty('--accent', acc[2]); }
   else ['--a1', '--a2', '--accent'].forEach(v => r.style.removeProperty(v));
-  document.body.style.zoom = (ls.get('zoom', 100) / 100);
+  if (window.diskord && window.diskord.setZoom) window.diskord.setZoom(ls.get('zoom', 100) / 100);
   r.style.setProperty('--chat-fs', ls.get('chatFs', 15.5) + 'px');
   r.classList.toggle('reduce-motion', !!ls.get('reduceMotion', false));
 }
@@ -2796,7 +2798,7 @@ function userSettings(tab) {
           <div class="us-f"><div><label>Display Name</label><span>${esc(nameOf(S.myId))}</span></div><button class="btn alt" id="usName">Edit</button></div>
           <div class="us-f"><div><label>Username</label><span>@${esc(unameOf(S.myId))}</span></div><small class="us-note">can't be changed</small></div>
           <div class="us-f"><div><label>User ID</label><span class="mono">${esc(S.myId.slice(0, 16))}…</span></div><button class="btn alt" id="usId">Copy</button></div>
-          <div class="us-f"><div><label>Status</label><span>${{ online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', invisible: 'Invisible' }[S.status] || 'Online'}</span></div><button class="btn alt" id="usStatus">Change</button></div>
+          <div class="us-f"><div><label>Status</label><span id="usStatusTxt">${{ online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', invisible: 'Invisible' }[S.status] || 'Online'}</span></div><button class="btn alt" id="usStatus">Change</button></div>
         </div></div>
         <h3>Password and Security</h3><p class="ss-sub">Your username + password are your account key. Nobody — not even Diskord — can see or reset your password, so keep it written down somewhere safe. To use Diskord on another phone or PC, just log in with the same username and password.</p>
         <button class="btn danger" id="usOut" style="display:inline-flex;align-items:center;gap:8px;width:auto;padding:10px 16px">${ico('log-out', 16)}<span>Log Out</span></button>`;
@@ -2836,13 +2838,13 @@ function userSettings(tab) {
         <h3>Accent colour</h3><div class="us-acc"><button data-acc="" class="${!ls.get('accent', '') ? 'sel' : ''}" title="Theme default" style="background:conic-gradient(#38bdf8,#4f46e5,#38bdf8)"></button>${Object.entries(ACCENTS).map(([k, c]) => `<button data-acc="${k}" class="${ls.get('accent', '') === k ? 'sel' : ''}" title="${k}" style="background:linear-gradient(135deg,${c[0]},${c[1]})"></button>`).join('')}</div>
         <h3>Message display</h3><div class="seg2"><button data-d="0" class="${!S.compact ? 'on' : ''}">Cozy</button><button data-d="1" class="${S.compact ? 'on' : ''}">Compact</button></div>
         <h3>Chat font size — <span id="fsv">${ls.get('chatFs', 15.5)}px</span></h3><input type="range" id="usFs" min="12" max="20" step=".5" value="${ls.get('chatFs', 15.5)}" class="us-range">
-        <h3>Zoom level — <span id="zv">${ls.get('zoom', 100)}%</span></h3><input type="range" id="usZoom" min="80" max="140" step="5" value="${ls.get('zoom', 100)}" class="us-range">
+        ${window.diskord && window.diskord.setZoom ? `<h3>Zoom level — <span id="zv">${ls.get('zoom', 100)}%</span></h3><input type="range" id="usZoom" min="80" max="140" step="5" value="${ls.get('zoom', 100)}" class="us-range">` : '<h3>Zoom level</h3><p class="fnote">In a browser use <kbd>Ctrl</kbd> + <kbd>+</kbd> / <kbd>-</kbd> (or pinch on a phone).</p>'}
         ${toggle('usRm', ls.get('reduceMotion', false), 'Reduce motion', 'Stops moving decorations and animations.')}`;
       body.querySelectorAll('[data-th]').forEach(x => x.onclick = () => { S.theme = x.dataset.th; ls.set('theme', S.theme); document.documentElement.dataset.theme = S.theme; body.querySelectorAll('[data-th]').forEach(y => y.classList.toggle('sel', y === x)); });
       body.querySelectorAll('[data-acc]').forEach(x => x.onclick = () => { ls.set('accent', x.dataset.acc); applyLook(); body.querySelectorAll('[data-acc]').forEach(y => y.classList.toggle('sel', y === x)); });
       body.querySelectorAll('[data-d]').forEach(x => x.onclick = () => { S.compact = x.dataset.d === '1'; ls.set('compact', S.compact); applyCompact(); body.querySelectorAll('[data-d]').forEach(y => y.classList.toggle('on', y === x)); });
       body.querySelector('#usFs').oninput = e => { ls.set('chatFs', +e.target.value); body.querySelector('#fsv').textContent = e.target.value + 'px'; applyLook(); };
-      body.querySelector('#usZoom').onchange = e => { ls.set('zoom', +e.target.value); applyLook(); }; body.querySelector('#usZoom').oninput = e => { body.querySelector('#zv').textContent = e.target.value + '%'; };
+      const zr = body.querySelector('#usZoom'); if (zr) { zr.onchange = e => { ls.set('zoom', +e.target.value); applyLook(); }; zr.oninput = e => { body.querySelector('#zv').textContent = e.target.value + '%'; }; }
       bindToggle('usRm', v => { ls.set('reduceMotion', v); applyLook(); });
     } else if (t === 'voice') {
       let devs = []; try { devs = await navigator.mediaDevices.enumerateDevices(); } catch (_) {}
@@ -2912,7 +2914,7 @@ function userSettings(tab) {
       body.querySelector('#sVol').oninput = e => { cfg.volume = +e.target.value; DS.save(cfg); }; body.querySelector('#sVol').onchange = () => DS.play('message', true);
     } else if (t === 'keys') {
       const K = [['Enter', 'Send message'], ['Shift + Enter', 'New line'], ['↑', 'Edit your last message'], ['Esc', 'Cancel reply / close a window'], ['Ctrl + Shift + M', 'Mute / unmute (in a call)'], ['Ctrl + Shift + D', 'Deafen / undeafen (in a call)'], ['@', 'Mention someone'], [':', 'Emoji (type :fire:)'], ['/poll', 'Create a poll'], ['Double-click a video', 'Full screen']];
-      body.innerHTML = `<h2>Keybinds</h2><p class="ss-sub">Shortcuts you can use in Diskord.</p>${K.map(([k, d]) => `<div class="us-key"><span>${esc(d)}</span><kbd>${k.split(' + ').map(x => esc(x)).join('</kbd> + <kbd>')}</kbd></div>`).join('')}`;
+      body.innerHTML = `<h2>Keybinds</h2><p class="ss-sub">Shortcuts you can use in Diskord.</p>${K.map(([k, d]) => `<div class="us-key"><span>${esc(d)}</span><span class="keys"><kbd>${k.split(' + ').map(x => esc(x)).join('</kbd><i>+</i><kbd>')}</kbd></span></div>`).join('')}`;
     } else if (t === 'rpc') {
       body.innerHTML = `<h2>Discord Rich Presence</h2><p class="ss-sub">Show what you're doing in Diskord on your Discord profile.</p><button class="btn primary" id="rpcO">Open Rich Presence settings</button>`;
       body.querySelector('#rpcO').onclick = () => rpcModal();
@@ -2961,7 +2963,11 @@ function updateCard(u) {
 }
 if (window.diskord && window.diskord.onUpdate) window.diskord.onUpdate(u => { try { updateCard(u); if (u.state === 'ready') sfx('friend'); } catch (_) {} });
 
-function renderAll() { renderRenewBar(); renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }
+function refreshSettingsBits() {
+  const st = $('usStatusTxt'); if (st) st.textContent = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', invisible: 'Invisible' }[S.status] || 'Online';
+  const me = document.querySelector('.us-me'); if (me && S.myId) { const b = me.querySelector('b'); if (b) b.textContent = nameOf(S.myId); const a = me.querySelector('.av'); if (a) a.outerHTML = avatarHtml(S.myId, 44, true); }
+}
+function renderAll() { refreshSettingsBits(); renderRenewBar(); renderRail(); renderChannels(); renderMe(); renderHeader(); renderFeed(nearBottom()); renderMembers(); if (S.panel) renderPanel(); }
 
 applyCompact();
 (() => {
