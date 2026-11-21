@@ -920,7 +920,8 @@ function paintTalking() {
   document.querySelectorAll('.vb-me .av, #meBar .av').forEach(el => el.classList.toggle('talking', S.talking.has(S.myId)));
 }
 if (callBc) callBc.onmessage = e => {
-  const d = e.data; if (!d || d.type !== 'state' || !S.myCall || d.room !== S.myCall.room) return;
+  const d = e.data; if (!d || d.type !== 'state' || typeof d.room !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(d.room)) return;
+  if (!S.myCall || S.myCall.room !== d.room) { S.myCall = { room: d.room, label: String(d.title || 'Call').slice(0, 60), at: Date.now(), video: false }; ls.set('myCall', S.myCall); pushPresence(); renderAll(); }
   S.callAlive = Date.now();
   S.talking = new Set((d.speaking || []).filter(u => /^[0-9a-f]{64}$/.test(u)));
   const before = JSON.stringify([...S.callAudio]);

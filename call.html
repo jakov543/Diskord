@@ -170,6 +170,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let tT; const toast = m => { $('toast').textContent = m; $('toast').classList.add('show'); clearTimeout(tT); tT = setTimeout(() => $('toast').classList.remove('show'), 2600); };
 function showSoundTap() { const b = document.getElementById('soundTap'); if (!b) return; b.classList.remove('hidden'); b.onclick = () => { for (const a of document.querySelectorAll('#voices audio')) a.play().catch(() => {}); if (ac && ac.state === 'suspended') ac.resume().catch(() => {}); b.classList.add('hidden'); }; }
+if (window.diskord && window.diskord.onCallCmd) window.diskord.onCallCmd(c => { if (!me.id) return; if (c === 'camera' && !me.cam) $('bCam').click(); if (c === 'screen' && !me.screen) $('bScreen').click(); });
 const sfx = n => { try { window.DiskordSounds && window.DiskordSounds.play(n); } catch (_) {} };
 const store = { get: (k, d) => { try { return localStorage.getItem('flixcall.' + k) ?? d; } catch (_) { return d; } }, set: (k, v) => { try { localStorage.setItem('flixcall.' + k, v); } catch (_) {} } };
 // Icons: Lucide (lucide.dev), ISC licence
@@ -330,14 +331,23 @@ function claimDirectory() {
     conn.on('open', () => dirConns.set(conn.peer, conn));
     conn.on('data', msg => {
       if (!msg) return;
-      if (msg.t === 'state') { dirMembers.set(conn.peer, sanitize(msg)); broadcast(); }
+      if (msg.t === 'state') {
+        const m = sanitize(msg), k = personKey(m);
+        if (k) for (const [pid, o] of [...dirMembers]) if (pid !== conn.peer && personKey(o) === k) {
+          if ((o.at || 0) > (m.at || 0)) return; // an older copy of someone who already rejoined: ignore
+          dirMembers.delete(pid); const oc = dirConns.get(pid); if (oc) try { oc.close(); } catch (_) {} dirConns.delete(pid); // drop the stale copy
+        }
+        dirMembers.set(conn.peer, m); broadcast();
+      }
+      if (msg.t === 'bye') { dirMembers.delete(conn.peer); dirConns.delete(conn.peer); broadcast(); }
       if (msg.t === 'fx' && typeof msg.e === 'string' && msg.e.length <= 40) { const m = dirMembers.get(conn.peer); for (const c of dirConns.values()) if (c.open) c.send({ t: 'fx', k: msg.k === 'sfx' ? 'sfx' : 'react', e: msg.e, by: m ? m.name : 'Someone', from: conn.peer }); }
     });
     conn.on('close', () => { dirConns.delete(conn.peer); dirMembers.delete(conn.peer); broadcast(); });
   });
   d.on('error', e => { if (e.type === 'unavailable-id') { d.destroy(); registerWithDirectory(); } });
 }
-const sanitize = m => ({ name: String(m.name || 'Guest').slice(0, 32), muted: !!m.muted, deaf: !!m.deaf, cam: !!m.cam, screen: !!m.screen, av: okAv(m.av), uid: okUid(m.uid) });
+const sanitize = m => ({ name: String(m.name || 'Guest').slice(0, 32), muted: !!m.muted, deaf: !!m.deaf, cam: !!m.cam, screen: !!m.screen, av: okAv(m.av), uid: okUid(m.uid), at: Number(m.at) || 0 });
+const personKey = m => m.uid || null; // only Diskord accounts are merged; guests are never mixed up
 function broadcast() { const list = [...dirMembers].map(([id, m]) => ({ id, ...m })); for (const c of dirConns.values()) if (c.open) c.send({ t: 'members', list }); }
 let regTimer = null;
 function registerWithDirectory() {
@@ -352,9 +362,11 @@ function registerWithDirectory() {
   c.on('error', () => {});
   setTimeout(() => { if (!c.open && !left) { c.close(); claimDirectory(); } }, 6000);
 }
-function sendState() { if (dirConn && dirConn.open) dirConn.send({ t: 'state', name: me.name, muted: me.muted, deaf: me.deaf, cam: me.cam, screen: me.screen, av: me.av, uid: me.uid }); tellApp(); }
+function sendState() { if (dirConn && dirConn.open) dirConn.send({ t: 'state', name: me.name, muted: me.muted, deaf: me.deaf, cam: me.cam, screen: me.screen, av: me.av, uid: me.uid, at: joinedAt }); tellApp(); }
 // ---- tell the Diskord window who is talking and who is muted (and take mute/deafen from its buttons)
 let bc = null; try { bc = new BroadcastChannel('diskord-call'); } catch (_) {}
+const PAGE = Math.random().toString(36).slice(2);
+if (bc && MY_UID) bc.postMessage({ type: 'takeover', uid: MY_UID, room: ROOM, page: PAGE });
 const talking = new Map(); // peer id -> time they last made sound
 let appT = null, lastApp = '';
 function tellApp() {
@@ -363,21 +375,26 @@ function tellApp() {
     const now = Date.now(), speaking = [];
     for (const [id, t] of talking) if (now - t < 350) { const u = id === me.id ? me.uid : (members.get(id) || {}).uid; if (u) speaking.push(u); }
     const list = [...members.values()].filter(m => m.uid).map(m => ({ uid: m.uid, muted: m.muted, deaf: m.deaf }));
-    const msg = { type: 'state', room: ROOM, me: { muted: me.muted, deaf: me.deaf }, speaking, members: list };
+    const msg = { type: 'state', room: ROOM, title: TITLE, me: { muted: me.muted, deaf: me.deaf }, speaking, members: list };
     const k = JSON.stringify(msg); if (k === lastApp) return; lastApp = k; bc.postMessage(msg);
   }, 60);
 }
 function markTalking(id, on) { const was = talking.has(id) && Date.now() - talking.get(id) < 350; if (on) talking.set(id, Date.now()); if (on !== was) tellApp(); }
 setInterval(() => { lastApp = ''; tellApp(); }, 2000); // keep the Diskord window in sync
 setInterval(tellApp, 200); // notice when someone stops talking
-if (bc) bc.onmessage = e => { const d = e.data; if (!d || d.type !== 'cmd' || d.room !== ROOM || !me.id) return;
+if (bc) bc.onmessage = e => { const d = e.data;
+  if (d && d.type === 'takeover' && d.page !== PAGE && d.uid && d.uid === me.uid && !left) { // you opened Diskord's call somewhere else: leave here
+    if (me.id) $('bLeave').click(); else left = true;
+    if (DESK) setTimeout(() => window.close(), 300); return; }
+  if (!d || d.type !== 'cmd' || d.room !== ROOM || !me.id) return;
   if (d.leave) { $('bLeave').click(); return; }
   if (typeof d.deaf === 'boolean' && d.deaf !== me.deaf) toggleDeaf();
   if (typeof d.mute === 'boolean' && d.mute !== me.muted && !me.deaf) $('bMic').click(); };
 function onMembers(list) {
-  const ids = new Set();
+  const ids = new Set(), newest = new Map(), myKey = me.uid || null;
+  for (const m of list) { if (typeof m.id !== 'string' || !m.id.startsWith(PREFIX + '-')) continue; const k = m.id === me.id ? '#me' : (personKey(sanitize(m)) || 'peer:' + m.id); const cur = newest.get(k); if (!cur || (Number(m.at) || 0) >= (Number(cur.at) || 0)) newest.set(k, m); }
+  list = [...newest.values()].filter(m => m.id === me.id || !myKey || personKey(sanitize(m)) !== myKey);
   for (const m of list) {
-    if (typeof m.id !== 'string' || !m.id.startsWith(PREFIX + '-')) continue;
     ids.add(m.id);
     if (m.id === me.id) continue;
     if (!members.has(m.id) && joinedAt && Date.now() - joinedAt > 1500) sfx('join');
@@ -675,6 +692,7 @@ async function openSharePicker() {
 
 let left = false;
 $('bLeave').onclick = () => {
+  try { if (dirConn && dirConn.open) dirConn.send({ t: 'bye' }); } catch (_) {}
   left = true; tellOpener('left'); sfx('leave');
   for (const id of [...calls.keys()]) dropPeer(id);
   [peer, dirPeer].forEach(p => p && p.destroy());
@@ -682,7 +700,7 @@ $('bLeave').onclick = () => {
   document.body.insertAdjacentHTML('beforeend', `<div class="ended"><div class="card"><img class="logo" src="logo.svg" alt=""><h1>You left the call</h1><p>You can close this window and go back to Diskord.</p><button class="big" onclick="location.reload()">Rejoin</button></div></div>`);
   if (window.opener && DESK) setTimeout(() => window.close(), 900);
 };
-addEventListener('beforeunload', () => { if (me.id) tellOpener('left'); left = true; [peer, dirPeer].forEach(p => p && p.destroy()); });
+addEventListener('beforeunload', () => { try { if (dirConn && dirConn.open) dirConn.send({ t: 'bye' }); } catch (_) {} if (me.id) tellOpener('left'); left = true; [peer, dirPeer].forEach(p => p && p.destroy()); });
 addEventListener('keydown', e => { if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') $('bMic').click(); if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') toggleDeaf(); });
 })();
 </script>

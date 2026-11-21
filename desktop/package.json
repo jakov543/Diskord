@@ -1,7 +1,7 @@
 {
   "name": "diskord",
   "productName": "Diskord",
-  "version": "7.1.0",
+  "version": "7.1.1",
   "description": "Diskord desktop app - chat, voice calls and video calls",
   "author": "jakov543",
   "main": "main.js",

@@ -1,5 +1,14 @@
 # Diskord changelog
 
+## 7.1.1 — call fixes
+- 📞 **Fixed showing up twice in a call after leaving and joining back**
+  - Clicking the voice channel again, or the ↗ button, now brings the call window you already have to the front instead of joining a second time
+  - The camera and screen-share buttons use that same call window
+  - If a call window closes badly (crash, internet drop, sleep), the old copy of you is removed as soon as you rejoin
+  - Leaving now removes you from the call straight away
+  - Opening Diskord's call in another window or browser makes the old one leave, so there's only ever one of you
+- Rejoining from the call window shows **Voice Connected** in Diskord again
+
 ## 7.1.0
 - 🟢 **See who is talking.** In a call, everyone's picture gets a **green ring while they talk**, like Discord:
   - under the voice channel, next to their name

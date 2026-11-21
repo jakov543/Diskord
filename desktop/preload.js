@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('diskord', {
   onStatus: cb => ipcRenderer.on('status', (_e, t) => cb(t)),
   onSources: cb => ipcRenderer.on('sources', (_e, s) => cb(s)),
   setZoom: f => { const z = Number(f); if (z >= .5 && z <= 2) webFrame.setZoomFactor(z); },
+  onCallCmd: cb => ipcRenderer.on('call-cmd', (_e, c) => cb(c)),
   onUpdate: cb => ipcRenderer.on('update', (_e, u) => cb(u)),
   updateNow: () => ipcRenderer.send('update-now'),
   checkUpdates: () => ipcRenderer.send('update-check'),

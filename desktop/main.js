@@ -106,6 +106,13 @@ ipcMain.on('retry', e => { if (fromLocal(e) && net.isOnline()) { mode = 'retry';
 // ---------------------------------------------------------------- windows
 function wire(win) {
   win.webContents.setWindowOpenHandler(({ url }) => {
+    if (isCall(url)) {
+      const roomOf = u => { try { return new URLSearchParams(String(u).split('#')[1] || '').get('r') || ''; } catch (_) { return ''; } };
+      const open = BrowserWindow.getAllWindows().find(w => !w.isDestroyed() && isCall(w.webContents.getURL()) && roomOf(w.webContents.getURL()) === roomOf(url));
+      const wantsMore = /[#&](v|s)=1/.test(url); // camera / screen share buttons
+      if (open && !wantsMore) { if (open.isMinimized()) open.restore(); open.show(); open.focus(); return { action: 'deny' }; }
+      if (open && wantsMore) { open.webContents.send('call-cmd', /[#&]s=1/.test(url) ? 'screen' : 'camera'); if (open.isMinimized()) open.restore(); open.show(); open.focus(); return { action: 'deny' }; }
+    }
     if (isCall(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 1100, height: 720, minWidth: 640, minHeight: 480, backgroundColor: '#0a0f1c', icon: ICON, autoHideMenuBar: true, title: 'Diskord Call', webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, backgroundThrottling: false } } };
     if (isSignIn(url)) return { action: 'allow', overrideBrowserWindowOptions: { width: 520, height: 720, icon: ICON, autoHideMenuBar: true, title: 'Sign in' } };
     if (/^https?:/.test(url)) shell.openExternal(url);
