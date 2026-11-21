@@ -1,5 +1,18 @@
 # Diskord changelog
 
+## 7.0.0
+- ⚙️ **New full-screen Settings, like Discord.** Click the ⚙ next to your name.
+  - **My Account**: display name, username, copy User ID, status, log out
+  - **Profiles**, **Nitro**, **Server Boost** and **Subscriptions**, with auto-renew and a Renew button
+  - **Appearance**: 4 themes, 6 accent colours, cozy or compact messages, chat font size, zoom, reduce motion
+  - **Voice & Video**: choose your microphone and speaker, set microphone and speaker volume, **Mic Test** with a live meter
+  - **Input Profile**: **Voice Isolation**, **Studio** or **Custom** (echo cancellation, noise suppression, auto gain), plus a camera test
+  - **Notifications**, **Sounds**, **Keybinds**, **Rich Presence**, **Advanced** and **What's New**
+  - Search the settings list
+- 🔔 **Desktop notifications** for new DMs and @mentions while Diskord is in the background (switch them off in Settings → Notifications)
+- ✨ **New update pop-up** in Diskord: it shows the download progress, then "Update ready" with what's new and **Restart now / Later**, and "Diskord updated ✨" after it installs
+- 🐛 Incoming calls don't ring on Do Not Disturb anymore
+
 ## 6.9.2
 - 📞 **Fixed calls with no sound**
   - Opening a call from Diskord asked for the microphone twice at once, and that could switch your mic off. Fixed.

@@ -14,7 +14,7 @@ jobs:
       - name: Collect web files
         run: |
           mkdir -p dist
-          cp index.html call.html adapter.js sounds.js diskord-config.js logo.svg manifest.webmanifest sw.js dist/
+          cp index.html call.html adapter.js sounds.js diskord-config.js logo.svg manifest.webmanifest sw.js CHANGELOG.md dist/
           cp -r icons vendor sounds dist/
           touch dist/.nojekyll
       - name: Push to gh-pages

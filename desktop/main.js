@@ -38,6 +38,8 @@ const host = u => { try { return new URL(u).hostname; } catch (_) { return ''; }
 const isCall = u => u.startsWith(CALL_PREFIX);
 const isSignIn = u => SIGN_IN_HOSTS.some(h => host(u) === h || host(u).endsWith('.' + h));
 const fromLocal = e => { try { return /^(file|diskord):/.test(e.senderFrame && e.senderFrame.url || ''); } catch (_) { return false; } };
+// custom update popup inside the Diskord window
+const toApp = u => { try { if (main && !main.isDestroyed()) main.webContents.send('update', u); } catch (_) {} };
 const status = t => { if (splash && !splash.isDestroyed()) splash.webContents.send('status', t); };
 
 function logout() {
@@ -229,16 +231,19 @@ function setupUpdates() {
   if (!autoUpdater || !app.isPackaged) return;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
-  autoUpdater.on('download-progress', p => { if (phase === 'startup') status(`Downloading update… ${Math.round(p.percent || 0)}%`); });
-  autoUpdater.on('update-available', info => { if (phase === 'startup') { startupDownloading = true; status('Downloading update ' + info.version + '… 0%'); return; } if (manualCheck) dialog.showMessageBox(main, { type: 'info', title: 'Update found', message: `Diskord ${info.version} is downloading…`, detail: 'It installs automatically the next time you open Diskord.' }); });
-  autoUpdater.on('update-not-available', () => { if (phase === 'startup' && startupDone) return startupDone(false); if (manualCheck) dialog.showMessageBox(main, { type: 'info', title: 'No updates', message: 'You have the newest Diskord (' + app.getVersion() + ').' }); manualCheck = false; });
-  autoUpdater.on('error', err => { if (phase === 'startup' && startupDone) return startupDone(false); if (manualCheck) dialog.showMessageBox(main, { type: 'warning', title: 'Update check failed', message: 'Couldn\'t check for updates right now.', detail: String(err && err.message || err).slice(0, 300) }); manualCheck = false; });
+  autoUpdater.on('download-progress', p => { if (phase === 'startup') return status(`Downloading update… ${Math.round(p.percent || 0)}%`); toApp({ state: 'downloading', version: dlVersion, percent: p.percent || 0 }); });
+  let dlVersion = '';
+  autoUpdater.on('update-available', info => { dlVersion = info.version; if (phase === 'startup') { startupDownloading = true; status('Downloading update ' + info.version + '… 0%'); return; } toApp({ state: 'downloading', version: info.version, percent: 0 }); });
+  autoUpdater.on('update-not-available', () => { if (phase === 'startup' && startupDone) return startupDone(false); if (manualCheck) toApp({ state: 'latest', version: app.getVersion() }); manualCheck = false; });
+  autoUpdater.on('error', err => { if (phase === 'startup' && startupDone) return startupDone(false); if (manualCheck) toApp({ state: 'error' }); manualCheck = false; });
   autoUpdater.on('update-downloaded', async info => {
     updateReady = info.version; manualCheck = false;
     if (phase === 'startup' && startupDone) { status('Installing update…'); setTimeout(() => { quitting = true; autoUpdater.quitAndInstall(true, true); }, 700); return startupDone(true); }
     // While Diskord is open: no popup. It installs by itself when Diskord closes, so it's ready the next time you open it.
     createTray();
-    if (tray) try { tray.displayBalloon({ title: 'Diskord update ready', content: `Diskord ${info.version} will install the next time you open Diskord.`, iconType: 'info' }); } catch (_) {}
+    const rn = typeof info.releaseNotes === 'string' ? info.releaseNotes : Array.isArray(info.releaseNotes) ? info.releaseNotes.map(x => x && x.note || '').join('\n') : '';
+    const fromGh = String(rn).replace(/<li>/gi, '\n- ').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+    toApp({ state: 'ready', version: info.version, notes: notesFor(info.version) || fromGh });
   });
   const check = () => autoUpdater.checkForUpdates().catch(() => {});
   setInterval(check, 3 * 3600e3);
@@ -261,11 +266,13 @@ function checkForUpdatesNow() {
   if (updateReady) return autoUpdater.quitAndInstall(false, true);
   manualCheck = true; autoUpdater.checkForUpdates().catch(() => {});
 }
+ipcMain.on('update-now', e => { if (fromLocal(e) && updateReady && autoUpdater) { quitting = true; autoUpdater.quitAndInstall(true, true); } });
+ipcMain.on('update-check', e => { if (!fromLocal(e)) return; if (!autoUpdater || !app.isPackaged) return toApp({ state: 'latest', version: app.getVersion() }); if (updateReady) return toApp({ state: 'ready', version: updateReady, notes: notesFor(updateReady) || '' }); manualCheck = true; autoUpdater.checkForUpdates().catch(() => toApp({ state: 'error' })); });
 function whatsNew() {
   const v = app.getVersion();
   if (state.lastVersion && state.lastVersion !== v) {
     const notes = notesFor(v);
-    setTimeout(() => main && dialog.showMessageBox(main, { type: 'info', title: "What's new", message: `Diskord updated to ${v} ✨`, detail: notes || 'New features and fixes.' }), 2500);
+    setTimeout(() => toApp({ state: 'installed', version: v, notes: notes || '' }), 4000);
   }
   state.lastVersion = v; saveState();
 }

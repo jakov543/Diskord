@@ -243,7 +243,8 @@ function getMic() { if (!micBusy) micBusy = openMic().finally(() => { micBusy = 
 async function openMic() {
   audioCtx();
   try {
-    const s = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: micId ? { ideal: micId } : undefined, echoCancellation: true, noiseSuppression: noise, autoGainControl: true } });
+    const prof = store.get('profile', noise ? 'isolation' : 'studio'), on = (k, d) => prof === 'isolation' ? true : prof === 'studio' ? false : store.get(k, d ? '1' : '0') === '1';
+    const s = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: micId ? { ideal: micId } : undefined, echoCancellation: on('ec', true), noiseSuppression: prof === 'custom' ? noise : on('noise', true), autoGainControl: on('agc', true) } });
     const old = mic; mic = s; mic.getAudioTracks().forEach(t => { t.enabled = !me.muted; t.onended = () => { if (!left && mic === s) { toast('Microphone stopped — reconnecting it…'); getMic(); } }; });
     sendAudio();                       // swap the new mic into every call first…
     if (old) old.getTracks().forEach(t => t.stop()); // …then stop the old one
@@ -253,7 +254,7 @@ async function openMic() {
   }
   if (micSrc) try { micSrc.disconnect(); } catch (_) {}
   micSrc = mic.getAudioTracks().length ? ac.createMediaStreamSource(mic) : null;
-  if (micSrc) micSrc.connect(micGain);
+  if (micSrc) micSrc.connect(micGain); micGain.gain.value = micVol();
   micMeter = null; meterFor(mic, v => { $('meter').style.width = Math.min(100, v * 280) + '%'; const t = tiles.get(me.id); if (t) t.el.classList.toggle('speaking', v > .04 && !me.muted); }, true);
 }
 let micMeter = null;
@@ -278,7 +279,8 @@ let peer = null, dirPeer = null, dirConn = null, joinedAt = 0;
 const calls = new Map(), members = new Map(), dirConns = new Map(), dirMembers = new Map();
 // The microphone goes straight into the call (most reliable, best echo cancelling).
 // Only while you share PC sound is it mixed with that sound first.
-const mixing = () => !!(screenAudioSrc && ac && ac.state === 'running');
+const micVol = () => Math.max(0, Math.min(2, +store.get('micVol', '1') || 1));
+const mixing = () => !!((screenAudioSrc || Math.abs(micVol() - 1) > .01) && ac && ac.state === 'running');
 const outAudio = () => mixing() ? outDest.stream.getAudioTracks() : (mic ? mic.getAudioTracks() : []);
 function sendAudio() {
   const tr = outAudio()[0] || null;
@@ -375,7 +377,7 @@ function wireCall(call) {
     t.video.srcObject = new MediaStream(s.getVideoTracks()); t.video.muted = true; t.video.play().catch(() => {});
     let au = document.getElementById('au-' + id);
     if (!au) { au = document.createElement('audio'); au.id = 'au-' + id; au.autoplay = true; au.playsInline = true; $('voices').appendChild(au); }
-    au.srcObject = s; au.muted = me.deaf; if (outId && au.setSinkId) au.setSinkId(outId).catch(() => {});
+    au.srcObject = s; au.muted = me.deaf; au.volume = Math.max(0, Math.min(1, +store.get('spkVol', '1') || 1)); if (outId && au.setSinkId) au.setSinkId(outId).catch(() => {});
     au.play().catch(() => showSoundTap());
     meterFor(s, v => t.el.classList.toggle('speaking', v > .04 && !(members.get(id) || {}).muted));
     setTimeout(tuneSenders, 500);
@@ -518,7 +520,7 @@ $('mMic').onclick = async () => {
     <button class="it" data-x="deaf">${I.deaf.replace('<svg', '<svg width="18" height="18"')}<span>${me.deaf ? 'Undeafen' : 'Deafen'}</span></button>`, p => {
     p.querySelectorAll('[data-in]').forEach(b => b.onclick = async () => { micId = b.dataset.in; store.set('micId', micId); closePops(); await getMic(); toast('Microphone changed'); });
     p.querySelectorAll('[data-out]').forEach(b => b.onclick = () => { outId = b.dataset.out; store.set('outId', outId); for (const a of document.querySelectorAll('#voices audio')) if (a.setSinkId) a.setSinkId(outId).catch(() => {}); try { ac && ac.setSinkId && ac.setSinkId(outId).catch(() => {}); } catch (_) {} closePops(); toast('Speaker changed'); });
-    p.querySelector('[data-x=noise]').onclick = async () => { noise = !noise; store.set('noise', noise ? '1' : '0'); closePops(); await getMic(); toast('Noise suppression ' + (noise ? 'on' : 'off')); };
+    p.querySelector('[data-x=noise]').onclick = async () => { noise = !noise; store.set('noise', noise ? '1' : '0'); store.set('profile', 'custom'); closePops(); await getMic(); toast('Noise suppression ' + (noise ? 'on' : 'off')); };
     p.querySelector('[data-x=deaf]').onclick = () => { closePops(); toggleDeaf(); };
   });
 };
